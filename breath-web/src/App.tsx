@@ -199,6 +199,8 @@ function App() {
   const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
   const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
   const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
+  const [holdTopExiting, setHoldTopExiting] = useState(false)
+  const [holdBottomExiting, setHoldBottomExiting] = useState(false)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -372,6 +374,34 @@ function App() {
   useEffect(() => {
     durationsRef.current = durations
   }, [durations])
+
+  const prevHoldTopRef = useRef(durations.HOLD_TOP)
+  const prevHoldBottomRef = useRef(durations.HOLD_BOTTOM)
+  const SETTINGS_ROW_SLIDE_OUT_MS = 280
+
+  useEffect(() => {
+    if (prevHoldTopRef.current > 0 && durations.HOLD_TOP === 0) {
+      setHoldTopExiting(true)
+      const t = window.setTimeout(() => {
+        prevHoldTopRef.current = 0
+        setHoldTopExiting(false)
+      }, SETTINGS_ROW_SLIDE_OUT_MS)
+      return () => window.clearTimeout(t)
+    }
+    prevHoldTopRef.current = durations.HOLD_TOP
+  }, [durations.HOLD_TOP])
+
+  useEffect(() => {
+    if (prevHoldBottomRef.current > 0 && durations.HOLD_BOTTOM === 0) {
+      setHoldBottomExiting(true)
+      const t = window.setTimeout(() => {
+        prevHoldBottomRef.current = 0
+        setHoldBottomExiting(false)
+      }, SETTINGS_ROW_SLIDE_OUT_MS)
+      return () => window.clearTimeout(t)
+    }
+    prevHoldBottomRef.current = durations.HOLD_BOTTOM
+  }, [durations.HOLD_BOTTOM])
 
   // When durations are not all equal, set dots slider to Off (controller updates model → view hides dots)
   useEffect(() => {
@@ -741,9 +771,9 @@ function App() {
             </div>
           </div>
         </label>
-        <h2 className="settings-title">Breath style</h2>
+        <h2 className="settings-title">Breath Style</h2>
         <label className="settings-row">
-          <span>Mode</span>
+          <span>Nostrils</span>
           <div ref={breathModeDropdownRef} className="settings-dropdown">
             <button
               type="button"
@@ -762,7 +792,28 @@ function App() {
             </div>
           </div>
         </label>
-        <h2 className="settings-title">Timing (seconds)</h2>
+        <label className="settings-row">
+          <span>Ratio</span>
+          <div ref={timingModeDropdownRef} className="settings-dropdown">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setTimingModeDropdownOpen((o) => !o)}
+              aria-expanded={timingModeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Breathing ratio"
+            >
+              {TIMING_MODE_LABELS[timingMode]}
+              <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
+              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
+              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
+              <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
+            </div>
+          </div>
+        </label>
         <label className={`settings-row ${timingMode === 'custom' ? 'settings-row--disabled' : ''}`}>
           <span>Multiplier</span>
           <div className={`settings-duration-wrap ${timingMode === 'custom' ? 'settings-duration-wrap--disabled' : ''}`}>
@@ -776,28 +827,6 @@ function App() {
               disabled={timingMode === 'custom'}
             />
             <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
-          </div>
-        </label>
-        <label className="settings-row">
-          <span>Mode</span>
-          <div ref={timingModeDropdownRef} className="settings-dropdown">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setTimingModeDropdownOpen((o) => !o)}
-              aria-expanded={timingModeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Breathing timing mode"
-            >
-              {TIMING_MODE_LABELS[timingMode]}
-              <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
-              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
-              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
-              <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
-            </div>
           </div>
         </label>
         <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
@@ -815,21 +844,23 @@ function App() {
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
           </div>
         </label>
-        <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-          <span>Hold (top)</span>
-          <div className="settings-duration-wrap">
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={durationDisplayValue('HOLD_TOP')}
-              onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_TOP', e.target.value.replace(/\D/g, '').slice(0, 2))}
-              onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_TOP')}
-              disabled={timingMode !== 'custom'}
-            />
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
-          </div>
-        </label>
+        {(durations.HOLD_TOP > 0 || holdTopExiting || timingMode === 'custom') && (
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''} ${holdTopExiting ? 'settings-row--exiting' : ''}`}>
+            <span>Hold (top)</span>
+            <div className="settings-duration-wrap">
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={durationDisplayValue('HOLD_TOP')}
+                onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_TOP', e.target.value.replace(/\D/g, '').slice(0, 2))}
+                onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_TOP')}
+                disabled={timingMode !== 'custom'}
+              />
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
+            </div>
+          </label>
+        )}
         <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
           <span>Exhale</span>
           <div className="settings-duration-wrap">
@@ -845,21 +876,23 @@ function App() {
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
           </div>
         </label>
-        <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-          <span>Hold (bottom)</span>
-          <div className="settings-duration-wrap">
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={durationDisplayValue('HOLD_BOTTOM')}
-              onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_BOTTOM', e.target.value.replace(/\D/g, '').slice(0, 2))}
-              onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_BOTTOM')}
-              disabled={timingMode !== 'custom'}
-            />
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
-          </div>
-        </label>
+        {(durations.HOLD_BOTTOM > 0 || holdBottomExiting || timingMode === 'custom') && (
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''} ${holdBottomExiting ? 'settings-row--exiting' : ''}`}>
+            <span>Hold (bottom)</span>
+            <div className="settings-duration-wrap">
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={durationDisplayValue('HOLD_BOTTOM')}
+                onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_BOTTOM', e.target.value.replace(/\D/g, '').slice(0, 2))}
+                onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_BOTTOM')}
+                disabled={timingMode !== 'custom'}
+              />
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
+            </div>
+          </label>
+        )}
         {/* ---------- View: visibility sliders (read/write model) ---------- */}
         <h2 className="settings-title">Visibility</h2>
         <div className="settings-row settings-row--slider">
