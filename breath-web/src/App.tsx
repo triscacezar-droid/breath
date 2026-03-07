@@ -13,7 +13,7 @@ const DEFAULT_DURATIONS: Record<Phase, number> = {
   HOLD_BOTTOM: 5,
 }
 
-const MIN_SCALE = 0.01
+const MIN_SCALE = 0.005
 const MAX_SCALE = 0.5
 
 function easeInOut(t: number) {
