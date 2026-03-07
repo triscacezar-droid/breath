@@ -177,7 +177,7 @@
 }
 
 .circle {
-  --circle-size: clamp(140px, 65vmin, 320px);
+  --circle-size: clamp(120px, 48vmin, 280px);
   width: var(--circle-size);
   height: var(--circle-size);
   border-radius: 999px;
