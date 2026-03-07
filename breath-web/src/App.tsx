@@ -1,5 +1,9 @@
 import './App.css'
+import { createClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
 type Phase = 'INHALE' | 'HOLD_TOP' | 'EXHALE' | 'HOLD_BOTTOM'
 
@@ -114,6 +118,7 @@ function App() {
   const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
   const [editingBoxBreath, setEditingBoxBreath] = useState<string | undefined>(undefined)
   const [initialDelayPassed, setInitialDelayPassed] = useState(false)
+  const [othersOnline, setOthersOnline] = useState<number | null>(null)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -139,6 +144,35 @@ function App() {
   useEffect(() => {
     const t = window.setTimeout(() => setInitialDelayPassed(true), 1000)
     return () => window.clearTimeout(t)
+  }, [])
+
+  /* ---------- Presence: how many others are using the app (Supabase Realtime) ---------- */
+  useEffect(() => {
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    const PRESENCE_KEY = 'breath-presence'
+    let sessionId = sessionStorage.getItem(PRESENCE_KEY)
+    if (!sessionId) {
+      sessionId = crypto.randomUUID()
+      sessionStorage.setItem(PRESENCE_KEY, sessionId)
+    }
+    const channel = supabase.channel('breath-users', {
+      config: { presence: { key: sessionId } },
+    })
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState()
+        const total = Object.keys(state).length
+        setOthersOnline(Math.max(0, total - 1))
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          channel.track({ breathing: true })
+        }
+      })
+    return () => {
+      channel.unsubscribe()
+    }
   }, [])
 
   /* ---------- Controller: effects and actions that update the model ---------- */
@@ -635,7 +669,12 @@ function App() {
           />
       </section>
       <footer className={`cycles-footer ${initialDelayPassed && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!initialDelayPassed || !cyclesVisible}>
-        {cycleCount} cycles completed
+        <span>{cycleCount} cycles completed</span>
+        {othersOnline !== null && (
+          <span className="cycles-footer__presence">
+            {othersOnline === 0 ? 'No one else right now' : `${othersOnline} ${othersOnline === 1 ? 'other' : 'others'} breathing now`}
+          </span>
+        )}
       </footer>
         </div>
       </div>

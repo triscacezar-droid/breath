@@ -401,6 +401,14 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cycles-footer__presence {
+  font-size: 0.9em;
+  color: #999;
 }
 
 .cycles-footer.cycles-footer--visible {
