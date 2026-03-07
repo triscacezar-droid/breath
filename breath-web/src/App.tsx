@@ -521,11 +521,23 @@ function App() {
         return
       }
 
-      const next = nextPhase(currentPhase)
-      if (currentPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
+      let next = nextPhase(currentPhase)
+      let lastDisplayedPhase = currentPhase
+
+      /* Skip zero-duration phases completely */
+      for (let i = 0; i < 4 && durationsRef.current[next] === 0; i++) {
+        if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
+          setCycleCount((c) => c + 1)
+        }
+        lastDisplayedPhase = next
+        next = nextPhase(next)
+      }
+
+      if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
         setCycleCount((c) => c + 1)
       }
 
+      /* prevLabel = phase we actually displayed (left), not skipped phases */
       setPrevLabel(phaseLabel(currentPhase))
       phaseRef.current = next
       setLabelAnimating(true)
@@ -751,45 +763,43 @@ function App() {
           </div>
         </label>
         <h2 className="settings-title">Timing (seconds)</h2>
-        <div className="settings-row settings-row--mode-multiplier">
-          <label className="settings-multiplier-wrap">
-            <span className="settings-multiplier-label">Multiplier</span>
-            <div className={`settings-duration-wrap ${timingMode === 'custom' ? 'settings-duration-wrap--disabled' : ''}`}>
-              <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.max(0, v - 1))} aria-label="Decrease multiplier">−</button>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={multiplierDisplayValue}
-                onChange={(e) => timingMode !== 'custom' && handleMultiplierChange(e.target.value)}
-                onBlur={handleMultiplierBlur}
-                disabled={timingMode === 'custom'}
-              />
-              <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
+        <label className={`settings-row ${timingMode === 'custom' ? 'settings-row--disabled' : ''}`}>
+          <span>Multiplier</span>
+          <div className={`settings-duration-wrap ${timingMode === 'custom' ? 'settings-duration-wrap--disabled' : ''}`}>
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.max(0, v - 1))} aria-label="Decrease multiplier">−</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={multiplierDisplayValue}
+              onChange={(e) => timingMode !== 'custom' && handleMultiplierChange(e.target.value)}
+              onBlur={handleMultiplierBlur}
+              disabled={timingMode === 'custom'}
+            />
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
+          </div>
+        </label>
+        <label className="settings-row">
+          <span>Mode</span>
+          <div ref={timingModeDropdownRef} className="settings-dropdown">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setTimingModeDropdownOpen((o) => !o)}
+              aria-expanded={timingModeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Breathing timing mode"
+            >
+              {TIMING_MODE_LABELS[timingMode]}
+              <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
+              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
+              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
+              <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
             </div>
-          </label>
-          <label className="settings-mode-wrap">
-            <span>Mode</span>
-            <div ref={timingModeDropdownRef} className="settings-dropdown">
-              <button
-                type="button"
-                className="settings-dropdown__trigger"
-                onClick={() => setTimingModeDropdownOpen((o) => !o)}
-                aria-expanded={timingModeDropdownOpen}
-                aria-haspopup="listbox"
-                aria-label="Breathing timing mode"
-              >
-                {TIMING_MODE_LABELS[timingMode]}
-                <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
-              </button>
-              <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-                <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
-                <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
-                <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
-                <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
-              </div>
-            </div>
-          </label>
-        </div>
+          </div>
+        </label>
         <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
           <span>Inhale</span>
           <div className="settings-duration-wrap">

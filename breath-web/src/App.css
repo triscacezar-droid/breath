@@ -212,23 +212,6 @@
   color: var(--color-text-primary);
 }
 
-.settings-row--mode-multiplier {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-}
-
-.settings-multiplier-wrap,
-.settings-mode-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.settings-multiplier-label {
-  flex-shrink: 0;
-}
-
 .settings-duration-wrap--disabled {
   opacity: 0.5;
   pointer-events: none;
@@ -890,10 +873,6 @@
   }
   100% {
     transform: translateY(0);
-    opacity: 1;
-  }
-}
- translateY(0);
     opacity: 1;
   }
 }
