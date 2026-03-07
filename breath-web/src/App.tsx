@@ -23,13 +23,43 @@ const MAX_SCALE = 0.5
 /** Box = equal phases; Kumbhaka = 1:4:2:0 (inhale:hold top:exhale:hold bottom); Custom = user values */
 type TimingMode = 'box' | 'kumbhaka' | 'custom'
 
-type ColorScheme = 'dark' | 'light' | 'sepia'
+const COLOR_SCHEMES = [
+  'dark', 'light', 'sepia', 'dracula', 'monokai', 'solarized-dark', 'solarized-light',
+  'one-dark', 'one-light', 'nord', 'gruvbox-dark', 'gruvbox-light', 'tokyo-night',
+  'catppuccin-mocha', 'night-owl', 'github-dark', 'github-light', 'rose-pine',
+  'forest', 'cyberpunk',
+] as const
+
+type ColorScheme = (typeof COLOR_SCHEMES)[number]
+
+const THEME_LABELS: Record<ColorScheme, string> = {
+  dark: 'Dark',
+  light: 'Light',
+  sepia: 'Sepia',
+  dracula: 'Dracula',
+  monokai: 'Monokai',
+  'solarized-dark': 'Solarized Dark',
+  'solarized-light': 'Solarized Light',
+  'one-dark': 'One Dark',
+  'one-light': 'One Light',
+  nord: 'Nord',
+  'gruvbox-dark': 'Gruvbox Dark',
+  'gruvbox-light': 'Gruvbox Light',
+  'tokyo-night': 'Tokyo Night',
+  'catppuccin-mocha': 'Catppuccin Mocha',
+  'night-owl': 'Night Owl',
+  'github-dark': 'GitHub Dark',
+  'github-light': 'GitHub Light',
+  'rose-pine': 'Rose Pine',
+  forest: 'Forest',
+  cyberpunk: 'Cyberpunk',
+}
 
 const COLOR_SCHEME_KEY = 'breath-color-scheme'
 
 function getStoredColorScheme(): ColorScheme {
   const s = localStorage.getItem(COLOR_SCHEME_KEY)
-  if (s === 'light' || s === 'sepia') return s
+  if (s && COLOR_SCHEMES.includes(s as ColorScheme)) return s as ColorScheme
   return 'dark'
 }
 
@@ -825,13 +855,13 @@ function App() {
               aria-haspopup="listbox"
               aria-label="Color scheme"
             >
-              {colorScheme === 'dark' ? 'Dark' : colorScheme === 'light' ? 'Light' : 'Sepia'}
+              {THEME_LABELS[colorScheme]}
               <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
             </button>
-            <div className={`settings-dropdown__panel ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              <button type="button" role="option" aria-selected={colorScheme === 'dark'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('dark')}>Dark</button>
-              <button type="button" role="option" aria-selected={colorScheme === 'light'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('light')}>Light</button>
-              <button type="button" role="option" aria-selected={colorScheme === 'sepia'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('sepia')}>Sepia</button>
+            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              {COLOR_SCHEMES.map((scheme) => (
+                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
+              ))}
             </div>
           </div>
         </label>

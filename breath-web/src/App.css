@@ -181,6 +181,11 @@
   opacity: 1;
 }
 
+.settings-dropdown__panel--themes.settings-dropdown__panel--open {
+  max-height: min(320px, 70vh);
+  overflow-y: auto;
+}
+
 .settings-dropdown__option {
   display: block;
   width: 100%;
