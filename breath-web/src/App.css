@@ -45,8 +45,15 @@
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease, background 0.2s;
   -webkit-tap-highlight-color: transparent;
+}
+
+.settings-trigger--visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .settings-trigger:hover {
@@ -279,10 +286,34 @@
   height: 32px;
   margin-top: 0;
   border-radius: 50%;
-  background: #e6c200;
+  background: #fff;
   cursor: pointer;
   border: none;
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+  transition: box-shadow 0.2s ease, background 0.35s ease;
+}
+
+/* Off: track greyed, thumb grey */
+.settings-slider--mode-0::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+.settings-slider--mode-0::-webkit-slider-thumb {
+  background: rgba(140, 140, 140, 0.7);
+}
+
+/* On tap: track normal, thumb white */
+.settings-slider--mode-1::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.settings-slider--mode-1::-webkit-slider-thumb {
+  background: #fff;
+}
+
+/* Always on: track normal, thumb yellow */
+.settings-slider--mode-2::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.settings-slider--mode-2::-webkit-slider-thumb {
+  background: #e6c200;
 }
 
 .settings-slider::-moz-range-track {
@@ -296,10 +327,31 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e6c200;
+  background: #fff;
   cursor: pointer;
   border: none;
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+  transition: box-shadow 0.2s ease, background 0.35s ease;
+}
+
+.settings-slider--mode-0::-moz-range-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+.settings-slider--mode-0::-moz-range-thumb {
+  background: rgba(140, 140, 140, 0.7);
+}
+
+.settings-slider--mode-1::-moz-range-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.settings-slider--mode-1::-moz-range-thumb {
+  background: #fff;
+}
+
+.settings-slider--mode-2::-moz-range-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+.settings-slider--mode-2::-moz-range-thumb {
+  background: #e6c200;
 }
 
 .settings-slider-labels {

@@ -101,12 +101,14 @@ function App() {
   const [cycleCount, setCycleCount] = useState(0)
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [textVisibility, setTextVisibility] = useState<VisibilityMode>(0)
+  const [textVisibility, setTextVisibility] = useState<VisibilityMode>(2)
   const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(0)
   const [sphereVisibility, setSphereVisibility] = useState<VisibilityMode>(2)
-  const [textVisibilityAnimated, setTextVisibilityAnimated] = useState(0)
+  const [cyclesVisibility, setCyclesVisibility] = useState<VisibilityMode>(1)
+  const [textVisibilityAnimated, setTextVisibilityAnimated] = useState(2)
   const [dotsVisibilityAnimated, setDotsVisibilityAnimated] = useState(0)
   const [sphereVisibilityAnimated, setSphereVisibilityAnimated] = useState(2)
+  const [cyclesVisibilityAnimated, setCyclesVisibilityAnimated] = useState(1)
   const [labelAnimating, setLabelAnimating] = useState(false)
   const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
   const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
@@ -115,8 +117,8 @@ function App() {
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
   const sliderLerpRef = useRef<number | null>(null)
-  const draggingSliderRef = useRef<'text' | 'dots' | 'sphere' | null>(null)
-  const firstChangeAfterDownRef = useRef(true)
+  const draggingSliderRef = useRef<'text' | 'dots' | 'sphere' | 'cycles' | null>(null)
+  const sliderChangeCountRef = useRef(0)
   const hideInfoTimeoutRef = useRef<number | null>(null)
   const phaseRef = useRef<Phase>('INHALE')
   const secondsLeftRef = useRef<number>(DEFAULT_DURATIONS.INHALE)
@@ -130,6 +132,7 @@ function App() {
   const textVisible = textVisibility === 2 || (textVisibility === 1 && showInfo)
   const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showInfo)
   const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
+  const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
 
   /* ---------- Controller: effects and actions that update the model ---------- */
   useEffect(() => {
@@ -267,6 +270,12 @@ function App() {
         const next = prev + (target - prev) * LERP
         return Math.abs(next - target) < EPS ? target : next
       })
+      setCyclesVisibilityAnimated((prev) => {
+        if (draggingSliderRef.current === 'cycles') return prev
+        const target = cyclesVisibility
+        const next = prev + (target - prev) * LERP
+        return Math.abs(next - target) < EPS ? target : next
+      })
       sliderLerpRef.current = window.requestAnimationFrame(tick)
     }
     sliderLerpRef.current = window.requestAnimationFrame(tick)
@@ -276,7 +285,7 @@ function App() {
         sliderLerpRef.current = null
       }
     }
-  }, [textVisibility, dotsVisibility, sphereVisibility])
+  }, [textVisibility, dotsVisibility, sphereVisibility, cyclesVisibility])
 
   useEffect(() => {
     intervalRef.current = window.setInterval(() => {
@@ -458,28 +467,26 @@ function App() {
         <h2 className="settings-title">Visibility</h2>
         <div className="settings-row settings-row--slider">
           <span className="settings-slider-label">Text</span>
-          <div className="settings-slider-wrap">
+          <div className={`settings-slider-wrap ${Math.round(textVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
             <input
               type="range"
               min={0}
               max={2}
               step={0.01}
               value={textVisibilityAnimated}
-              onPointerDown={() => { draggingSliderRef.current = 'text'; firstChangeAfterDownRef.current = true }}
+              onPointerDown={() => { draggingSliderRef.current = 'text'; sliderChangeCountRef.current = 0 }}
               onPointerUp={() => { draggingSliderRef.current = null }}
               onPointerLeave={() => { draggingSliderRef.current = null }}
               onChange={(e) => {
                 const v = parseFloat(e.target.value)
                 setTextVisibility(Math.round(v) as VisibilityMode)
                 if (draggingSliderRef.current === 'text') {
-                  if (firstChangeAfterDownRef.current) {
-                    firstChangeAfterDownRef.current = false
-                    /* don't set animated on first change – let RAF animate (avoids snap on click) */
-                  } else setTextVisibilityAnimated(v)
+                  sliderChangeCountRef.current += 1
+                  if (sliderChangeCountRef.current >= 2) setTextVisibilityAnimated(v)
                 }
               }}
               aria-label="Phase text visibility"
-              className="settings-slider"
+              className={`settings-slider settings-slider--mode-${Math.round(textVisibilityAnimated)}`}
             />
             <div className="settings-slider-labels" aria-hidden>
               <span>Off</span>
@@ -490,7 +497,7 @@ function App() {
         </div>
         <div className={`settings-row settings-row--slider ${!isBoxBreath ? 'settings-row--disabled' : ''}`}>
           <span className="settings-slider-label">Dots</span>
-          <div className="settings-slider-wrap">
+          <div className={`settings-slider-wrap ${Math.round(dotsVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
             <input
               type="range"
               min={0}
@@ -498,21 +505,19 @@ function App() {
               step={0.01}
               value={dotsVisibilityAnimated}
               disabled={!isBoxBreath}
-              onPointerDown={() => { isBoxBreath && (draggingSliderRef.current = 'dots'); firstChangeAfterDownRef.current = true }}
+              onPointerDown={() => { isBoxBreath && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
               onPointerUp={() => { draggingSliderRef.current = null }}
               onPointerLeave={() => { draggingSliderRef.current = null }}
               onChange={(e) => {
                 const v = parseFloat(e.target.value)
                 setDotsVisibility(Math.round(v) as VisibilityMode)
                 if (draggingSliderRef.current === 'dots') {
-                  if (firstChangeAfterDownRef.current) {
-                    firstChangeAfterDownRef.current = false
-                    /* don't set animated on first change – let RAF animate (avoids snap on click) */
-                  } else setDotsVisibilityAnimated(v)
+                  sliderChangeCountRef.current += 1
+                  if (sliderChangeCountRef.current >= 2) setDotsVisibilityAnimated(v)
                 }
               }}
               aria-label="Dots visibility"
-              className="settings-slider"
+              className={`settings-slider settings-slider--mode-${Math.round(dotsVisibilityAnimated)}`}
             />
             <div className="settings-slider-labels" aria-hidden>
               <span>Off</span>
@@ -523,28 +528,56 @@ function App() {
         </div>
         <div className="settings-row settings-row--slider">
           <span className="settings-slider-label">Sphere</span>
-          <div className="settings-slider-wrap">
+          <div className={`settings-slider-wrap ${Math.round(sphereVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
             <input
               type="range"
               min={0}
               max={2}
               step={0.01}
               value={sphereVisibilityAnimated}
-              onPointerDown={() => { draggingSliderRef.current = 'sphere'; firstChangeAfterDownRef.current = true }}
+              onPointerDown={() => { draggingSliderRef.current = 'sphere'; sliderChangeCountRef.current = 0 }}
               onPointerUp={() => { draggingSliderRef.current = null }}
               onPointerLeave={() => { draggingSliderRef.current = null }}
               onChange={(e) => {
                 const v = parseFloat(e.target.value)
                 setSphereVisibility(Math.round(v) as VisibilityMode)
                 if (draggingSliderRef.current === 'sphere') {
-                  if (firstChangeAfterDownRef.current) {
-                    firstChangeAfterDownRef.current = false
-                    /* don't set animated on first change – let RAF animate (avoids snap on click) */
-                  } else setSphereVisibilityAnimated(v)
+                  sliderChangeCountRef.current += 1
+                  if (sliderChangeCountRef.current >= 2) setSphereVisibilityAnimated(v)
                 }
               }}
               aria-label="Sphere visibility"
-              className="settings-slider"
+              className={`settings-slider settings-slider--mode-${Math.round(sphereVisibilityAnimated)}`}
+            />
+            <div className="settings-slider-labels" aria-hidden>
+              <span>Off</span>
+              <span>On tap</span>
+              <span>On</span>
+            </div>
+          </div>
+        </div>
+        <div className="settings-row settings-row--slider">
+          <span className="settings-slider-label">Cycles</span>
+          <div className={`settings-slider-wrap ${Math.round(cyclesVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.01}
+              value={cyclesVisibilityAnimated}
+              onPointerDown={() => { draggingSliderRef.current = 'cycles'; sliderChangeCountRef.current = 0 }}
+              onPointerUp={() => { draggingSliderRef.current = null }}
+              onPointerLeave={() => { draggingSliderRef.current = null }}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value)
+                setCyclesVisibility(Math.round(v) as VisibilityMode)
+                if (draggingSliderRef.current === 'cycles') {
+                  sliderChangeCountRef.current += 1
+                  if (sliderChangeCountRef.current >= 2) setCyclesVisibilityAnimated(v)
+                }
+              }}
+              aria-label="Cycles completed visibility"
+              className={`settings-slider settings-slider--mode-${Math.round(cyclesVisibilityAnimated)}`}
             />
             <div className="settings-slider-labels" aria-hidden>
               <span>Off</span>
@@ -555,15 +588,13 @@ function App() {
         </div>
       </aside>
       <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
-        {(showInfo || textVisibility === 2 || dotsVisibility === 2 || sphereVisibility === 2) && (
-          <button type="button" className="settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings">
+        <button type="button" className={`settings-trigger ${showInfo ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo}>
             <span className="settings-trigger-icon" aria-hidden>
               <span />
               <span />
               <span />
             </span>
           </button>
-        )}
       <section className="session" aria-label="Breathing session">
         <div className="status-slot" aria-hidden={!textVisible && !dotsVisible}>
           <div className={`status ${textVisible ? 'status--visible' : 'status--hidden'}`}>
@@ -595,7 +626,7 @@ function App() {
             }}
           />
       </section>
-      <footer className={`cycles-footer ${textVisible || dotsVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!textVisible && !dotsVisible}>
+      <footer className={`cycles-footer ${cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!cyclesVisible}>
         {cycleCount} cycles completed
       </footer>
       </div>
