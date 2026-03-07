@@ -118,6 +118,7 @@ function App() {
   const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
   const [editingBoxBreath, setEditingBoxBreath] = useState<string | undefined>(undefined)
   const [initialDelayPassed, setInitialDelayPassed] = useState(false)
+  const [contentRevealed, setContentRevealed] = useState(false)
   const [othersOnline, setOthersOnline] = useState<number | null>(null)
 
   const intervalRef = useRef<number | null>(null)
@@ -139,10 +140,15 @@ function App() {
   const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showInfo)
   const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
   const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
+  const contentVisible = initialDelayPassed && contentRevealed
 
-  /* ---------- Controller: 1.5s initial delay before showing anything ---------- */
+  /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
-    const t = window.setTimeout(() => setInitialDelayPassed(true), 1000)
+    const t = window.setTimeout(() => {
+      setInitialDelayPassed(true)
+      setContentRevealed(true)
+      setShowInfo(true)
+    }, 1000)
     return () => window.clearTimeout(t)
   }, [])
 
@@ -629,8 +635,8 @@ function App() {
         </div>
       </aside>
       <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
-        <div className={`content-inner ${initialDelayPassed ? 'content-inner--visible' : ''}`}>
-        <button type="button" className={`settings-trigger ${showInfo && initialDelayPassed ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo || !initialDelayPassed}>
+        <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
+        <button type="button" className={`settings-trigger ${showInfo && contentVisible ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo || !contentVisible}>
             <span className="settings-trigger-icon" aria-hidden>
               <span />
               <span />
@@ -638,8 +644,8 @@ function App() {
             </span>
           </button>
       <section className="session" aria-label="Breathing session">
-        <div className="status-slot" aria-hidden={!initialDelayPassed || (!textVisible && !dotsVisible)}>
-          <div className={`status ${initialDelayPassed && textVisible ? 'status--visible' : 'status--hidden'}`}>
+        <div className="status-slot" aria-hidden={!contentVisible || (!textVisible && !dotsVisible)}>
+          <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
             <div className="phase-stack">
               {labelAnimating ? (
                 <>
@@ -651,7 +657,7 @@ function App() {
               )}
             </div>
           </div>
-          <div className={`phase-dots-wrap ${initialDelayPassed && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
+          <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
             <PhaseDots
               phase={phase}
               duration={durations[phase]}
@@ -661,14 +667,14 @@ function App() {
         </div>
 
         <div
-            className={`circle ${initialDelayPassed && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+            className={`circle ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
             data-phase={phase}
             style={{
               transform: `translate(-50%, -50%) scale(${scale})`,
             }}
           />
       </section>
-      <footer className={`cycles-footer ${initialDelayPassed && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!initialDelayPassed || !cyclesVisible}>
+      <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
         <span>{cycleCount} cycles completed</span>
         {othersOnline !== null && (
           <span className="cycles-footer__presence">
