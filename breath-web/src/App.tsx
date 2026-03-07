@@ -20,8 +20,15 @@ const DEFAULT_DURATIONS: Record<Phase, number> = {
 const MIN_SCALE = 0.01
 const MAX_SCALE = 0.5
 
-/** Box = equal phases; Kumbhaka = 1:4:2:0 (inhale:hold top:exhale:hold bottom); Custom = user values */
-type TimingMode = 'box' | 'kumbhaka' | 'custom'
+/** Box = equal phases; Kumbhaka = 1:4:2:0; Long Exhale = 1:0:2:0 (no holds); Custom = user values */
+type TimingMode = 'box' | 'kumbhaka' | 'long_exhale' | 'custom'
+
+const TIMING_MODE_LABELS: Record<TimingMode, string> = {
+  box: 'Sama Vritti',
+  kumbhaka: 'Kumbhaka',
+  long_exhale: 'Long Exhale',
+  custom: 'Custom',
+}
 
 type BreathMode = 'normal' | 'anulom_vilom'
 
@@ -76,6 +83,13 @@ function getStoredColorScheme(): ColorScheme {
 const KUMBHAKA_RATIO: Record<Phase, number> = {
   INHALE: 1,
   HOLD_TOP: 4,
+  EXHALE: 2,
+  HOLD_BOTTOM: 0,
+}
+
+const LONG_EXHALE_RATIO: Record<Phase, number> = {
+  INHALE: 1,
+  HOLD_TOP: 0,
   EXHALE: 2,
   HOLD_BOTTOM: 0,
 }
@@ -159,7 +173,7 @@ function App() {
   /* ---------- Model ---------- */
   const [timingMode, setTimingMode] = useState<TimingMode>('box')
   const [timingModeDropdownOpen, setTimingModeDropdownOpen] = useState(false)
-  const [multiplierSeconds, setMultiplierSeconds] = useState(5)
+  const [multiplierSeconds, setMultiplierSeconds] = useState(4)
   const [durations, setDurations] = useState<Record<Phase, number>>(() => ({ ...DEFAULT_DURATIONS }))
   const [phase, setPhase] = useState<Phase>('INHALE')
   const [secondsLeft, setSecondsLeft] = useState(DEFAULT_DURATIONS.INHALE)
@@ -270,8 +284,21 @@ function App() {
   const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
   const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
 
-  /* Anulom Vilom: sphere on right only during HOLD_TOP (at top); left for INHALE, EXHALE, HOLD_BOTTOM. Both switches happen at top. */
-  const sphereSide = breathMode === 'normal' ? 'center' : (phase === 'HOLD_TOP' ? 'right' : 'left')
+  /* Anulom Vilom: inhale left / exhale right on even cycles; inhale right / exhale left on odd. Switch only at top (both during hold). */
+  const inhaleSide = cycleCount % 2 === 0 ? 'left' : 'right'
+  const exhaleSide = cycleCount % 2 === 0 ? 'right' : 'left'
+  const sphereLeftVisible =
+    breathMode === 'normal'
+      ? false
+      : phase === 'HOLD_TOP' ||
+        (phase === 'INHALE' && inhaleSide === 'left') ||
+        ((phase === 'EXHALE' || phase === 'HOLD_BOTTOM') && exhaleSide === 'left')
+  const sphereRightVisible =
+    breathMode === 'normal'
+      ? false
+      : phase === 'HOLD_TOP' ||
+        (phase === 'INHALE' && inhaleSide === 'right') ||
+        ((phase === 'EXHALE' || phase === 'HOLD_BOTTOM') && exhaleSide === 'right')
 
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
@@ -358,12 +385,20 @@ function App() {
     }
   }, [durations, dotsVisibility])
 
-  // Keep durations in sync when in box or kumbhaka mode
+  // Keep durations in sync when in box, kumbhaka, or long_exhale mode
   useEffect(() => {
     if (timingMode === 'custom') return
-    const m = Math.max(0, Math.min(60, multiplierSeconds))
+    const maxM = timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60
+    const m = Math.max(0, Math.min(maxM, multiplierSeconds))
     if (timingMode === 'box') {
       setDurations(() => ({ INHALE: m, HOLD_TOP: m, EXHALE: m, HOLD_BOTTOM: m }))
+    } else if (timingMode === 'long_exhale') {
+      setDurations(() => ({
+        INHALE: Math.min(60, Math.round(LONG_EXHALE_RATIO.INHALE * m)),
+        HOLD_TOP: Math.min(60, Math.round(LONG_EXHALE_RATIO.HOLD_TOP * m)),
+        EXHALE: Math.min(60, Math.round(LONG_EXHALE_RATIO.EXHALE * m)),
+        HOLD_BOTTOM: Math.min(60, Math.round(LONG_EXHALE_RATIO.HOLD_BOTTOM * m)),
+      }))
     } else {
       setDurations(() => ({
         INHALE: Math.min(60, Math.round(KUMBHAKA_RATIO.INHALE * m)),
@@ -374,9 +409,9 @@ function App() {
     }
   }, [timingMode, multiplierSeconds])
 
-  // When switching to custom, turn dots off (durations may differ)
+  // When switching to custom or long_exhale, turn dots off (durations may differ)
   useEffect(() => {
-    if (timingMode === 'custom') {
+    if (timingMode === 'custom' || timingMode === 'long_exhale') {
       setDotsVisibility(0)
       setDotsVisibilityAnimated(0)
     }
@@ -598,7 +633,7 @@ function App() {
     const s = editingBoxBreath
     if (s === undefined) return
     const n = parseInt(s, 10)
-    const maxM = timingMode === 'kumbhaka' ? 15 : 60
+    const maxM = timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60
     const v = Number.isNaN(n) ? 0 : Math.max(0, Math.min(maxM, n))
     setMultiplierSeconds(v)
     setEditingBoxBreath(undefined)
@@ -729,7 +764,7 @@ function App() {
                 onBlur={handleMultiplierBlur}
                 disabled={timingMode === 'custom'}
               />
-              <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : 60, v + 1))} aria-label="Increase multiplier">+</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
             </div>
           </label>
           <label className="settings-mode-wrap">
@@ -743,12 +778,13 @@ function App() {
                 aria-haspopup="listbox"
                 aria-label="Breathing timing mode"
               >
-                {timingMode === 'box' ? 'Sama Vritti' : timingMode === 'kumbhaka' ? 'Kumbhaka' : 'Custom'}
+                {TIMING_MODE_LABELS[timingMode]}
                 <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
               </button>
               <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
                 <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
                 <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
+                <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
                 <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
               </div>
             </div>
@@ -990,13 +1026,13 @@ function App() {
                 </div>
               </div>
             )}
-            {showFloatingSphere && (
+            {showFloatingSphere && breathMode === 'normal' && (
               <div
-                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''} ${breathMode === 'anulom_vilom' ? `breath-stack__float-item--side-${sphereSide}` : ''}`}
+                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
                 style={{
                   top: sphereTop,
-                  left: breathMode === 'anulom_vilom' ? (sphereSide === 'left' ? '25%' : '75%') : '50%',
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                  left: '50%',
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
               >
@@ -1006,6 +1042,46 @@ function App() {
                   style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
                 />
               </div>
+            )}
+            {showFloatingSphere && breathMode === 'anulom_vilom' && (
+              <>
+                <div
+                  className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-left ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
+                  style={{
+                    top: sphereTop,
+                    left: '35%',
+                    opacity: sphereLeftVisible ? 1 : 0,
+                    transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                    pointerEvents: sphereLeftVisible ? 'auto' : 'none',
+                  }}
+                  onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
+                  aria-hidden={!sphereLeftVisible}
+                >
+                  <div
+                    className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+                    data-phase={phase}
+                    style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
+                  />
+                </div>
+                <div
+                  className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-right ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
+                  style={{
+                    top: sphereTop,
+                    left: '65%',
+                    opacity: sphereRightVisible ? 1 : 0,
+                    transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+                    pointerEvents: sphereRightVisible ? 'auto' : 'none',
+                  }}
+                  onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
+                  aria-hidden={!sphereRightVisible}
+                >
+                  <div
+                    className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+                    data-phase={phase}
+                    style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
