@@ -160,6 +160,9 @@ function App() {
   const slot3Ref = useRef<HTMLDivElement>(null)
   const timingModeDropdownRef = useRef<HTMLDivElement>(null)
   const colorSchemeDropdownRef = useRef<HTMLDivElement>(null)
+  const lastTapTimeRef = useRef<number>(0)
+  const singleTapTimeoutRef = useRef<number | null>(null)
+  const lastClosedByDoubleTapRef = useRef<number>(0)
 
   const [scale, setScale] = useState<number>(MIN_SCALE)
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
@@ -461,11 +464,54 @@ function App() {
 
   const handleUserInteract = () => {
     if (showSettings) {
+      lastClosedByDoubleTapRef.current = Date.now()
       setShowSettings(false)
       return
     }
     setShowInfo(true)
   }
+
+  const handleDoubleTapOrDoubleClick = () => {
+    if (showSettings) {
+      lastClosedByDoubleTapRef.current = Date.now()
+      setShowSettings(false)
+      return
+    }
+    if (Date.now() - lastClosedByDoubleTapRef.current < 400) {
+      return
+    }
+    setShowSettings(true)
+  }
+
+  const handleContentClick = () => {
+    handleUserInteract()
+  }
+
+  const handleContentTouchStart = () => {
+    const now = Date.now()
+    if (singleTapTimeoutRef.current !== null) {
+      window.clearTimeout(singleTapTimeoutRef.current)
+      singleTapTimeoutRef.current = null
+    }
+    if (now - lastTapTimeRef.current < 350) {
+      lastTapTimeRef.current = 0
+      handleDoubleTapOrDoubleClick()
+      return
+    }
+    lastTapTimeRef.current = now
+    singleTapTimeoutRef.current = window.setTimeout(() => {
+      singleTapTimeoutRef.current = null
+      handleUserInteract()
+    }, 350)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (singleTapTimeoutRef.current !== null) {
+        window.clearTimeout(singleTapTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const setDuration = (p: Phase, value: number) => {
     const n = Number(value)
@@ -790,7 +836,7 @@ function App() {
           </div>
         </label>
       </aside>
-      <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
+      <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <button type="button" className={`settings-trigger ${showInfo && contentVisible ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo || !contentVisible}>
             <span className="settings-trigger-icon" aria-hidden>
