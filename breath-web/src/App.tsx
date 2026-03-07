@@ -23,6 +23,16 @@ const MAX_SCALE = 0.5
 /** Box = equal phases; Kumbhaka = 1:4:2:0 (inhale:hold top:exhale:hold bottom); Custom = user values */
 type TimingMode = 'box' | 'kumbhaka' | 'custom'
 
+type BreathMode = 'normal' | 'anulom_vilom'
+
+const BREATH_MODE_KEY = 'breath-mode'
+
+function getStoredBreathMode(): BreathMode {
+  const s = localStorage.getItem(BREATH_MODE_KEY)
+  if (s === 'normal' || s === 'anulom_vilom') return s
+  return 'normal'
+}
+
 const COLOR_SCHEMES = [
   'dark', 'light', 'sepia', 'dracula', 'monokai', 'solarized-dark', 'solarized-light',
   'one-dark', 'one-light', 'nord', 'gruvbox-dark', 'gruvbox-light', 'tokyo-night',
@@ -173,6 +183,8 @@ function App() {
   const [othersOnline, setOthersOnline] = useState<number | null>(null)
   const [colorScheme, setColorScheme] = useState<ColorScheme>(getStoredColorScheme)
   const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
+  const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
+  const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -190,6 +202,7 @@ function App() {
   const slot3Ref = useRef<HTMLDivElement>(null)
   const timingModeDropdownRef = useRef<HTMLDivElement>(null)
   const colorSchemeDropdownRef = useRef<HTMLDivElement>(null)
+  const breathModeDropdownRef = useRef<HTMLDivElement>(null)
   const lastTapTimeRef = useRef<number>(0)
   const singleTapTimeoutRef = useRef<number | null>(null)
   const lastClosedByDoubleTapRef = useRef<number>(0)
@@ -256,6 +269,9 @@ function App() {
   const showFloatingText = textVisible && (measuredSlotTop === 'text' || measuredSlotMiddle === 'text' || measuredSlotBottom === 'text')
   const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
   const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
+
+  /* Anulom Vilom: sphere on right only during HOLD_TOP (at top); left for INHALE, EXHALE, HOLD_BOTTOM. Both switches happen at top. */
+  const sphereSide = breathMode === 'normal' ? 'center' : (phase === 'HOLD_TOP' ? 'right' : 'left')
 
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
@@ -615,9 +631,29 @@ function App() {
     localStorage.setItem(COLOR_SCHEME_KEY, colorScheme)
   }, [colorScheme])
 
+  useEffect(() => {
+    localStorage.setItem(BREATH_MODE_KEY, breathMode)
+  }, [breathMode])
+
+  useEffect(() => {
+    if (!breathModeDropdownOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (breathModeDropdownRef.current && !breathModeDropdownRef.current.contains(e.target as Node)) {
+        setBreathModeDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [breathModeDropdownOpen])
+
   const handleColorSchemeChange = (scheme: ColorScheme) => {
     setColorSchemeDropdownOpen(false)
     setColorScheme(scheme)
+  }
+
+  const handleBreathModeChange = (mode: BreathMode) => {
+    setBreathModeDropdownOpen(false)
+    setBreathMode(mode)
   }
 
   const handleTimingModeChange = (mode: TimingMode) => {
@@ -655,6 +691,27 @@ function App() {
               {COLOR_SCHEMES.map((scheme) => (
                 <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
               ))}
+            </div>
+          </div>
+        </label>
+        <h2 className="settings-title">Breath style</h2>
+        <label className="settings-row">
+          <span>Mode</span>
+          <div ref={breathModeDropdownRef} className="settings-dropdown">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setBreathModeDropdownOpen((o) => !o)}
+              aria-expanded={breathModeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Breath style"
+            >
+              {breathMode === 'normal' ? 'Normal' : 'Anulom Vilom'}
+              <span className="settings-dropdown__chevron" aria-hidden>{breathModeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel ${breathModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              <button type="button" role="option" aria-selected={breathMode === 'normal'} className="settings-dropdown__option" onClick={() => handleBreathModeChange('normal')}>Normal</button>
+              <button type="button" role="option" aria-selected={breathMode === 'anulom_vilom'} className="settings-dropdown__option" onClick={() => handleBreathModeChange('anulom_vilom')}>Anulom Vilom</button>
             </div>
           </div>
         </label>
@@ -935,10 +992,11 @@ function App() {
             )}
             {showFloatingSphere && (
               <div
-                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
+                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''} ${breathMode === 'anulom_vilom' ? `breath-stack__float-item--side-${sphereSide}` : ''}`}
                 style={{
                   top: sphereTop,
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  left: breathMode === 'anulom_vilom' ? (sphereSide === 'left' ? '25%' : '75%') : '50%',
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
               >
