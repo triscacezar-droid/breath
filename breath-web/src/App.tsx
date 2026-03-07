@@ -106,6 +106,7 @@ function App() {
   const [sphereVisibilityAnimated, setSphereVisibilityAnimated] = useState(2)
   const [labelAnimating, setLabelAnimating] = useState(false)
   const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
+  const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -291,6 +292,30 @@ function App() {
     if (Number.isNaN(n)) return
     const clamped = Math.max(0, Math.min(60, Math.round(n)))
     setDurations((d) => ({ ...d, [p]: clamped }))
+    setEditingDuration((prev) => {
+      const next = { ...prev }
+      delete next[p]
+      return next
+    })
+  }
+
+  const durationDisplayValue = (p: Phase) =>
+    editingDuration[p] !== undefined ? editingDuration[p] : String(durations[p])
+
+  const handleDurationChange = (p: Phase, value: string) => {
+    setEditingDuration((prev) => ({ ...prev, [p]: value }))
+  }
+
+  const handleDurationBlur = (p: Phase) => {
+    const s = editingDuration[p]
+    if (s === undefined) return
+    const n = parseInt(s, 10)
+    setDurations((d) => ({ ...d, [p]: Number.isNaN(n) ? 0 : Math.max(0, Math.min(60, n)) }))
+    setEditingDuration((prev) => {
+      const next = { ...prev }
+      delete next[p]
+      return next
+    })
   }
 
   return (
@@ -299,43 +324,59 @@ function App() {
         <h2 className="settings-title">Timing (seconds)</h2>
         <label className="settings-row">
           <span>Inhale</span>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            value={durations.INHALE}
-            onChange={(e) => setDuration('INHALE', e.target.valueAsNumber)}
-          />
+          <div className="settings-duration-wrap">
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label="Decrease inhale">−</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={durationDisplayValue('INHALE')}
+              onChange={(e) => handleDurationChange('INHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
+              onBlur={() => handleDurationBlur('INHALE')}
+            />
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
+          </div>
         </label>
         <label className="settings-row">
           <span>Hold (top)</span>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            value={durations.HOLD_TOP}
-            onChange={(e) => setDuration('HOLD_TOP', e.target.valueAsNumber)}
-          />
+          <div className="settings-duration-wrap">
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={durationDisplayValue('HOLD_TOP')}
+              onChange={(e) => handleDurationChange('HOLD_TOP', e.target.value.replace(/\D/g, '').slice(0, 2))}
+              onBlur={() => handleDurationBlur('HOLD_TOP')}
+            />
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
+          </div>
         </label>
         <label className="settings-row">
           <span>Exhale</span>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            value={durations.EXHALE}
-            onChange={(e) => setDuration('EXHALE', e.target.valueAsNumber)}
-          />
+          <div className="settings-duration-wrap">
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('EXHALE', Math.max(0, durations.EXHALE - 1))} aria-label="Decrease exhale">−</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={durationDisplayValue('EXHALE')}
+              onChange={(e) => handleDurationChange('EXHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
+              onBlur={() => handleDurationBlur('EXHALE')}
+            />
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
+          </div>
         </label>
         <label className="settings-row">
           <span>Hold (bottom)</span>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            value={durations.HOLD_BOTTOM}
-            onChange={(e) => setDuration('HOLD_BOTTOM', e.target.valueAsNumber)}
-          />
+          <div className="settings-duration-wrap">
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={durationDisplayValue('HOLD_BOTTOM')}
+              onChange={(e) => handleDurationChange('HOLD_BOTTOM', e.target.value.replace(/\D/g, '').slice(0, 2))}
+              onBlur={() => handleDurationBlur('HOLD_BOTTOM')}
+            />
+            <button type="button" className="settings-duration-btn" onClick={() => setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
+          </div>
         </label>
         <h2 className="settings-title">Visibility</h2>
         <div className="settings-row settings-row--slider">
