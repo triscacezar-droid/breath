@@ -290,6 +290,8 @@ function App() {
   const secondsLeftRef = useRef<number>(DEFAULT_DURATIONS.INHALE)
   const phaseStartTimeRef = useRef<number>(performance.now())
   const durationsRef = useRef<Record<Phase, number>>(durations)
+  const cycleCountRef = useRef(0)
+  const breathModeRef = useRef<BreathMode>('normal')
   const stackRef = useRef<HTMLDivElement>(null)
   const slot1Ref = useRef<HTMLDivElement>(null)
   const slot2Ref = useRef<HTMLDivElement>(null)
@@ -302,6 +304,7 @@ function App() {
   const lastClosedByDoubleTapRef = useRef<number>(0)
 
   const [scale, setScale] = useState<number>(MIN_SCALE)
+  const [sphereAnulomLeft, setSphereAnulomLeft] = useState<number>(50)
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
   const [measuredSlotTop, setMeasuredSlotTop] = useState<'text' | null>(null)
   const [measuredSlotMiddle, setMeasuredSlotMiddle] = useState<'text' | 'dots' | null>(null)
@@ -363,22 +366,6 @@ function App() {
   const showFloatingText = textVisible && (measuredSlotTop === 'text' || measuredSlotMiddle === 'text' || measuredSlotBottom === 'text')
   const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
   const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
-
-  /* Anulom Vilom: inhale left / exhale right on even cycles; inhale right / exhale left on odd. Switch only at top (both during hold). */
-  const inhaleSide = cycleCount % 2 === 0 ? 'left' : 'right'
-  const exhaleSide = cycleCount % 2 === 0 ? 'right' : 'left'
-  const sphereLeftVisible =
-    breathMode === 'normal'
-      ? false
-      : phase === 'HOLD_TOP' ||
-        (phase === 'INHALE' && inhaleSide === 'left') ||
-        ((phase === 'EXHALE' || phase === 'HOLD_BOTTOM') && exhaleSide === 'left')
-  const sphereRightVisible =
-    breathMode === 'normal'
-      ? false
-      : phase === 'HOLD_TOP' ||
-        (phase === 'INHALE' && inhaleSide === 'right') ||
-        ((phase === 'EXHALE' || phase === 'HOLD_BOTTOM') && exhaleSide === 'right')
 
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
@@ -537,6 +524,14 @@ function App() {
   }, [phase])
 
   useEffect(() => {
+    cycleCountRef.current = cycleCount
+  }, [cycleCount])
+
+  useEffect(() => {
+    breathModeRef.current = breathMode
+  }, [breathMode])
+
+  useEffect(() => {
     secondsLeftRef.current = secondsLeft
   }, [secondsLeft])
 
@@ -571,6 +566,31 @@ function App() {
         const smoothing = 0.03
         return prev + (desiredScale - prev) * smoothing
       })
+
+      /* Anulom Vilom: sphere position tracks breath phase duration (in/out over full inhale/exhale), eased */
+      if (breathModeRef.current === 'anulom_vilom') {
+        const cc = cycleCountRef.current
+        const exhaleTo = cc % 2 === 0 ? 65 : 35
+        const inhaleFrom = cc === 0 ? 65 : (cc - 1) % 2 === 0 ? 65 : 35
+        let desiredLeft: number
+        if (currentPhase === 'INHALE') {
+          const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
+          const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
+          desiredLeft = inhaleFrom + (50 - inhaleFrom) * easeInOut(progress)
+        } else if (currentPhase === 'HOLD_TOP') {
+          desiredLeft = 50
+        } else if (currentPhase === 'EXHALE') {
+          const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
+          const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
+          desiredLeft = 50 + (exhaleTo - 50) * easeInOut(progress)
+        } else {
+          desiredLeft = exhaleTo
+        }
+        setSphereAnulomLeft((prev) => {
+          const smoothing = 0.08
+          return prev + (desiredLeft - prev) * smoothing
+        })
+      }
 
       animationRef.current = window.requestAnimationFrame(animate)
     }
@@ -1168,44 +1188,21 @@ function App() {
               </div>
             )}
             {showFloatingSphere && breathMode === 'anulom_vilom' && (
-              <>
+              <div
+                className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-anulom ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
+                style={{
+                  top: sphereTop,
+                  left: `${sphereAnulomLeft}%`,
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
+              >
                 <div
-                  className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-left ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
-                  style={{
-                    top: sphereTop,
-                    left: '35%',
-                    opacity: sphereLeftVisible ? 1 : 0,
-                    transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-                    pointerEvents: sphereLeftVisible ? 'auto' : 'none',
-                  }}
-                  onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
-                  aria-hidden={!sphereLeftVisible}
-                >
-                  <div
-                    className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
-                    data-phase={phase}
-                    style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
-                  />
-                </div>
-                <div
-                  className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-right ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
-                  style={{
-                    top: sphereTop,
-                    left: '65%',
-                    opacity: sphereRightVisible ? 1 : 0,
-                    transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
-                    pointerEvents: sphereRightVisible ? 'auto' : 'none',
-                  }}
-                  onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
-                  aria-hidden={!sphereRightVisible}
-                >
-                  <div
-                    className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
-                    data-phase={phase}
-                    style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
-                  />
-                </div>
-              </>
+                  className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+                  data-phase={phase}
+                  style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
+                />
+              </div>
             )}
           </div>
         </div>
