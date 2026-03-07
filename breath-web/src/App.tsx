@@ -94,6 +94,7 @@ function App() {
   const [cycleCount, setCycleCount] = useState(0)
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [dotsAlwaysOn, setDotsAlwaysOn] = useState(false)
   const [labelAnimating, setLabelAnimating] = useState(false)
   const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
 
@@ -288,31 +289,45 @@ function App() {
             onChange={(e) => setDuration('HOLD_BOTTOM', e.target.valueAsNumber)}
           />
         </label>
+        <label className="settings-row settings-row--checkbox">
+          <span>Keep dots visible</span>
+          <input
+            type="checkbox"
+            checked={dotsAlwaysOn}
+            onChange={(e) => setDotsAlwaysOn(e.target.checked)}
+          />
+        </label>
       </aside>
       <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
         {showInfo && (
           <button type="button" className="settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings">
-            Settings
+            <span className="settings-trigger-icon" aria-hidden>
+              <span />
+              <span />
+              <span />
+            </span>
           </button>
         )}
       <section className="session" aria-label="Breathing session">
         <div className="status-slot" aria-hidden={!showInfo}>
           <div className={`status ${showInfo ? 'status--visible' : 'status--hidden'}`}>
-          <div className="phase-stack">
-            {labelAnimating ? (
-              <>
-                <div className="phase-row phase-out" key="out">{prevLabel}</div>
-                <div className="phase-row phase-in" key="in">{label}</div>
-              </>
-            ) : (
-              <div className="phase-row">{label}</div>
-            )}
+            <div className="phase-stack">
+              {labelAnimating ? (
+                <>
+                  <div className="phase-row phase-out" key="out">{prevLabel}</div>
+                  <div className="phase-row phase-in" key="in">{label}</div>
+                </>
+              ) : (
+                <div className="phase-row">{label}</div>
+              )}
+            </div>
           </div>
-          <PhaseDots
-            phase={phase}
-            duration={durations[phase]}
-            secondsLeft={secondsLeft}
-          />
+          <div className={`phase-dots-wrap ${showInfo || dotsAlwaysOn ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
+            <PhaseDots
+              phase={phase}
+              duration={durations[phase]}
+              secondsLeft={secondsLeft}
+            />
           </div>
         </div>
 
