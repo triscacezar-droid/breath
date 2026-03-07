@@ -215,11 +215,21 @@
   height: var(--circle-size);
   border-radius: 999px;
   background: #fff;
-  transition-property: transform;
+  transition-property: transform, opacity;
   transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
   transition-duration: 0.7s;
   transform-origin: center center;
   flex-shrink: 0;
+}
+
+.circle--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.circle--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .status {

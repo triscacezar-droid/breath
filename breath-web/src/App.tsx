@@ -10,15 +10,16 @@ const DEFAULT_DURATIONS: Record<Phase, number> = {
   HOLD_BOTTOM: 5,
 }
 
-const MIN_SCALE = 0.5
-const MAX_SCALE = 1
+const MIN_SCALE = 0.01
+const MAX_SCALE = 0.5
 
-function lerpAreaScale(t: number) {
+function easeInOut(t: number) {
   const p = Math.max(0, Math.min(1, t))
-  const min2 = MIN_SCALE ** 2
-  const max2 = MAX_SCALE ** 2
-  const area = min2 + (max2 - min2) * p
-  return Math.sqrt(area)
+  return p * p * (3 - 2 * p)
+}
+
+function lerpScale(t: number) {
+  return MIN_SCALE + (MAX_SCALE - MIN_SCALE) * easeInOut(t)
 }
 
 function nextPhase(phase: Phase): Phase {
@@ -94,7 +95,9 @@ function App() {
   const [cycleCount, setCycleCount] = useState(0)
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [textAlwaysOn, setTextAlwaysOn] = useState(false)
   const [dotsAlwaysOn, setDotsAlwaysOn] = useState(false)
+  const [sphereAlwaysOn, setSphereAlwaysOn] = useState(true)
   const [labelAnimating, setLabelAnimating] = useState(false)
   const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
 
@@ -161,18 +164,18 @@ function App() {
       let desiredScale: number
 
       if (currentPhase === 'HOLD_TOP') {
-        desiredScale = lerpAreaScale(1)
+        desiredScale = lerpScale(1)
       } else if (currentPhase === 'HOLD_BOTTOM') {
-        desiredScale = lerpAreaScale(0)
+        desiredScale = lerpScale(0)
       } else {
         const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
         const progress =
           phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
 
         if (currentPhase === 'INHALE') {
-          desiredScale = lerpAreaScale(progress)
+          desiredScale = lerpScale(progress)
         } else if (currentPhase === 'EXHALE') {
-          desiredScale = lerpAreaScale(1 - progress)
+          desiredScale = lerpScale(1 - progress)
         } else {
           desiredScale = MIN_SCALE
         }
@@ -290,11 +293,27 @@ function App() {
           />
         </label>
         <label className="settings-row settings-row--checkbox">
+          <span>Keep phase text visible</span>
+          <input
+            type="checkbox"
+            checked={textAlwaysOn}
+            onChange={(e) => setTextAlwaysOn(e.target.checked)}
+          />
+        </label>
+        <label className="settings-row settings-row--checkbox">
           <span>Keep dots visible</span>
           <input
             type="checkbox"
             checked={dotsAlwaysOn}
             onChange={(e) => setDotsAlwaysOn(e.target.checked)}
+          />
+        </label>
+        <label className="settings-row settings-row--checkbox">
+          <span>Keep sphere visible</span>
+          <input
+            type="checkbox"
+            checked={sphereAlwaysOn}
+            onChange={(e) => setSphereAlwaysOn(e.target.checked)}
           />
         </label>
       </aside>
@@ -309,8 +328,8 @@ function App() {
           </button>
         )}
       <section className="session" aria-label="Breathing session">
-        <div className="status-slot" aria-hidden={!showInfo}>
-          <div className={`status ${showInfo ? 'status--visible' : 'status--hidden'}`}>
+        <div className="status-slot" aria-hidden={!(showInfo || textAlwaysOn || dotsAlwaysOn)}>
+          <div className={`status ${showInfo || textAlwaysOn ? 'status--visible' : 'status--hidden'}`}>
             <div className="phase-stack">
               {labelAnimating ? (
                 <>
@@ -332,7 +351,7 @@ function App() {
         </div>
 
         <div
-          className="circle"
+          className={`circle ${showInfo || sphereAlwaysOn ? 'circle--visible' : 'circle--hidden'}`}
           data-phase={phase}
           style={{
             transform: `translate(-50%, -50%) scale(${scale})`,
