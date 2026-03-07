@@ -448,24 +448,98 @@
   width: 100%;
 }
 
-.session > .status-slot {
+/* Single vertical stack anchored at center (sphere's position); priority: sphere > dots > text */
+.breath-stack {
   position: absolute;
   left: 50%;
-  bottom: calc(50% + clamp(56px, 14vmin, 96px));
+  bottom: 50%;
   transform: translateX(-50%);
+  top: 0;
   width: 100%;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: clamp(24px, 6vmin, 48px);
+  pointer-events: none;
+  padding: 0;
+  transition: gap 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breath-stack__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.breath-stack__slot--center {
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.breath-stack__slot--center:has(.breath-stack__spacer--center) {
+  position: relative;
+  /* Reserve ~half the circle height so the slot doesn’t dominate the stack; circle overflows and stays centered */
+  height: clamp(60px, 24vmin, 140px);
+  flex-shrink: 0;
+}
+
+.breath-stack__spacer {
+  width: 1px;
+  min-height: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
-.session > .circle {
+.breath-stack__spacer--top,
+.breath-stack__spacer--middle {
+  min-height: 2.5em;
+}
+
+.breath-stack__spacer--center {
+  min-height: clamp(60px, 24vmin, 140px);
+  width: 1px;
+}
+
+.breath-stack__floating {
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  right: auto;
+  width: 100%;
+  max-width: 100%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.breath-stack__float-item {
   position: absolute;
   left: 50%;
-  top: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.breath-stack__float-item--sphere {
+  min-height: clamp(60px, 24vmin, 140px);
+}
+
+.breath-stack__float-item--sphere .circle--in-center-slot {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
   margin: 0;
 }
 
-/* Text and dots stacked above the circle; slot sits just above center */
+.breath-stack__float-item--entering {
+  opacity: 0;
+  animation: breath-float-in 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes breath-float-in {
+  to { opacity: 1; }
+}
+
 .status-slot {
   display: flex;
   flex-direction: column;
@@ -507,7 +581,7 @@
   opacity: 0;
   transform: translateY(-12px);
   pointer-events: none;
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   max-width: 100%;
 }
 
@@ -526,7 +600,7 @@
 .phase-dots-wrap {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .phase-dots-wrap--visible {

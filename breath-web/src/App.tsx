@@ -1,6 +1,6 @@
 import './App.css'
 import { createClient } from '@supabase/supabase-js'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -131,8 +131,20 @@ function App() {
   const secondsLeftRef = useRef<number>(DEFAULT_DURATIONS.INHALE)
   const phaseStartTimeRef = useRef<number>(performance.now())
   const durationsRef = useRef<Record<Phase, number>>(durations)
+  const stackRef = useRef<HTMLDivElement>(null)
+  const slot1Ref = useRef<HTMLDivElement>(null)
+  const slot2Ref = useRef<HTMLDivElement>(null)
+  const slot3Ref = useRef<HTMLDivElement>(null)
 
   const [scale, setScale] = useState<number>(MIN_SCALE)
+  const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
+  const [measuredSlotTop, setMeasuredSlotTop] = useState<'text' | null>(null)
+  const [measuredSlotMiddle, setMeasuredSlotMiddle] = useState<'text' | 'dots' | null>(null)
+  const [measuredSlotBottom, setMeasuredSlotBottom] = useState<'text' | 'dots' | 'sphere' | null>(null)
+  const [enteringText, setEnteringText] = useState(false)
+  const [enteringDots, setEnteringDots] = useState(false)
+  const [enteringSphere, setEnteringSphere] = useState(false)
+  const prevMeasuredRef = useRef({ top: null as 'text' | null, middle: null as 'text' | 'dots' | null, bottom: null as 'text' | 'dots' | 'sphere' | null })
 
   /* ---------- Derived from model (view uses these) ---------- */
   const label = phaseLabel(phase)
@@ -141,6 +153,51 @@ function App() {
   const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
   const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
   const contentVisible = initialDelayPassed && contentRevealed
+
+  /* Stack slots: bottom = center (sphere's spot), then middle, then top. Priority: sphere > dots > text. */
+  const slotBottom = sphereVisible ? 'sphere' : (dotsVisible ? 'dots' : (textVisible ? 'text' : null))
+  const slotMiddle = sphereVisible
+    ? (dotsVisible ? 'dots' : (textVisible ? 'text' : null))
+    : (dotsVisible && textVisible ? 'text' : null)
+  const slotTop = sphereVisible && dotsVisible && textVisible ? 'text' : null
+
+  useLayoutEffect(() => {
+    const stack = stackRef.current
+    const s1 = slot1Ref.current
+    const s2 = slot2Ref.current
+    const s3 = slot3Ref.current
+    if (!stack || !s1 || !s2 || !s3) return
+    const stackRect = stack.getBoundingClientRect()
+    const getTop = (el: HTMLElement) => el.getBoundingClientRect().top - stackRect.top
+    setSlotTops([getTop(s1), getTop(s2), getTop(s3)])
+    const prev = prevMeasuredRef.current
+    setMeasuredSlotTop(slotTop)
+    setMeasuredSlotMiddle(slotMiddle)
+    setMeasuredSlotBottom(slotBottom)
+    setEnteringText(
+      (slotTop === 'text' || slotMiddle === 'text' || slotBottom === 'text') &&
+      prev.top !== 'text' && prev.middle !== 'text' && prev.bottom !== 'text'
+    )
+    setEnteringDots(
+      (slotMiddle === 'dots' || slotBottom === 'dots') &&
+      prev.middle !== 'dots' && prev.bottom !== 'dots'
+    )
+    setEnteringSphere(
+      slotBottom === 'sphere' && prev.bottom !== 'sphere'
+    )
+    prevMeasuredRef.current = { top: slotTop, middle: slotMiddle, bottom: slotBottom }
+  }, [slotTop, slotMiddle, slotBottom, contentVisible])
+
+  const textSlotIndex: 0 | 1 | 2 | -1 = measuredSlotTop === 'text' ? 0 : measuredSlotMiddle === 'text' ? 1 : measuredSlotBottom === 'text' ? 2 : -1
+  const dotsSlotIndex: 0 | 1 | 2 | -1 = measuredSlotMiddle === 'dots' ? 1 : measuredSlotBottom === 'dots' ? 2 : -1
+  const sphereSlotIndex: 2 | -1 = measuredSlotBottom === 'sphere' ? 2 : -1
+  const textTop = textSlotIndex === 0 ? slotTops[0] : textSlotIndex === 1 ? slotTops[1] : textSlotIndex === 2 ? slotTops[2] : 0
+  const dotsTop = dotsSlotIndex === 1 ? slotTops[1] : dotsSlotIndex === 2 ? slotTops[2] : 0
+  const sphereTop = sphereSlotIndex === 2 ? slotTops[2] : 0
+
+  const showFloatingText = textVisible && (measuredSlotTop === 'text' || measuredSlotMiddle === 'text' || measuredSlotBottom === 'text')
+  const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
+  const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
 
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
@@ -644,35 +701,81 @@ function App() {
             </span>
           </button>
       <section className="session" aria-label="Breathing session">
-        <div className="status-slot" aria-hidden={!contentVisible || (!textVisible && !dotsVisible)}>
-          <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
-            <div className="phase-stack">
-              {labelAnimating ? (
-                <>
-                  <div className="phase-row phase-out" key="out">{prevLabel}</div>
-                  <div className="phase-row phase-in" key="in">{label}</div>
-                </>
-              ) : (
-                <div className="phase-row">{label}</div>
-              )}
-            </div>
+        <div
+          ref={stackRef}
+          className="breath-stack"
+          aria-hidden={!contentVisible || (!textVisible && !dotsVisible && !sphereVisible)}
+        >
+          <div ref={slot1Ref} className="breath-stack__slot">
+            {slotTop != null && <div className="breath-stack__spacer breath-stack__spacer--top" aria-hidden />}
           </div>
-          <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-            <PhaseDots
-              phase={phase}
-              duration={durations[phase]}
-              secondsLeft={secondsLeft}
-            />
+          <div ref={slot2Ref} className="breath-stack__slot">
+            {slotMiddle != null && <div className="breath-stack__spacer breath-stack__spacer--middle" aria-hidden />}
+          </div>
+          <div ref={slot3Ref} className="breath-stack__slot breath-stack__slot--center">
+            {slotBottom != null && (
+              <div
+                className={`breath-stack__spacer ${slotBottom === 'sphere' ? 'breath-stack__spacer--center' : 'breath-stack__spacer--middle'}`}
+                aria-hidden
+              />
+            )}
+          </div>
+          <div className="breath-stack__floating">
+            {showFloatingText && (
+              <div
+                className={`breath-stack__float-item ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
+                style={{
+                  top: textTop,
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onAnimationEnd={() => enteringText && setEnteringText(false)}
+              >
+                <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
+                  <div className="phase-stack">
+                    {labelAnimating ? (
+                      <>
+                        <div className="phase-row phase-out" key="out">{prevLabel}</div>
+                        <div className="phase-row phase-in" key="in">{label}</div>
+                      </>
+                    ) : (
+                      <div className="phase-row">{label}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {showFloatingDots && (
+              <div
+                className={`breath-stack__float-item ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
+                style={{
+                  top: dotsTop,
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onAnimationEnd={() => enteringDots && setEnteringDots(false)}
+              >
+                <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
+                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} />
+                </div>
+              </div>
+            )}
+            {showFloatingSphere && (
+              <div
+                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
+                style={{
+                  top: sphereTop,
+                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
+              >
+                <div
+                  className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+                  data-phase={phase}
+                  style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
+                />
+              </div>
+            )}
           </div>
         </div>
-
-        <div
-            className={`circle ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
-            data-phase={phase}
-            style={{
-              transform: `translate(-50%, -50%) scale(${scale})`,
-            }}
-          />
       </section>
       <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
         <span>{cycleCount} cycles completed</span>
