@@ -1,8 +1,10 @@
 .app {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: stretch;
   padding: 0;
+  width: 100%;
 }
 
 .settings {
@@ -10,8 +12,10 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px;
+  width: min(280px, 85vw);
+  max-width: 100%;
   padding: 24px 16px;
+  padding-left: calc(16px + env(safe-area-inset-left));
   background: rgba(0, 0, 0, 0.95);
   border-right: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
@@ -28,9 +32,11 @@
 
 .settings-trigger {
   position: fixed;
-  left: 16px;
-  bottom: 24px;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 10;
+  min-width: 44px;
+  min-height: 44px;
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 500;
@@ -40,6 +46,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: opacity 0.2s, background 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .settings-trigger:hover {
@@ -88,6 +95,12 @@
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+@media (max-width: 500px) {
+  .settings-row input {
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
+}
+
 .content-wrap {
   flex: 1;
   display: flex;
@@ -97,8 +110,9 @@
 
 .cycles-footer {
   margin-top: auto;
-  padding: 16px 24px;
-  font-size: 14px;
+  padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 24px);
+  padding-bottom: max(clamp(12px, 3vw, 16px), env(safe-area-inset-bottom));
+  font-size: clamp(13px, 3vmin, 15px);
   color: #ccc;
   text-align: center;
   opacity: 0;
@@ -137,12 +151,13 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 24px;
+  padding: clamp(12px, 4vw, 24px);
   min-width: 0;
+  width: 100%;
 }
 
 .session > .status-slot {
-  margin-bottom: 200px;
+  margin-bottom: clamp(80px, 25vmin, 200px);
 }
 
 .session > .circle {
@@ -151,35 +166,39 @@
 
 /* Fixed-height slot for status so the sphere never shifts when text shows/hides or animates */
 .status-slot {
-  min-height: 240px;
+  min-height: clamp(140px, 35vmin, 240px);
   width: 100%;
+  max-width: 100%;
   overflow: visible;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 24px;
+  padding-bottom: clamp(12px, 3vmin, 24px);
 }
 
 .circle {
-  width: 260px;
-  height: 260px;
+  --circle-size: clamp(140px, 65vmin, 320px);
+  width: var(--circle-size);
+  height: var(--circle-size);
   border-radius: 999px;
   background: #fff;
   transition-property: transform;
   transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
   transition-duration: 0.7s;
   transform-origin: center;
+  flex-shrink: 0;
 }
 
 .status {
   text-align: center;
   display: grid;
-  gap: 56px;
+  gap: clamp(32px, 8vmin, 56px);
   overflow: visible;
   opacity: 0;
   transform: translateY(-12px);
   pointer-events: none;
   transition: opacity 0.35s ease, transform 0.35s ease;
+  max-width: 100%;
 }
 
 .status--visible {
@@ -206,7 +225,7 @@
   top: 0;
   left: 0;
   right: 0;
-  font-size: 18px;
+  font-size: clamp(16px, 4vmin, 20px);
   font-weight: 600;
   letter-spacing: 0.01em;
   color: #fff;
@@ -233,8 +252,8 @@
 
 .timer-number-wrap {
   position: relative;
-  min-height: 3rem;
-  min-width: 2.5em;
+  min-height: clamp(2.5rem, 10vmin, 3rem);
+  min-width: clamp(2em, 8vmin, 2.5em);
   overflow: visible;
   display: flex;
   align-items: center;
@@ -261,14 +280,14 @@
 }
 
 .seconds {
-  font-size: 44px;
+  font-size: clamp(32px, 10vmin, 48px);
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
 
 .secondsUnit {
-  font-size: 16px;
+  font-size: clamp(14px, 3.5vmin, 18px);
   color: #ccc;
 }
 
