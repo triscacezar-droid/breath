@@ -636,6 +636,28 @@ function App() {
   return (
     <main className="app">
       <aside className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
+        <h2 className="settings-title">Color scheme</h2>
+        <label className="settings-row">
+          <span>Theme</span>
+          <div ref={colorSchemeDropdownRef} className="settings-dropdown">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
+              aria-expanded={colorSchemeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Color scheme"
+            >
+              {THEME_LABELS[colorScheme]}
+              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              {COLOR_SCHEMES.map((scheme) => (
+                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
+              ))}
+            </div>
+          </div>
+        </label>
         <h2 className="settings-title">Timing (seconds)</h2>
         <div className="settings-row settings-row--mode-multiplier">
           <label className="settings-multiplier-wrap">
@@ -843,28 +865,6 @@ function App() {
             </div>
           </div>
         </div>
-        <h2 className="settings-title">Color scheme</h2>
-        <label className="settings-row">
-          <span>Theme</span>
-          <div ref={colorSchemeDropdownRef} className="settings-dropdown">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
-              aria-expanded={colorSchemeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Color scheme"
-            >
-              {THEME_LABELS[colorScheme]}
-              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              {COLOR_SCHEMES.map((scheme) => (
-                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
-              ))}
-            </div>
-          </div>
-        </label>
       </aside>
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
