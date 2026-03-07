@@ -121,6 +121,112 @@
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+.settings-dropdown {
+  position: relative;
+  min-width: 120px;
+}
+
+.settings-dropdown__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 120px;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.2s ease;
+}
+
+.settings-dropdown__trigger:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.settings-dropdown__trigger:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.settings-dropdown__chevron {
+  font-size: 10px;
+  opacity: 0.8;
+  margin-left: 6px;
+}
+
+.settings-dropdown__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(20, 20, 20, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+  z-index: 30;
+}
+
+.settings-dropdown__panel--open {
+  max-height: 160px;
+  opacity: 1;
+}
+
+.settings-dropdown__option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #fff;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+
+.settings-dropdown__option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-dropdown__option[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.settings-row--mode-multiplier {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+.settings-multiplier-wrap,
+.settings-mode-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-multiplier-label {
+  flex-shrink: 0;
+}
+
+.settings-duration-wrap--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .settings-row--disabled {
   opacity: 0.5;
   pointer-events: none;
