@@ -3,22 +3,22 @@ import { useEffect, useRef, useState } from 'react'
 
 type Phase = 'INHALE' | 'HOLD_TOP' | 'EXHALE' | 'HOLD_BOTTOM'
 
-const DURATIONS_S: Record<Phase, number> = {
-  INHALE: 4,
-  HOLD_TOP: 4,
-  EXHALE: 4,
-  HOLD_BOTTOM: 4,
+const DEFAULT_DURATIONS: Record<Phase, number> = {
+  INHALE: 5,
+  HOLD_TOP: 5,
+  EXHALE: 5,
+  HOLD_BOTTOM: 5,
 }
 
-const MIN_SCALE = 0.7
-const MAX_SCALE = 1.25
+const MIN_SCALE = 1
+const MAX_SCALE = 2
 
-function lerpVolumeScale(t: number) {
+function lerpAreaScale(t: number) {
   const p = Math.max(0, Math.min(1, t))
-  const min3 = MIN_SCALE ** 3
-  const max3 = MAX_SCALE ** 3
-  const vol = min3 + (max3 - min3) * p
-  return Math.cbrt(vol)
+  const min2 = MIN_SCALE ** 2
+  const max2 = MAX_SCALE ** 2
+  const area = min2 + (max2 - min2) * p
+  return Math.sqrt(area)
 }
 
 function nextPhase(phase: Phase): Phase {
@@ -48,19 +48,69 @@ function phaseLabel(phase: Phase) {
 }
 
 function App() {
+  const [durations, setDurations] = useState<Record<Phase, number>>(() => ({ ...DEFAULT_DURATIONS }))
   const [phase, setPhase] = useState<Phase>('INHALE')
-  const [secondsLeft, setSecondsLeft] = useState(DURATIONS_S.INHALE)
+  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_DURATIONS.INHALE)
   const [cycleCount, setCycleCount] = useState(0)
+  const [showInfo, setShowInfo] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [secondsAnimating, setSecondsAnimating] = useState(false)
+  const [labelAnimating, setLabelAnimating] = useState(false)
+  const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
+  const [prevSeconds, setPrevSeconds] = useState<number>(DEFAULT_DURATIONS.INHALE)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
+  const hideInfoTimeoutRef = useRef<number | null>(null)
   const phaseRef = useRef<Phase>('INHALE')
-  const secondsLeftRef = useRef<number>(DURATIONS_S.INHALE)
+  const secondsLeftRef = useRef<number>(DEFAULT_DURATIONS.INHALE)
   const phaseStartTimeRef = useRef<number>(performance.now())
+  const durationsRef = useRef<Record<Phase, number>>(durations)
 
   const [scale, setScale] = useState<number>(MIN_SCALE)
 
   const label = phaseLabel(phase)
+
+  useEffect(() => {
+    if (!showInfo) return
+
+    if (hideInfoTimeoutRef.current !== null) {
+      window.clearTimeout(hideInfoTimeoutRef.current)
+    }
+
+    hideInfoTimeoutRef.current = window.setTimeout(() => {
+      setShowInfo(false)
+    }, 10_000)
+
+    return () => {
+      if (hideInfoTimeoutRef.current !== null) {
+        window.clearTimeout(hideInfoTimeoutRef.current)
+        hideInfoTimeoutRef.current = null
+      }
+    }
+  }, [showInfo])
+
+  const TEXT_TRANSITION_MS = 700
+
+  useEffect(() => {
+    if (!secondsAnimating) return
+    const timeout = window.setTimeout(() => {
+      setSecondsAnimating(false)
+    }, TEXT_TRANSITION_MS)
+    return () => window.clearTimeout(timeout)
+  }, [secondsAnimating])
+
+  useEffect(() => {
+    if (!labelAnimating) return
+    const timeout = window.setTimeout(() => {
+      setLabelAnimating(false)
+    }, TEXT_TRANSITION_MS)
+    return () => window.clearTimeout(timeout)
+  }, [labelAnimating])
+
+  useEffect(() => {
+    durationsRef.current = durations
+  }, [durations])
 
   useEffect(() => {
     phaseRef.current = phase
@@ -73,25 +123,34 @@ function App() {
   useEffect(() => {
     const animate = () => {
       const currentPhase = phaseRef.current
-      const phaseDuration = DURATIONS_S[currentPhase]
+      const phaseDuration = durationsRef.current[currentPhase]
       const elapsed =
         (performance.now() - phaseStartTimeRef.current) / 1000
 
+      let desiredScale: number
+
       if (currentPhase === 'HOLD_TOP') {
-        setScale(lerpVolumeScale(1))
+        desiredScale = lerpAreaScale(1)
       } else if (currentPhase === 'HOLD_BOTTOM') {
-        setScale(lerpVolumeScale(0))
+        desiredScale = lerpAreaScale(0)
       } else {
         const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
         const progress =
           phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
 
         if (currentPhase === 'INHALE') {
-          setScale(lerpVolumeScale(progress))
+          desiredScale = lerpAreaScale(progress)
         } else if (currentPhase === 'EXHALE') {
-          setScale(lerpVolumeScale(1 - progress))
+          desiredScale = lerpAreaScale(1 - progress)
+        } else {
+          desiredScale = MIN_SCALE
         }
       }
+
+      setScale((prev) => {
+        const smoothing = 0.03
+        return prev + (desiredScale - prev) * smoothing
+      })
 
       animationRef.current = window.requestAnimationFrame(animate)
     }
@@ -114,6 +173,8 @@ function App() {
       if (currentLeft > 1) {
         const nextLeft = currentLeft - 1
         secondsLeftRef.current = nextLeft
+        setPrevSeconds(currentLeft)
+        setSecondsAnimating(true)
         setSecondsLeft(nextLeft)
         return
       }
@@ -123,11 +184,15 @@ function App() {
         setCycleCount((c) => c + 1)
       }
 
+      setPrevLabel(phaseLabel(currentPhase))
+      setPrevSeconds(currentLeft)
+      setSecondsAnimating(true)
       phaseRef.current = next
+      setLabelAnimating(true)
       setPhase(next)
       phaseStartTimeRef.current = performance.now()
 
-      const nextDuration = DURATIONS_S[next]
+      const nextDuration = durationsRef.current[next]
       secondsLeftRef.current = nextDuration
       setSecondsLeft(nextDuration)
     }, 1000)
@@ -138,16 +203,105 @@ function App() {
     }
   }, [])
 
+  const handleUserInteract = () => {
+    if (showSettings) {
+      setShowSettings(false)
+      return
+    }
+    setShowInfo(true)
+  }
+
+  const setDuration = (p: Phase, value: number) => {
+    const n = Number(value)
+    if (Number.isNaN(n)) return
+    const clamped = Math.max(1, Math.min(60, Math.round(n)))
+    setDurations((d) => ({ ...d, [p]: clamped }))
+  }
+
   return (
     <main className="app">
+      <aside className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
+        <h2 className="settings-title">Timing (seconds)</h2>
+        <label className="settings-row">
+          <span>Inhale</span>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            value={durations.INHALE}
+            onChange={(e) => setDuration('INHALE', e.target.valueAsNumber)}
+          />
+        </label>
+        <label className="settings-row">
+          <span>Hold (top)</span>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            value={durations.HOLD_TOP}
+            onChange={(e) => setDuration('HOLD_TOP', e.target.valueAsNumber)}
+          />
+        </label>
+        <label className="settings-row">
+          <span>Exhale</span>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            value={durations.EXHALE}
+            onChange={(e) => setDuration('EXHALE', e.target.valueAsNumber)}
+          />
+        </label>
+        <label className="settings-row">
+          <span>Hold (bottom)</span>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            value={durations.HOLD_BOTTOM}
+            onChange={(e) => setDuration('HOLD_BOTTOM', e.target.valueAsNumber)}
+          />
+        </label>
+      </aside>
+      <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
+        {showInfo && (
+          <button type="button" className="settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings">
+            Settings
+          </button>
+        )}
       <section className="session" aria-label="Breathing session">
-        <div className="status">
-          <div className="phase">{label}</div>
-          <div className="timer">
-            <span className="seconds">{secondsLeft}</span>
+        <div className="status-slot" aria-hidden={!showInfo}>
+          <div className={`status ${showInfo ? 'status--visible' : 'status--hidden'}`}>
+          <div className="phase-stack">
+            {labelAnimating ? (
+              <>
+                <div className="phase-row phase-out" key="out">{prevLabel}</div>
+                <div className="phase-row phase-in" key="in">{label}</div>
+              </>
+            ) : (
+              <div className="phase-row">{label}</div>
+            )}
+          </div>
+          <div className="timer-stack">
+            <div className="timer-number-wrap">
+              {secondsAnimating ? (
+                <>
+                  <div className="timer-row timer-out">
+                    <span className="seconds">{prevSeconds}</span>
+                  </div>
+                  <div className="timer-row timer-in">
+                    <span className="seconds">{secondsLeft}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="timer-row">
+                  <span className="seconds">{secondsLeft}</span>
+                </div>
+              )}
+            </div>
             <span className="secondsUnit">s</span>
           </div>
-          <div className="meta">Cycles completed: {cycleCount}</div>
+          </div>
         </div>
 
         <div
@@ -158,6 +312,10 @@ function App() {
           }}
         />
       </section>
+      <footer className={`cycles-footer ${showInfo ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!showInfo}>
+        {cycleCount} cycles completed
+      </footer>
+      </div>
     </main>
   )
 }

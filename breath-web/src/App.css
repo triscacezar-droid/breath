@@ -1,10 +1,119 @@
 .app {
   min-height: 100vh;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 22px;
-  padding: 32px 18px;
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+}
+
+.settings {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  padding: 24px 16px;
+  background: rgba(0, 0, 0, 0.95);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 20;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
+
+.settings.settings--open {
+  transform: translateX(0);
+}
+
+.settings-trigger {
+  position: fixed;
+  left: 16px;
+  bottom: 24px;
+  z-index: 10;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.settings-trigger:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.settings-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  color: #ccc;
+  cursor: default;
+}
+
+.settings-row input {
+  width: 56px;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  -moz-appearance: textfield;
+}
+
+.settings-row input::-webkit-outer-spin-button,
+.settings-row input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-row input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.content-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cycles-footer {
+  margin-top: auto;
+  padding: 16px 24px;
+  font-size: 14px;
+  color: #ccc;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.cycles-footer.cycles-footer--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cycles-footer.cycles-footer--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .header {
@@ -18,25 +127,44 @@
 
 .subtitle {
   margin: 6px 0 0;
-  color: rgba(255, 255, 255, 0.72);
+  color: #ccc;
 }
 
 .session {
-  width: min(520px, 92vw);
-  display: grid;
-  justify-items: center;
-  gap: 40px;
-  padding: 16px 0 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 24px;
+  min-width: 0;
+}
+
+.session > .status-slot {
+  margin-bottom: 200px;
+}
+
+.session > .circle {
+  margin-top: 0;
+}
+
+/* Fixed-height slot for status so the sphere never shifts when text shows/hides or animates */
+.status-slot {
+  min-height: 240px;
+  width: 100%;
+  overflow: visible;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 24px;
 }
 
 .circle {
   width: 260px;
   height: 260px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.08) 35%, rgba(255, 255, 255, 0.04) 60%),
-    radial-gradient(circle at 40% 35%, rgba(96, 255, 214, 0.35), rgba(127, 127, 255, 0.18) 70%, transparent 75%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: 0 22px 80px rgba(96, 255, 214, 0.18), 0 18px 60px rgba(127, 127, 255, 0.12);
+  background: #fff;
   transition-property: transform;
   transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
   transition-duration: 0.7s;
@@ -46,36 +174,106 @@
 .status {
   text-align: center;
   display: grid;
-  gap: 8px;
+  gap: 56px;
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.phase {
+.status--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.status--hidden {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.phase-stack {
+  position: relative;
+  min-height: 1.5em;
+  overflow: visible;
+  text-align: center;
+}
+
+.phase-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  color: #fff;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.timer {
+.phase-out {
+  animation: slide-out-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.phase-in {
+  animation: slide-in-from-bottom 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.timer-stack {
+  overflow: visible;
   display: inline-flex;
   align-items: baseline;
-  justify-content: center;
   gap: 6px;
+}
+
+.timer-number-wrap {
+  position: relative;
+  min-height: 3rem;
+  min-width: 2.5em;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-variant-numeric: tabular-nums;
+}
+
+.timer-out {
+  animation: slide-out-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.timer-in {
+  animation: slide-in-from-bottom 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .seconds {
   font-size: 44px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 
 .secondsUnit {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #ccc;
 }
 
 .meta {
-  color: rgba(255, 255, 255, 0.68);
+  color: #ccc;
   font-size: 13px;
 }
 
@@ -85,17 +283,41 @@
 }
 
 .primary {
-  background: rgba(96, 255, 214, 0.16);
-  border: 1px solid rgba(96, 255, 214, 0.28);
+  background: #fff;
+  color: #111;
+  border: 1px solid #fff;
 }
 
 .secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #111;
+  color: #fff;
+  border: 1px solid #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .circle {
     transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes slide-out-up {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
