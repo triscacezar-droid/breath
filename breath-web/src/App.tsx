@@ -1,6 +1,7 @@
 import './App.css'
 import { createClient } from '@supabase/supabase-js'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { DifficultyScale } from './DifficultyScale'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -207,6 +208,50 @@ function SlotInput({
   )
 }
 
+function SlotDisplay({ value, rank, 'aria-label': ariaLabel, className }: { value: string; rank?: number; 'aria-label'?: string; className?: string }) {
+  const [prevValue, setPrevValue] = useState(value)
+  const [prevRank, setPrevRank] = useState(rank)
+  const [animating, setAnimating] = useState(false)
+  const [direction, setDirection] = useState<'up' | 'down'>('up')
+
+  useEffect(() => {
+    if (value !== prevValue) {
+      const prevNum = parseFloat(prevValue)
+      const nextNum = parseFloat(value)
+      const useRank = rank !== undefined && prevRank !== undefined
+      const useNumeric = !Number.isNaN(prevNum) && !Number.isNaN(nextNum)
+      if (useRank || useNumeric) {
+        setDirection(useRank ? (rank! > prevRank! ? 'up' : 'down') : (nextNum > prevNum ? 'up' : 'down'))
+        setPrevRank(rank)
+        setAnimating(true)
+        const t = window.setTimeout(() => {
+          setPrevValue(value)
+          setPrevRank(rank)
+          setAnimating(false)
+        }, 260)
+        return () => window.clearTimeout(t)
+      }
+      setPrevValue(value)
+      setPrevRank(rank)
+    }
+  }, [value, rank])
+
+  return (
+    <div className={`slot-input slot-input--readonly ${className ?? ''}`}>
+      <div className="slot-input__display" aria-label={ariaLabel} aria-live="polite">
+        {animating ? (
+          <>
+            <div className={`slot-input__in slot-input__in--${direction}`}>{value}</div>
+            <div className={`slot-input__out slot-input__out--${direction}`}>{prevValue}</div>
+          </>
+        ) : (
+          <div className="slot-input__value">{value}</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function PhaseDots({ phase, duration, secondsLeft }: { phase: Phase; duration: number; secondsLeft: number }) {
   const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
   const dots = Array.from({ length: duration }, (_, i) => i)
@@ -316,6 +361,9 @@ function App() {
 
   /* ---------- Derived from model (view uses these) ---------- */
   const label = phaseLabel(phase)
+  const totalBreathSeconds =
+    durations.INHALE + durations.HOLD_TOP + durations.EXHALE + durations.HOLD_BOTTOM
+  const breathsPerMinute = totalBreathSeconds > 0 ? 60 / totalBreathSeconds : 0
   const textVisible = textVisibility === 2 || (textVisibility === 1 && showInfo)
   const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showInfo)
   const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
@@ -972,6 +1020,37 @@ function App() {
             </div>
           </label>
         )}
+        <div className="settings-row settings-row--bpm">
+          <span>Breaths per minute</span>
+          <div className="settings-bpm-difficulty-wrap">
+            {totalBreathSeconds > 0 ? (
+              <div className="settings-bpm-value-wrap">
+                <SlotDisplay
+                  value={breathsPerMinute.toFixed(1)}
+                  aria-label="Breaths per minute"
+                />
+                <div className="settings-bpm-triangle" aria-hidden />
+              </div>
+            ) : (
+              <div className="settings-bpm-value-wrap">
+                <SlotDisplay value="—" aria-label="Breaths per minute" />
+                <div className="settings-bpm-triangle settings-bpm-triangle--hidden" aria-hidden />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="settings-row settings-row--difficulty">
+          <span>Exp. Difficulty</span>
+          <div className="settings-duration-wrap">
+            {totalBreathSeconds > 0 ? (
+              <DifficultyScale bpm={breathsPerMinute} />
+            ) : (
+              <div className="difficulty-scale difficulty-scale--empty" aria-label="Exp. Difficulty">
+                <span className="difficulty-scale__empty">—</span>
+              </div>
+            )}
+          </div>
+        </div>
         {/* ---------- View: visibility sliders (read/write model) ---------- */}
         <h2 className="settings-title">Visibility</h2>
         <div className="settings-row settings-row--slider">

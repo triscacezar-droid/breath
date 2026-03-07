@@ -321,6 +321,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 116px;
 }
 
 .settings-duration-btn {
@@ -883,6 +884,112 @@
   min-height: 1.5em;
   overflow: visible;
   text-align: center;
+}
+
+.settings-row--bpm {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-strong);
+}
+
+.settings-row--difficulty {
+  margin-top: 4px;
+}
+
+.settings-bpm-difficulty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 116px;
+}
+
+.settings-bpm-value-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.settings-bpm-triangle {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--color-text-primary);
+  margin-top: 2px;
+}
+
+.settings-bpm-triangle--hidden {
+  opacity: 0;
+}
+
+.slot-input--readonly .slot-input__display {
+  cursor: default;
+}
+
+.settings-row--difficulty {
+  margin-top: 4px;
+}
+
+.slot-input--wide {
+  width: 120px;
+  min-width: 120px;
+}
+
+.slot-input--wide .slot-input__value,
+.slot-input--wide .slot-input__in,
+.slot-input--wide .slot-input__out {
+  font-size: 13px;
+}
+
+.difficulty-scale {
+  position: relative;
+  width: 116px;
+  height: 32px;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+}
+
+.difficulty-scale__viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.difficulty-scale__strip {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: 224px;
+  gap: 4px;
+  transition: transform 0.3s ease;
+}
+
+.difficulty-scale__zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.difficulty-scale--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+}
+
+.difficulty-scale__empty {
+  font-size: 14px;
+  color: var(--color-text-primary);
 }
 
 .phase-row {
