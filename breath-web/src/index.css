@@ -1,3 +1,100 @@
+/* Theme variables — dark (default) */
+:root,
+:root[data-theme="dark"] {
+  --color-bg-page: #111;
+  --color-bg-page-hover: #222;
+  --color-bg-panel: rgba(0, 0, 0, 0.95);
+  --color-bg-trigger: rgba(0, 0, 0, 0.6);
+  --color-bg-trigger-hover: rgba(0, 0, 0, 0.8);
+  --color-bg-input: rgba(255, 255, 255, 0.08);
+  --color-bg-input-focus: rgba(255, 255, 255, 0.4);
+  --color-bg-btn: rgba(255, 255, 255, 0.12);
+  --color-bg-btn-hover: rgba(255, 255, 255, 0.2);
+  --color-bg-dropdown: rgba(20, 20, 20, 0.98);
+  --color-bg-dropdown-option: rgba(255, 255, 255, 0.08);
+  --color-bg-dropdown-option-hover: rgba(255, 255, 255, 0.1);
+  --color-text-primary: #fff;
+  --color-text-secondary: #ccc;
+  --color-text-muted: #999;
+  --color-accent: #e6c200;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-strong: rgba(255, 255, 255, 0.25);
+  --color-border-focus: rgba(255, 255, 255, 0.4);
+  --color-circle: #fff;
+  --color-dot-active: #e6c200;
+  --color-dot-inactive: #fff;
+  --color-slider-track: rgba(255, 255, 255, 0.2);
+  --color-slider-track-off: rgba(255, 255, 255, 0.08);
+  --color-slider-thumb: #fff;
+  --color-slider-thumb-off: rgba(140, 140, 140, 0.7);
+  --color-slider-thumb-accent: #e6c200;
+  --color-slider-labels: rgba(255, 255, 255, 0.6);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg-page: #f5f5f5;
+  --color-bg-page-hover: #e8e8e8;
+  --color-bg-panel: rgba(255, 255, 255, 0.98);
+  --color-bg-trigger: rgba(0, 0, 0, 0.08);
+  --color-bg-trigger-hover: rgba(0, 0, 0, 0.12);
+  --color-bg-input: rgba(0, 0, 0, 0.06);
+  --color-bg-input-focus: rgba(0, 0, 0, 0.15);
+  --color-bg-btn: rgba(0, 0, 0, 0.08);
+  --color-bg-btn-hover: rgba(0, 0, 0, 0.12);
+  --color-bg-dropdown: rgba(255, 255, 255, 0.98);
+  --color-bg-dropdown-option: rgba(0, 0, 0, 0.04);
+  --color-bg-dropdown-option-hover: rgba(0, 0, 0, 0.08);
+  --color-text-primary: #111;
+  --color-text-secondary: #444;
+  --color-text-muted: #666;
+  --color-accent: #b8860b;
+  --color-border: rgba(0, 0, 0, 0.12);
+  --color-border-strong: rgba(0, 0, 0, 0.2);
+  --color-border-focus: rgba(0, 0, 0, 0.35);
+  --color-circle: #333;
+  --color-dot-active: #b8860b;
+  --color-dot-inactive: #333;
+  --color-slider-track: rgba(0, 0, 0, 0.15);
+  --color-slider-track-off: rgba(0, 0, 0, 0.06);
+  --color-slider-thumb: #333;
+  --color-slider-thumb-off: rgba(100, 100, 100, 0.6);
+  --color-slider-thumb-accent: #b8860b;
+  --color-slider-labels: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --color-bg-page: #f4ecd8;
+  --color-bg-page-hover: #e8dfc4;
+  --color-bg-panel: rgba(244, 236, 216, 0.98);
+  --color-bg-trigger: rgba(61, 53, 41, 0.12);
+  --color-bg-trigger-hover: rgba(61, 53, 41, 0.18);
+  --color-bg-input: rgba(61, 53, 41, 0.08);
+  --color-bg-input-focus: rgba(61, 53, 41, 0.2);
+  --color-bg-btn: rgba(61, 53, 41, 0.12);
+  --color-bg-btn-hover: rgba(61, 53, 41, 0.18);
+  --color-bg-dropdown: rgba(244, 236, 216, 0.98);
+  --color-bg-dropdown-option: rgba(61, 53, 41, 0.06);
+  --color-bg-dropdown-option-hover: rgba(61, 53, 41, 0.1);
+  --color-text-primary: #3d3529;
+  --color-text-secondary: #5c5347;
+  --color-text-muted: #7a7064;
+  --color-accent: #8b7355;
+  --color-border: rgba(61, 53, 41, 0.15);
+  --color-border-strong: rgba(61, 53, 41, 0.25);
+  --color-border-focus: rgba(61, 53, 41, 0.4);
+  --color-circle: #5c5347;
+  --color-dot-active: #8b7355;
+  --color-dot-inactive: #5c5347;
+  --color-slider-track: rgba(61, 53, 41, 0.2);
+  --color-slider-track-off: rgba(61, 53, 41, 0.08);
+  --color-slider-thumb: #5c5347;
+  --color-slider-thumb-off: rgba(92, 83, 71, 0.5);
+  --color-slider-thumb-accent: #8b7355;
+  --color-slider-labels: rgba(61, 53, 41, 0.5);
+}
+
 :root {
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
     sans-serif;
@@ -5,8 +102,8 @@
   font-weight: 400;
 
   color-scheme: dark;
-  color: #fff;
-  background-color: #111;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -16,11 +113,11 @@
 
 a {
   font-weight: 500;
-  color: #fff;
+  color: var(--color-text-primary);
   text-decoration: inherit;
 }
 a:hover {
-  color: #ccc;
+  color: var(--color-text-secondary);
 }
 
 body {
@@ -28,7 +125,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   min-height: 100dvh;
-  background: #111;
+  background: var(--color-bg-page);
   overflow-x: hidden;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
@@ -41,22 +138,22 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid #fff;
+  border: 1px solid var(--color-border-strong);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #111;
-  color: #fff;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: border-color 0.25s, background-color 0.25s, transform 0.05s;
 }
 button:hover {
-  background-color: #222;
+  background-color: var(--color-bg-page-hover);
 }
 button:focus,
 button:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--color-border-strong);
 }
 button:active {
   transform: translateY(1px);

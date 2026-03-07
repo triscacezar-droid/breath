@@ -23,6 +23,16 @@ const MAX_SCALE = 0.5
 /** Box = equal phases; Kumbhaka = 1:4:2:0 (inhale:hold top:exhale:hold bottom); Custom = user values */
 type TimingMode = 'box' | 'kumbhaka' | 'custom'
 
+type ColorScheme = 'dark' | 'light' | 'sepia'
+
+const COLOR_SCHEME_KEY = 'breath-color-scheme'
+
+function getStoredColorScheme(): ColorScheme {
+  const s = localStorage.getItem(COLOR_SCHEME_KEY)
+  if (s === 'light' || s === 'sepia') return s
+  return 'dark'
+}
+
 const KUMBHAKA_RATIO: Record<Phase, number> = {
   INHALE: 1,
   HOLD_TOP: 4,
@@ -131,6 +141,8 @@ function App() {
   const [initialDelayPassed, setInitialDelayPassed] = useState(false)
   const [contentRevealed, setContentRevealed] = useState(false)
   const [othersOnline, setOthersOnline] = useState<number | null>(null)
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(getStoredColorScheme)
+  const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -147,6 +159,7 @@ function App() {
   const slot2Ref = useRef<HTMLDivElement>(null)
   const slot3Ref = useRef<HTMLDivElement>(null)
   const timingModeDropdownRef = useRef<HTMLDivElement>(null)
+  const colorSchemeDropdownRef = useRef<HTMLDivElement>(null)
 
   const [scale, setScale] = useState<number>(MIN_SCALE)
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
@@ -510,6 +523,27 @@ function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [timingModeDropdownOpen])
 
+  useEffect(() => {
+    if (!colorSchemeDropdownOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (colorSchemeDropdownRef.current && !colorSchemeDropdownRef.current.contains(e.target as Node)) {
+        setColorSchemeDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [colorSchemeDropdownOpen])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = colorScheme
+    localStorage.setItem(COLOR_SCHEME_KEY, colorScheme)
+  }, [colorScheme])
+
+  const handleColorSchemeChange = (scheme: ColorScheme) => {
+    setColorSchemeDropdownOpen(false)
+    setColorScheme(scheme)
+  }
+
   const handleTimingModeChange = (mode: TimingMode) => {
     setTimingModeDropdownOpen(false)
     if (mode === 'custom') {
@@ -650,11 +684,6 @@ function App() {
               aria-label="Phase text visibility"
               className={`settings-slider settings-slider--mode-${Math.round(textVisibilityAnimated)}`}
             />
-            <div className="settings-slider-labels" aria-hidden>
-              <span>Off</span>
-              <span>On tap</span>
-              <span>On</span>
-            </div>
           </div>
         </div>
         <div className={`settings-row settings-row--slider ${timingMode !== 'box' ? 'settings-row--disabled' : ''}`}>
@@ -681,11 +710,6 @@ function App() {
               aria-label="Dots visibility"
               className={`settings-slider settings-slider--mode-${Math.round(dotsVisibilityAnimated)}`}
             />
-            <div className="settings-slider-labels" aria-hidden>
-              <span>Off</span>
-              <span>On tap</span>
-              <span>On</span>
-            </div>
           </div>
         </div>
         <div className="settings-row settings-row--slider">
@@ -711,11 +735,6 @@ function App() {
               aria-label="Sphere visibility"
               className={`settings-slider settings-slider--mode-${Math.round(sphereVisibilityAnimated)}`}
             />
-            <div className="settings-slider-labels" aria-hidden>
-              <span>Off</span>
-              <span>On tap</span>
-              <span>On</span>
-            </div>
           </div>
         </div>
         <div className="settings-row settings-row--slider">
@@ -748,6 +767,28 @@ function App() {
             </div>
           </div>
         </div>
+        <h2 className="settings-title">Color scheme</h2>
+        <label className="settings-row">
+          <span>Theme</span>
+          <div ref={colorSchemeDropdownRef} className="settings-dropdown">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
+              aria-expanded={colorSchemeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Color scheme"
+            >
+              {colorScheme === 'dark' ? 'Dark' : colorScheme === 'light' ? 'Light' : 'Sepia'}
+              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              <button type="button" role="option" aria-selected={colorScheme === 'dark'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('dark')}>Dark</button>
+              <button type="button" role="option" aria-selected={colorScheme === 'light'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('light')}>Light</button>
+              <button type="button" role="option" aria-selected={colorScheme === 'sepia'} className="settings-dropdown__option" onClick={() => handleColorSchemeChange('sepia')}>Sepia</button>
+            </div>
+          </div>
+        </label>
       </aside>
       <div className="content-wrap" onClick={handleUserInteract} onTouchStart={handleUserInteract}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
