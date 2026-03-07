@@ -47,6 +47,46 @@ function phaseLabel(phase: Phase) {
   }
 }
 
+function PhaseDots({ phase, duration, secondsLeft }: { phase: Phase; duration: number; secondsLeft: number }) {
+  const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
+  const dots = Array.from({ length: duration }, (_, i) => i)
+
+  return (
+    <div className="phase-dots" aria-hidden>
+      {dots.map((i) => {
+        let visible = true
+        let isYellow = false
+
+        switch (phase) {
+          case 'INHALE':
+            visible = i < elapsedSeconds
+            isYellow = false
+            break
+          case 'HOLD_TOP':
+            visible = true
+            isYellow = i < elapsedSeconds
+            break
+          case 'EXHALE':
+            visible = true
+            isYellow = i >= elapsedSeconds
+            break
+          case 'HOLD_BOTTOM':
+            visible = i >= elapsedSeconds
+            isYellow = false
+            break
+        }
+
+        return (
+          <span
+            key={i}
+            className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${isYellow ? 'phase-dot--yellow' : 'phase-dot--white'}`}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 function App() {
   const [durations, setDurations] = useState<Record<Phase, number>>(() => ({ ...DEFAULT_DURATIONS }))
   const [phase, setPhase] = useState<Phase>('INHALE')
@@ -54,10 +94,8 @@ function App() {
   const [cycleCount, setCycleCount] = useState(0)
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [secondsAnimating, setSecondsAnimating] = useState(false)
   const [labelAnimating, setLabelAnimating] = useState(false)
   const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
-  const [prevSeconds, setPrevSeconds] = useState<number>(DEFAULT_DURATIONS.INHALE)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -91,14 +129,6 @@ function App() {
   }, [showInfo])
 
   const TEXT_TRANSITION_MS = 700
-
-  useEffect(() => {
-    if (!secondsAnimating) return
-    const timeout = window.setTimeout(() => {
-      setSecondsAnimating(false)
-    }, TEXT_TRANSITION_MS)
-    return () => window.clearTimeout(timeout)
-  }, [secondsAnimating])
 
   useEffect(() => {
     if (!labelAnimating) return
@@ -173,8 +203,6 @@ function App() {
       if (currentLeft > 1) {
         const nextLeft = currentLeft - 1
         secondsLeftRef.current = nextLeft
-        setPrevSeconds(currentLeft)
-        setSecondsAnimating(true)
         setSecondsLeft(nextLeft)
         return
       }
@@ -185,8 +213,6 @@ function App() {
       }
 
       setPrevLabel(phaseLabel(currentPhase))
-      setPrevSeconds(currentLeft)
-      setSecondsAnimating(true)
       phaseRef.current = next
       setLabelAnimating(true)
       setPhase(next)
@@ -282,25 +308,11 @@ function App() {
               <div className="phase-row">{label}</div>
             )}
           </div>
-          <div className="timer-stack">
-            <div className="timer-number-wrap">
-              {secondsAnimating ? (
-                <>
-                  <div className="timer-row timer-out">
-                    <span className="seconds">{prevSeconds}</span>
-                  </div>
-                  <div className="timer-row timer-in">
-                    <span className="seconds">{secondsLeft}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="timer-row">
-                  <span className="seconds">{secondsLeft}</span>
-                </div>
-              )}
-            </div>
-            <span className="secondsUnit">s</span>
-          </div>
+          <PhaseDots
+            phase={phase}
+            duration={durations[phase]}
+            secondsLeft={secondsLeft}
+          />
           </div>
         </div>
 

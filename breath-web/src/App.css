@@ -247,6 +247,35 @@
   animation: slide-in-from-bottom 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+.phase-dots {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.5vw, 10px);
+}
+
+.phase-dot {
+  width: clamp(6px, 1.8vmin, 10px);
+  height: clamp(6px, 1.8vmin, 10px);
+  border-radius: 999px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease, background-color 0.25s ease;
+}
+
+.phase-dot--visible {
+  opacity: 1;
+}
+
+.phase-dot--white {
+  background-color: #fff;
+}
+
+.phase-dot--yellow {
+  background-color: #e6c200;
+}
+
 .timer-stack {
   overflow: visible;
   display: inline-flex;
