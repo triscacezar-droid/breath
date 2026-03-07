@@ -146,10 +146,11 @@
 
 .session {
   flex: 1;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
   padding: clamp(12px, 4vw, 24px);
   min-width: 0;
@@ -157,11 +158,14 @@
 }
 
 .session > .status-slot {
-  margin-bottom: clamp(80px, 25vmin, 200px);
+  margin-bottom: 0;
 }
 
 .session > .circle {
-  margin-top: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 0;
 }
 
 /* Fixed-height slot for status so the sphere never shifts when text shows/hides or animates */
@@ -185,7 +189,7 @@
   transition-property: transform;
   transition-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
   transition-duration: 0.7s;
-  transform-origin: center;
+  transform-origin: center center;
   flex-shrink: 0;
 }
 

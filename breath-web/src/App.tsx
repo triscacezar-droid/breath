@@ -10,8 +10,8 @@ const DEFAULT_DURATIONS: Record<Phase, number> = {
   HOLD_BOTTOM: 5,
 }
 
-const MIN_SCALE = 1
-const MAX_SCALE = 2
+const MIN_SCALE = 0.5
+const MAX_SCALE = 1
 
 function lerpAreaScale(t: number) {
   const p = Math.max(0, Math.min(1, t))
@@ -308,7 +308,7 @@ function App() {
           className="circle"
           data-phase={phase}
           style={{
-            transform: `scale(${scale})`,
+            transform: `translate(-50%, -50%) scale(${scale})`,
           }}
         />
       </section>
