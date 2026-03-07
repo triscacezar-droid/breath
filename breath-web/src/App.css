@@ -188,6 +188,13 @@
   overflow-y: auto;
 }
 
+.settings-dropdown--dropup .settings-dropdown__panel {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
 .settings-dropdown__option {
   display: block;
   width: 100%;
@@ -337,9 +344,138 @@
   background: var(--color-bg-btn-hover);
 }
 
-.settings-duration-wrap input {
+.settings-duration-wrap input,
+.settings-duration-wrap .slot-input__field {
   width: 44px;
   text-align: center;
+}
+
+.slot-input {
+  position: relative;
+  width: 44px;
+  height: 32px;
+}
+
+.slot-input__display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: text;
+  overflow: hidden;
+  z-index: 1;
+  background: var(--color-bg-input);
+  border-radius: 6px;
+}
+
+.slot-input__display--hidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.slot-input__value,
+.slot-input__out,
+.slot-input__in {
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+}
+
+.slot-input__out,
+.slot-input__in {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-input__out--up {
+  animation: slot-out-left 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slot-input__in--up {
+  transform: translateX(100%);
+  opacity: 0;
+  animation: slot-in-from-right 0.26s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.slot-input__out--down {
+  animation: slot-out-right 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slot-input__in--down {
+  transform: translateX(-100%);
+  opacity: 0;
+  animation: slot-in-from-left 0.26s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes slot-out-left {
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slot-in-from-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slot-out-right {
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slot-in-from-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slot-input__field {
+  position: absolute;
+  inset: 0;
+  padding: 6px 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
+  -moz-appearance: textfield;
+}
+
+/* Hide input when display is shown so we don't see duplicate numbers */
+.slot-input:not(.slot-input--focused) .slot-input__field {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slot-input__field::-webkit-outer-spin-button,
+.slot-input__field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.slot-input__field:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
 }
 
 .settings-row--checkbox {

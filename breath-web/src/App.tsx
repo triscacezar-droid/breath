@@ -20,13 +20,14 @@ const DEFAULT_DURATIONS: Record<Phase, number> = {
 const MIN_SCALE = 0.01
 const MAX_SCALE = 0.5
 
-/** Box = equal phases; Kumbhaka = 1:4:2:0; Long Exhale = 1:0:2:0 (no holds); Custom = user values */
-type TimingMode = 'box' | 'kumbhaka' | 'long_exhale' | 'custom'
+/** Box = equal phases; Equal = 1:1 (inhale:exhale, no holds); Kumbhaka = 1:4:2:0; Long Exhale = 1:0:2:0; Custom = user values */
+type TimingMode = 'box' | 'equal' | 'kumbhaka' | 'long_exhale' | 'custom'
 
 const TIMING_MODE_LABELS: Record<TimingMode, string> = {
-  box: 'Sama Vritti',
-  kumbhaka: 'Kumbhaka',
-  long_exhale: 'Long Exhale',
+  box: '1:1:1:1',
+  equal: '1:1',
+  kumbhaka: '1:4:2',
+  long_exhale: '1:2',
   custom: 'Custom',
 }
 
@@ -87,6 +88,13 @@ const KUMBHAKA_RATIO: Record<Phase, number> = {
   HOLD_BOTTOM: 0,
 }
 
+const EQUAL_RATIO: Record<Phase, number> = {
+  INHALE: 1,
+  HOLD_TOP: 0,
+  EXHALE: 1,
+  HOLD_BOTTOM: 0,
+}
+
 const LONG_EXHALE_RATIO: Record<Phase, number> = {
   INHALE: 1,
   HOLD_TOP: 0,
@@ -127,6 +135,76 @@ function phaseLabel(phase: Phase) {
     case 'HOLD_BOTTOM':
       return 'Hold'
   }
+}
+
+function SlotInput({
+  value,
+  onChange,
+  onBlur,
+  disabled,
+  inputMode = 'numeric',
+  'aria-label': ariaLabel,
+}: {
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onBlur: () => void
+  disabled: boolean
+  inputMode?: 'numeric' | 'text'
+  'aria-label'?: string
+}) {
+  const [prevValue, setPrevValue] = useState(value)
+  const [animating, setAnimating] = useState(false)
+  const [direction, setDirection] = useState<'up' | 'down'>('up')
+  const [focused, setFocused] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (value !== prevValue && !focused) {
+      const prevNum = parseInt(prevValue, 10)
+      const nextNum = parseInt(value, 10)
+      if (!Number.isNaN(prevNum) && !Number.isNaN(nextNum)) {
+        setDirection(nextNum > prevNum ? 'up' : 'down')
+        setAnimating(true)
+        const t = window.setTimeout(() => {
+          setPrevValue(value)
+          setAnimating(false)
+        }, 260)
+        return () => window.clearTimeout(t)
+      }
+    }
+    setPrevValue(value)
+  }, [value, focused])
+
+  return (
+    <div className={`slot-input ${focused ? 'slot-input--focused' : ''}`}>
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode={inputMode}
+        value={value}
+        onChange={onChange}
+        onBlur={() => { setFocused(false); onBlur() }}
+        onFocus={() => setFocused(true)}
+        disabled={disabled}
+        className="slot-input__field"
+        aria-label={ariaLabel}
+      />
+      <div
+        className={`slot-input__display ${focused ? 'slot-input__display--hidden' : ''}`}
+        onClick={() => !disabled && inputRef.current?.focus()}
+        aria-hidden={focused}
+      >
+        {animating ? (
+          <>
+            <div className={`slot-input__in slot-input__in--${direction}`}>{value}</div>
+            <div className={`slot-input__out slot-input__out--${direction}`}>{prevValue}</div>
+          </>
+        ) : (
+          <div className="slot-input__value">{value}</div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function PhaseDots({ phase, duration, secondsLeft }: { phase: Phase; duration: number; secondsLeft: number }) {
@@ -415,13 +493,20 @@ function App() {
     }
   }, [durations, dotsVisibility])
 
-  // Keep durations in sync when in box, kumbhaka, or long_exhale mode
+  // Keep durations in sync when in box, equal, kumbhaka, or long_exhale mode
   useEffect(() => {
     if (timingMode === 'custom') return
-    const maxM = timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60
+    const maxM = timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60
     const m = Math.max(0, Math.min(maxM, multiplierSeconds))
     if (timingMode === 'box') {
       setDurations(() => ({ INHALE: m, HOLD_TOP: m, EXHALE: m, HOLD_BOTTOM: m }))
+    } else if (timingMode === 'equal') {
+      setDurations(() => ({
+        INHALE: Math.min(60, Math.round(EQUAL_RATIO.INHALE * m)),
+        HOLD_TOP: Math.min(60, Math.round(EQUAL_RATIO.HOLD_TOP * m)),
+        EXHALE: Math.min(60, Math.round(EQUAL_RATIO.EXHALE * m)),
+        HOLD_BOTTOM: Math.min(60, Math.round(EQUAL_RATIO.HOLD_BOTTOM * m)),
+      }))
     } else if (timingMode === 'long_exhale') {
       setDurations(() => ({
         INHALE: Math.min(60, Math.round(LONG_EXHALE_RATIO.INHALE * m)),
@@ -439,9 +524,9 @@ function App() {
     }
   }, [timingMode, multiplierSeconds])
 
-  // When switching to custom or long_exhale, turn dots off (durations may differ)
+  // When switching to custom, equal, or long_exhale, turn dots off (durations may differ)
   useEffect(() => {
-    if (timingMode === 'custom' || timingMode === 'long_exhale') {
+    if (timingMode === 'custom' || timingMode === 'equal' || timingMode === 'long_exhale') {
       setDotsVisibility(0)
       setDotsVisibilityAnimated(0)
     }
@@ -675,7 +760,7 @@ function App() {
     const s = editingBoxBreath
     if (s === undefined) return
     const n = parseInt(s, 10)
-    const maxM = timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60
+    const maxM = timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60
     const v = Number.isNaN(n) ? 0 : Math.max(0, Math.min(maxM, n))
     setMultiplierSeconds(v)
     setEditingBoxBreath(undefined)
@@ -749,28 +834,6 @@ function App() {
   return (
     <main className="app">
       <aside className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
-        <h2 className="settings-title">Color scheme</h2>
-        <label className="settings-row">
-          <span>Theme</span>
-          <div ref={colorSchemeDropdownRef} className="settings-dropdown">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
-              aria-expanded={colorSchemeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Color scheme"
-            >
-              {THEME_LABELS[colorScheme]}
-              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              {COLOR_SCHEMES.map((scheme) => (
-                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
-              ))}
-            </div>
-          </div>
-        </label>
         <h2 className="settings-title">Breath Style</h2>
         <label className="settings-row">
           <span>Nostrils</span>
@@ -807,9 +870,10 @@ function App() {
               <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
             </button>
             <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>Sama Vritti</button>
-              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>Kumbhaka</button>
-              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>Long Exhale</button>
+              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>1:2</button>
+              <button type="button" role="option" aria-selected={timingMode === 'equal'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('equal')}>1:1</button>
+              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>1:4:2</button>
+              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>1:1:1:1</button>
               <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
             </div>
           </div>
@@ -818,28 +882,26 @@ function App() {
           <span>Multiplier</span>
           <div className={`settings-duration-wrap ${timingMode === 'custom' ? 'settings-duration-wrap--disabled' : ''}`}>
             <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.max(0, v - 1))} aria-label="Decrease multiplier">−</button>
-            <input
-              type="text"
-              inputMode="numeric"
+            <SlotInput
               value={multiplierDisplayValue}
               onChange={(e) => timingMode !== 'custom' && handleMultiplierChange(e.target.value)}
               onBlur={handleMultiplierBlur}
               disabled={timingMode === 'custom'}
+              aria-label="Multiplier"
             />
-            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : timingMode === 'long_exhale' ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
           </div>
         </label>
         <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
           <span>Inhale</span>
           <div className="settings-duration-wrap">
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label="Decrease inhale">−</button>
-            <input
-              type="text"
-              inputMode="numeric"
+            <SlotInput
               value={durationDisplayValue('INHALE')}
               onChange={(e) => timingMode === 'custom' && handleDurationChange('INHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
               onBlur={() => timingMode === 'custom' && handleDurationBlur('INHALE')}
               disabled={timingMode !== 'custom'}
+              aria-label="Inhale duration"
             />
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
           </div>
@@ -849,13 +911,12 @@ function App() {
             <span>Hold (top)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
-              <input
-                type="text"
-                inputMode="numeric"
+              <SlotInput
                 value={durationDisplayValue('HOLD_TOP')}
                 onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_TOP', e.target.value.replace(/\D/g, '').slice(0, 2))}
                 onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_TOP')}
                 disabled={timingMode !== 'custom'}
+                aria-label="Hold top duration"
               />
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
             </div>
@@ -865,13 +926,12 @@ function App() {
           <span>Exhale</span>
           <div className="settings-duration-wrap">
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.max(0, durations.EXHALE - 1))} aria-label="Decrease exhale">−</button>
-            <input
-              type="text"
-              inputMode="numeric"
+            <SlotInput
               value={durationDisplayValue('EXHALE')}
               onChange={(e) => timingMode === 'custom' && handleDurationChange('EXHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
               onBlur={() => timingMode === 'custom' && handleDurationBlur('EXHALE')}
               disabled={timingMode !== 'custom'}
+              aria-label="Exhale duration"
             />
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
           </div>
@@ -881,13 +941,12 @@ function App() {
             <span>Hold (bottom)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
-              <input
-                type="text"
-                inputMode="numeric"
+              <SlotInput
                 value={durationDisplayValue('HOLD_BOTTOM')}
                 onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_BOTTOM', e.target.value.replace(/\D/g, '').slice(0, 2))}
                 onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_BOTTOM')}
                 disabled={timingMode !== 'custom'}
+                aria-label="Hold bottom duration"
               />
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
             </div>
@@ -1001,6 +1060,28 @@ function App() {
             </div>
           </div>
         </div>
+        <h2 className="settings-title">Color scheme</h2>
+        <label className="settings-row">
+          <span>Theme</span>
+          <div ref={colorSchemeDropdownRef} className="settings-dropdown settings-dropdown--dropup">
+            <button
+              type="button"
+              className="settings-dropdown__trigger"
+              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
+              aria-expanded={colorSchemeDropdownOpen}
+              aria-haspopup="listbox"
+              aria-label="Color scheme"
+            >
+              {THEME_LABELS[colorScheme]}
+              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
+              {COLOR_SCHEMES.map((scheme) => (
+                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
+              ))}
+            </div>
+          </div>
+        </label>
       </aside>
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
