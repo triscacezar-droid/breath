@@ -122,6 +122,90 @@
   cursor: pointer;
 }
 
+.settings-row--slider {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.settings-slider-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.settings-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 200px;
+  padding: 0 16px;
+}
+
+.settings-row--slider .settings-slider,
+.settings-slider {
+  width: 100%;
+  height: 32px;
+  padding: 0;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  accent-color: #e6c200;
+  transition: background 0.2s ease;
+}
+
+.settings-slider::-webkit-slider-container {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.settings-slider::-webkit-slider-runnable-track {
+  height: 32px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: 0;
+  border-radius: 50%;
+  background: #e6c200;
+  cursor: pointer;
+  border: none;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.settings-slider::-moz-range-track {
+  height: 32px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e6c200;
+  cursor: pointer;
+  border: none;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.settings-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
 @media (max-width: 500px) {
   .settings-row input {
     font-size: 16px; /* prevents iOS zoom on focus */
@@ -185,7 +269,13 @@
 }
 
 .session > .status-slot {
-  margin-bottom: 0;
+  position: absolute;
+  left: 50%;
+  bottom: calc(50% + clamp(56px, 14vmin, 96px));
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 100%;
+  pointer-events: none;
 }
 
 .session > .circle {
@@ -195,19 +285,15 @@
   margin: 0;
 }
 
-/* Fixed-height slot for status so the sphere never shifts when text shows/hides or animates */
+/* Text and dots stacked above the circle; slot sits just above center */
 .status-slot {
-  min-height: clamp(140px, 35vmin, 240px);
-  width: 100%;
-  max-width: 100%;
-  overflow: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(32px, 8vmin, 56px);
-  padding-top: 400px;
-  padding-bottom: clamp(12px, 3vmin, 24px);
+  gap: clamp(24px, 6vmin, 48px);
+  overflow: visible;
+  padding: 0;
 }
 
 .circle {
