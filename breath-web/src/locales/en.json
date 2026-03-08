@@ -50,13 +50,11 @@
     "center": "Center",
     "labelVariants": {
       "words": "Words",
-      "icons": "Icons",
-      "minimal": "Minimal"
+      "icons": "Icons"
     },
     "progressVariants": {
       "dots": "Dots",
-      "bar": "Bar",
-      "arc": "Arc"
+      "squares": "Squares"
     },
     "centerVariants": {
       "circle": "Circle",

@@ -54,13 +54,6 @@ export function phaseLabel(phase: Phase) {
   return i18n.t(`phases.${phaseToKey(phase)}`)
 }
 
-const PHASE_MINIMAL: Record<Phase, string> = {
-  INHALE: 'I',
-  HOLD_TOP: 'H',
-  EXHALE: 'E',
-  HOLD_BOTTOM: 'H',
-}
-
 const PHASE_ICONS: Record<Phase, string> = {
   INHALE: '↑',
   HOLD_TOP: '—',
@@ -70,8 +63,7 @@ const PHASE_ICONS: Record<Phase, string> = {
 
 export function getPhaseLabelDisplay(phase: Phase, variant: LabelVariant): string {
   if (variant === 'words') return phaseLabel(phase)
-  if (variant === 'icons') return PHASE_ICONS[phase]
-  return PHASE_MINIMAL[phase]
+  return PHASE_ICONS[phase]
 }
 
 export function getStoredColorScheme(): ColorScheme {

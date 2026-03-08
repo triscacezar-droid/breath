@@ -50,13 +50,11 @@
     "center": "Centru",
     "labelVariants": {
       "words": "Cuvinte",
-      "icons": "Pictograme",
-      "minimal": "Minimal"
+      "icons": "Pictograme"
     },
     "progressVariants": {
       "dots": "Puncte",
-      "bar": "Bară",
-      "arc": "Arc"
+      "squares": "Pătrate"
     },
     "centerVariants": {
       "circle": "Cerc",

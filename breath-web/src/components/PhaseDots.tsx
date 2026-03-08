@@ -1,9 +1,10 @@
-import type { Phase, TimingMode, BreathMode } from '../types'
+import type { Phase, TimingMode, BreathMode, ProgressVariant } from '../types'
 
 export function PhaseDots({
   phase,
   duration,
   secondsLeft,
+  progressVariant,
   timingMode,
   durations,
   breathMode,
@@ -12,6 +13,7 @@ export function PhaseDots({
   phase: Phase
   duration: number
   secondsLeft: number
+  progressVariant: ProgressVariant
   timingMode: TimingMode
   durations?: Record<Phase, number>
   breathMode?: BreathMode
@@ -30,14 +32,23 @@ export function PhaseDots({
       ? Math.max(durations.INHALE, durations.EXHALE)
       : duration
   const dots = Array.from({ length: dotCount }, (_, i) => i)
+  /* Strictly more than 8*x -> x+1 rows. So >8->2, >16->3, >24->4, ... */
+  const rowCount = dotCount > 8 ? 1 + Math.floor((dotCount - 1) / 8) : 1
 
-  return (
-    <div className="phase-dots" aria-hidden>
-      {dots.map((i) => {
-        let visible = true
-        let isYellow = false
+  /* Snake pattern: groups of rowCount, alternating forward/backward per group */
+  const getRowForIndex = (i: number) => {
+    const groupIndex = Math.floor(i / rowCount)
+    const positionInGroup = i % rowCount
+    return groupIndex % 2 === 0 ? positionInGroup : rowCount - 1 - positionInGroup
+  }
+  const rowIndices = Array.from({ length: rowCount }, () => [] as number[])
+  dots.forEach((_, i) => rowIndices[getRowForIndex(i)].push(i))
 
-        if (isSimple) {
+  const renderDot = (i: number) => {
+    let visible = true
+    let isYellow = false
+
+    if (isSimple) {
           /* 1:1 ratio: L→R or R→L based on nostril */
           switch (phase) {
             case 'INHALE':
@@ -108,15 +119,24 @@ export function PhaseDots({
           }
         }
 
-        const colorClass =
-          isSimple || isLongExhale ? 'phase-dot--white' : isYellow ? 'phase-dot--yellow' : 'phase-dot--white'
-        return (
-          <span
-            key={i}
-            className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${colorClass}`}
-          />
-        )
-      })}
+    const colorClass =
+      isSimple || isLongExhale ? 'phase-dot--white' : isYellow ? 'phase-dot--yellow' : 'phase-dot--white'
+    return (
+      <span
+        key={i}
+        className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${colorClass}`}
+      />
+    )
+  }
+
+  const shapeClass = progressVariant === 'squares' ? 'phase-dots--squares' : 'phase-dots--dots'
+  return (
+    <div className={`phase-dots ${shapeClass} ${rowCount > 1 ? 'phase-dots--multi-row' : ''}`} aria-hidden>
+      {rowIndices.map((indices, row) => (
+        <div key={row} className="phase-dots__row">
+          {indices.map((i) => renderDot(i))}
+        </div>
+      ))}
     </div>
   )
 }

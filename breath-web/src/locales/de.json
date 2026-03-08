@@ -50,13 +50,11 @@
     "center": "Mitte",
     "labelVariants": {
       "words": "Wörter",
-      "icons": "Symbole",
-      "minimal": "Minimal"
+      "icons": "Symbole"
     },
     "progressVariants": {
       "dots": "Punkte",
-      "bar": "Balken",
-      "arc": "Bogen"
+      "squares": "Quadrate"
     },
     "centerVariants": {
       "circle": "Kreis",

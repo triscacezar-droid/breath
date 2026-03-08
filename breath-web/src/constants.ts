@@ -36,14 +36,13 @@ export const COLOR_SCHEME_KEY = 'breath-color-scheme'
 export const VISUALIZATION_KEY = 'breath-visualization'
 export const FOOTER_DISPLAY_KEY = 'breath-footer-display'
 
-export const LABEL_VARIANTS = ['words', 'icons', 'minimal'] as const
-export const PROGRESS_VARIANTS = ['dots', 'bar', 'arc'] as const
+export const LABEL_VARIANTS = ['words', 'icons'] as const
+export const PROGRESS_VARIANTS = ['dots', 'squares'] as const
 export const CENTER_VARIANTS = ['circle', 'ring'] as const
 
 export const PRESETS = {
-  classic: { label: 'words' as const, progress: 'dots' as const, center: 'circle' as const },
-  minimal: { label: 'icons' as const, progress: 'bar' as const, center: 'ring' as const },
-  abstract: { label: 'minimal' as const, progress: 'arc' as const, center: 'ring' as const },
+  classic: { label: 'words' as const, progress: 'dots' as const, center: 'circle' as const, footer: 'cycles' as const },
+  minimal: { label: 'icons' as const, progress: 'squares' as const, center: 'ring' as const, footer: 'time' as const },
 } as const
 
 export const COLOR_SCHEMES = [

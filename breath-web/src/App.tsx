@@ -617,15 +617,16 @@ function App() {
         <h2 className="settings-title">{t('settings.visibility')}</h2>
         <div className="settings-row settings-row--presets">
           <div className="settings-presets">
-            {(['classic', 'minimal', 'abstract'] as const).map((presetKey) => (
+            {(['classic', 'minimal'] as const).map((presetKey) => (
               <button
                 key={presetKey}
                 type="button"
-                className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center ? 'settings-preset-btn--active' : ''}`}
+                className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center && footerDisplayMode === PRESETS[presetKey].footer ? 'settings-preset-btn--active' : ''}`}
                 onClick={() => {
                   setLabelVariant(PRESETS[presetKey].label)
                   setProgressVariant(PRESETS[presetKey].progress)
                   setCenterVariant(PRESETS[presetKey].center)
+                  setFooterDisplayMode(PRESETS[presetKey].footer)
                 }}
                 aria-label={t(`settings.presets.${presetKey}`)}
               >
@@ -832,7 +833,7 @@ function App() {
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
             >
               <div className={`phase-dots-wrap ${contentVisible && displayDotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
+                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} progressVariant={progressVariant} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
               </div>
             </div>
           )}

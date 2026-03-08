@@ -8,8 +8,8 @@ export type TimingMode = 'box' | 'equal' | 'kumbhaka' | 'long_exhale' | 'custom'
 
 export type BreathMode = 'normal' | 'anulom_vilom'
 
-export type LabelVariant = 'words' | 'icons' | 'minimal'
-export type ProgressVariant = 'dots' | 'bar' | 'arc'
+export type LabelVariant = 'words' | 'icons'
+export type ProgressVariant = 'dots' | 'squares'
 export type CenterVariant = 'circle' | 'ring'
 
 export type FooterDisplayMode = 'cycles' | 'time'
