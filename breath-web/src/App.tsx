@@ -31,10 +31,17 @@ import { useDurationsSync } from './hooks/useDurationsSync'
 import { usePresence } from './hooks/usePresence'
 import { useFullscreen } from './hooks/useFullscreen'
 import { useTranslation } from 'react-i18next'
-import i18n from './i18n'
 
 function App() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const resolvedLang: 'en' | 'de' | 'ro' =
+    (i18n.resolvedLanguage && ['en', 'de', 'ro'].includes(i18n.resolvedLanguage)
+      ? i18n.resolvedLanguage
+      : i18n.resolvedLanguage?.startsWith('de')
+        ? 'de'
+        : i18n.resolvedLanguage?.startsWith('ro')
+          ? 'ro'
+          : 'en') as 'en' | 'de' | 'ro'
 
   useEffect(() => {
     document.title = t('app.title')
@@ -612,13 +619,15 @@ function App() {
             options={[
               { value: 'en', label: t('languages.en') },
               { value: 'de', label: t('languages.de') },
+              { value: 'ro', label: t('languages.ro') },
             ]}
-            selected={i18n.resolvedLanguage === 'de' ? 'de' : 'en'}
+            selected={resolvedLang}
             onSelect={(lng) => i18n.changeLanguage(lng)}
             ariaLabel={t('settings.language')}
-            triggerLabel={t(`languages.${i18n.resolvedLanguage === 'de' ? 'de' : 'en'}`)}
+            triggerLabel={t(`languages.${resolvedLang}`)}
             isOpen={languageDropdownOpen}
             onOpenChange={setLanguageDropdownOpen}
+            dropup
           />
         </label>
       </aside>

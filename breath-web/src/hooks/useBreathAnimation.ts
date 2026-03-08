@@ -8,11 +8,19 @@ export function useBreathAnimation(
   durationsRef: React.MutableRefObject<Record<Phase, number>>,
   phaseStartTimeRef: React.MutableRefObject<number>,
   breathModeRef: React.MutableRefObject<BreathMode>,
-  cycleCountRef: React.MutableRefObject<number>
+  cycleCountRef: React.MutableRefObject<number>,
+  contentRevealed: boolean
 ) {
   const [scale, setScale] = useState<number>(MIN_SCALE)
   const [sphereAnulomLeft, setSphereAnulomLeft] = useState<number>(50)
   const animationRef = useRef<number | null>(null)
+
+  /* When sphere spawns (content revealed), start at smallest size since we begin with inhale */
+  useEffect(() => {
+    if (contentRevealed) {
+      setScale(MIN_SCALE)
+    }
+  }, [contentRevealed])
 
   useEffect(() => {
     const animate = () => {

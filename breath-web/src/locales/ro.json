@@ -1,0 +1,121 @@
+{
+  "app": {
+    "title": "Respirație Simplă"
+  },
+  "settings": {
+    "ariaLabel": "Setări respirație",
+    "breathStyle": "Stil respirație",
+    "nostrils": "Nări",
+    "breathStyleAria": "Stil respirație",
+    "ratio": "Raport respirație",
+    "multiplier": "Multiplicator",
+    "decreaseMultiplier": "Scade multiplicatorul",
+    "increaseMultiplier": "Crește multiplicatorul",
+    "inhale": "Inspirație",
+    "holdTop": "Ține sus",
+    "exhale": "Expirație",
+    "holdBottom": "Ține jos",
+    "inhaleDuration": "Durată inspirație",
+    "holdTopDuration": "Durată ținere sus",
+    "exhaleDuration": "Durată expirație",
+    "holdBottomDuration": "Durată ținere jos",
+    "decreaseInhale": "Scade inspirația",
+    "increaseInhale": "Crește inspirația",
+    "decreaseHoldTop": "Scade ținerea sus",
+    "increaseHoldTop": "Crește ținerea sus",
+    "decreaseExhale": "Scade expirația",
+    "increaseExhale": "Crește expirația",
+    "decreaseHoldBottom": "Scade ținerea jos",
+    "increaseHoldBottom": "Crește ținerea jos",
+    "bpm": "Respirații pe minut",
+    "pace": "Ritm",
+    "visibility": "Vizibilitate",
+    "text": "Text",
+    "dots": "Puncte",
+    "sphere": "Sferă",
+    "cycles": "Cicluri",
+    "phaseTextVisibility": "Vizibilitate text fază",
+    "dotsVisibility": "Vizibilitate puncte",
+    "sphereVisibility": "Vizibilitate sferă",
+    "cyclesVisibility": "Vizibilitate cicluri completate",
+    "colorScheme": "Paletă culori",
+    "theme": "Temă",
+    "colorSchemeAria": "Paletă culori",
+    "openSettings": "Deschide setări",
+    "enterFullscreen": "Ecran complet",
+    "exitFullscreen": "Ieșire ecran complet",
+    "sessionAria": "Sesiune respirație",
+    "language": "Limbă"
+  },
+  "phases": {
+    "inhale": "Inspiră",
+    "hold": "Ține",
+    "exhale": "Expiră"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "Personalizat"
+  },
+  "breathModes": {
+    "normal": "Normal",
+    "anulom_vilom": "Anulom Vilom"
+  },
+  "visibility": {
+    "off": "Oprit",
+    "onTap": "La atingere",
+    "on": "Pornit"
+  },
+  "pace": {
+    "verySlow": "Foarte lent",
+    "slow": "Lent",
+    "calming": "Calmant",
+    "normal": "Normal",
+    "fast": "Rapid"
+  },
+  "footer": {
+    "cyclesCompleted": "{{count}} cicluri completate",
+    "noOneElse": "Nimeni altcineva acum",
+    "othersBreathing_one": "{{count}} altă persoană respiră acum",
+    "othersBreathing_other": "{{count}} alte persoane respiră acum"
+  },
+  "themes": {
+    "dark": "Întunecat",
+    "light": "Deschis",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română"
+  }
+}
