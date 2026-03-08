@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "呼吸設定",
+    "breathStyle": "呼吸スタイル",
+    "nostrils": "鼻孔",
+    "breathStyleAria": "呼吸スタイル",
+    "ratio": "呼吸比率",
+    "multiplier": "倍率",
+    "decreaseMultiplier": "倍率を下げる",
+    "increaseMultiplier": "倍率を上げる",
+    "inhale": "吸う",
+    "holdTop": "上で止める",
+    "exhale": "吐く",
+    "holdBottom": "下で止める",
+    "inhaleDuration": "吸気時間",
+    "holdTopDuration": "上での止息時間",
+    "exhaleDuration": "呼気時間",
+    "holdBottomDuration": "下での止息時間",
+    "decreaseInhale": "吸気を減らす",
+    "increaseInhale": "吸気を増やす",
+    "decreaseHoldTop": "上の止息を減らす",
+    "increaseHoldTop": "上の止息を増やす",
+    "decreaseExhale": "呼気を減らす",
+    "increaseExhale": "呼気を増やす",
+    "decreaseHoldBottom": "下の止息を減らす",
+    "increaseHoldBottom": "下の止息を増やす",
+    "bpm": "BPM",
+    "bpmLine1": "呼吸",
+    "bpmLine2": "/分",
+    "pace": "ペース",
+    "visibility": "表示",
+    "text": "テキスト",
+    "dots": "ドット",
+    "sphere": "球",
+    "cycles": "サイクル",
+    "phaseTextVisibility": "フェーズテキストの表示",
+    "dotsVisibility": "ドットの表示",
+    "sphereVisibility": "球の表示",
+    "cyclesVisibility": "完了サイクルの表示",
+    "visualization": "ビジュアル",
+    "presets": "プリセット",
+    "presets.classic": "クラシック",
+    "presets.minimal": "ミニマル",
+    "presets.abstract": "アブストラクト",
+    "label": "ラベル",
+    "progress": "進捗",
+    "center": "中央",
+    "labelVariants": {
+      "words": "言葉",
+      "icons": "アイコン"
+    },
+    "progressVariants": {
+      "dots": "ドット",
+      "squares": "四角"
+    },
+    "centerVariants": {
+      "circle": "円",
+      "ring": "リング"
+    },
+    "labelVariantAria": "ラベルスタイル",
+    "progressVariantAria": "進捗スタイル",
+    "centerVariantAria": "中央スタイル",
+    "colorScheme": "カラースキーム",
+    "theme": "テーマ",
+    "colorSchemeAria": "カラースキーム",
+    "openSettings": "設定を開く",
+    "enterFullscreen": "全画面表示",
+    "exitFullscreen": "全画面を終了",
+    "sessionAria": "呼吸セッション",
+    "language": "言語"
+  },
+  "phases": {
+    "inhale": "吸って",
+    "hold": "止めて",
+    "exhale": "吐いて"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "カスタム"
+  },
+  "breathModes": {
+    "normal": "両方",
+    "anulom_vilom": "交互"
+  },
+  "visibility": {
+    "off": "オフ",
+    "onTap": "タップ時",
+    "on": "オン"
+  },
+  "pace": {
+    "verySlow": "とても遅い",
+    "slow": "遅い",
+    "calming": "落ち着く",
+    "normal": "普通",
+    "fast": "速い"
+  },
+  "footer": {
+    "displayMode": {
+      "cycles": "サイクル",
+      "time": "時間"
+    },
+    "displayModeAria": "サイクルまたは時間を表示",
+    "cyclesCompleted": "{{count}}サイクル完了",
+    "noOneElse": "今は他に誰もいません",
+    "othersBreathing_one": "他{{count}}人が今呼吸しています",
+    "othersBreathing_other": "他{{count}}人が今呼吸しています"
+  },
+  "themes": {
+    "dark": "ダーク",
+    "light": "ライト",
+    "sepia": "セピア",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
+  }
+}

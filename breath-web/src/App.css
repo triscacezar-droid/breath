@@ -217,6 +217,11 @@
   overflow-y: auto;
 }
 
+.settings-dropdown__panel--languages.settings-dropdown__panel--open {
+  max-height: min(360px, 70vh);
+  overflow-y: auto;
+}
+
 .settings-dropdown--dropup .settings-dropdown__panel {
   top: auto;
   bottom: 100%;

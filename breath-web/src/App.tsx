@@ -40,14 +40,12 @@ import { useTranslation } from 'react-i18next'
 
 function App() {
   const { t, i18n } = useTranslation()
-  const resolvedLang: 'en' | 'de' | 'ro' =
-    (i18n.resolvedLanguage && ['en', 'de', 'ro'].includes(i18n.resolvedLanguage)
-      ? i18n.resolvedLanguage
-      : i18n.resolvedLanguage?.startsWith('de')
-        ? 'de'
-        : i18n.resolvedLanguage?.startsWith('ro')
-          ? 'ro'
-          : 'en') as 'en' | 'de' | 'ro'
+  const SUPPORTED_LANGS = ['en', 'de', 'ro', 'es', 'fr', 'pt', 'it', 'pl', 'ru', 'ja', 'zh', 'hi'] as const
+  type SupportedLang = (typeof SUPPORTED_LANGS)[number]
+  const resolvedLang: SupportedLang =
+    (i18n.resolvedLanguage && SUPPORTED_LANGS.includes(i18n.resolvedLanguage as SupportedLang))
+      ? (i18n.resolvedLanguage as SupportedLang)
+      : SUPPORTED_LANGS.find((l) => i18n.resolvedLanguage?.startsWith(l)) ?? 'en'
 
   useEffect(() => {
     document.title = t('app.title')
@@ -715,6 +713,15 @@ function App() {
               { value: 'en', label: t('languages.en') },
               { value: 'de', label: t('languages.de') },
               { value: 'ro', label: t('languages.ro') },
+              { value: 'es', label: t('languages.es') },
+              { value: 'fr', label: t('languages.fr') },
+              { value: 'pt', label: t('languages.pt') },
+              { value: 'it', label: t('languages.it') },
+              { value: 'pl', label: t('languages.pl') },
+              { value: 'ru', label: t('languages.ru') },
+              { value: 'ja', label: t('languages.ja') },
+              { value: 'zh', label: t('languages.zh') },
+              { value: 'hi', label: t('languages.hi') },
             ]}
             selected={resolvedLang}
             onSelect={(lng) => i18n.changeLanguage(lng)}
@@ -723,6 +730,7 @@ function App() {
             isOpen={languageDropdownOpen}
             onOpenChange={setLanguageDropdownOpen}
             dropup
+            panelClassName="settings-dropdown__panel--languages"
           />
         </label>
       </aside>

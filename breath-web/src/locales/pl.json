@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "Ustawienia oddechu",
+    "breathStyle": "Styl oddychania",
+    "nostrils": "Nozdrza",
+    "breathStyleAria": "Styl oddychania",
+    "ratio": "Proporcja oddechu",
+    "multiplier": "Mnożnik",
+    "decreaseMultiplier": "Zmniejsz mnożnik",
+    "increaseMultiplier": "Zwiększ mnożnik",
+    "inhale": "Wdech",
+    "holdTop": "Wstrzymaj górę",
+    "exhale": "Wydech",
+    "holdBottom": "Wstrzymaj dół",
+    "inhaleDuration": "Czas wdechu",
+    "holdTopDuration": "Czas wstrzymania góry",
+    "exhaleDuration": "Czas wydechu",
+    "holdBottomDuration": "Czas wstrzymania dołu",
+    "decreaseInhale": "Zmniejsz wdech",
+    "increaseInhale": "Zwiększ wdech",
+    "decreaseHoldTop": "Zmniejsz wstrzymanie góry",
+    "increaseHoldTop": "Zwiększ wstrzymanie góry",
+    "decreaseExhale": "Zmniejsz wydech",
+    "increaseExhale": "Zwiększ wydech",
+    "decreaseHoldBottom": "Zmniejsz wstrzymanie dołu",
+    "increaseHoldBottom": "Zwiększ wstrzymanie dołu",
+    "bpm": "ODM",
+    "bpmLine1": "Oddechy",
+    "bpmLine2": "na minutę",
+    "pace": "Tempo",
+    "visibility": "Widoczność",
+    "text": "Tekst",
+    "dots": "Kropki",
+    "sphere": "Kula",
+    "cycles": "Cykle",
+    "phaseTextVisibility": "Widoczność tekstu fazy",
+    "dotsVisibility": "Widoczność kropek",
+    "sphereVisibility": "Widoczność kuli",
+    "cyclesVisibility": "Widoczność ukończonych cykli",
+    "visualization": "Wizualizacja",
+    "presets": "Presety",
+    "presets.classic": "Klasyczny",
+    "presets.minimal": "Minimalny",
+    "presets.abstract": "Abstrakcyjny",
+    "label": "Etykieta",
+    "progress": "Postęp",
+    "center": "Środek",
+    "labelVariants": {
+      "words": "Słowa",
+      "icons": "Ikony"
+    },
+    "progressVariants": {
+      "dots": "Kropki",
+      "squares": "Kwadraty"
+    },
+    "centerVariants": {
+      "circle": "Koło",
+      "ring": "Pierścień"
+    },
+    "labelVariantAria": "Styl etykiety",
+    "progressVariantAria": "Styl postępu",
+    "centerVariantAria": "Styl środka",
+    "colorScheme": "Schemat kolorów",
+    "theme": "Motyw",
+    "colorSchemeAria": "Schemat kolorów",
+    "openSettings": "Otwórz ustawienia",
+    "enterFullscreen": "Pełny ekran",
+    "exitFullscreen": "Wyjdź z pełnego ekranu",
+    "sessionAria": "Sesja oddychania",
+    "language": "Język"
+  },
+  "phases": {
+    "inhale": "Wdychaj",
+    "hold": "Wstrzymaj",
+    "exhale": "Wydychaj"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "Własny"
+  },
+  "breathModes": {
+    "normal": "Oba",
+    "anulom_vilom": "Naprzemiennie"
+  },
+  "visibility": {
+    "off": "Wyłączone",
+    "onTap": "Po dotknięciu",
+    "on": "Włączone"
+  },
+  "pace": {
+    "verySlow": "Bardzo wolno",
+    "slow": "Wolno",
+    "calming": "Uspokajające",
+    "normal": "Normalnie",
+    "fast": "Szybko"
+  },
+  "footer": {
+    "displayMode": {
+      "cycles": "Cykle",
+      "time": "Czas"
+    },
+    "displayModeAria": "Pokaż cykle lub czas",
+    "cyclesCompleted": "{{count}} cykli ukończonych",
+    "noOneElse": "Nikt inny w tej chwili",
+    "othersBreathing_one": "{{count}} inna osoba oddycha teraz",
+    "othersBreathing_other": "{{count}} innych osób oddycha teraz"
+  },
+  "themes": {
+    "dark": "Ciemny",
+    "light": "Jasny",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
+  }
+}

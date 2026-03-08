@@ -146,6 +146,15 @@
   "languages": {
     "en": "English",
     "de": "Deutsch",
-    "ro": "Română"
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
   }
 }

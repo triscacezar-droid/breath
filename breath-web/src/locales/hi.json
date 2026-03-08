@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "श्वास सेटिंग्स",
+    "breathStyle": "श्वास शैली",
+    "nostrils": "नथुने",
+    "breathStyleAria": "श्वास शैली",
+    "ratio": "श्वास अनुपात",
+    "multiplier": "गुणक",
+    "decreaseMultiplier": "गुणक कम करें",
+    "increaseMultiplier": "गुणक बढ़ाएं",
+    "inhale": "साँस लें",
+    "holdTop": "ऊपर रोकें",
+    "exhale": "साँस छोड़ें",
+    "holdBottom": "नीचे रोकें",
+    "inhaleDuration": "साँस लेने की अवधि",
+    "holdTopDuration": "ऊपर रोकने की अवधि",
+    "exhaleDuration": "साँस छोड़ने की अवधि",
+    "holdBottomDuration": "नीचे रोकने की अवधि",
+    "decreaseInhale": "साँस छोटी करें",
+    "increaseInhale": "साँस बढ़ाएं",
+    "decreaseHoldTop": "ऊपर रोक कम करें",
+    "increaseHoldTop": "ऊपर रोक बढ़ाएं",
+    "decreaseExhale": "साँस छोड़ना कम करें",
+    "increaseExhale": "साँस छोड़ना बढ़ाएं",
+    "decreaseHoldBottom": "नीचे रोक कम करें",
+    "increaseHoldBottom": "नीचे रोक बढ़ाएं",
+    "bpm": "BPM",
+    "bpmLine1": "साँसें",
+    "bpmLine2": "प्रति मिनट",
+    "pace": "गति",
+    "visibility": "दृश्यता",
+    "text": "टेक्स्ट",
+    "dots": "बिंदु",
+    "sphere": "गोला",
+    "cycles": "चक्र",
+    "phaseTextVisibility": "चरण टेक्स्ट दृश्यता",
+    "dotsVisibility": "बिंदु दृश्यता",
+    "sphereVisibility": "गोला दृश्यता",
+    "cyclesVisibility": "पूर्ण चक्र दृश्यता",
+    "visualization": "विज़ुअलाइज़ेशन",
+    "presets": "प्रीसेट",
+    "presets.classic": "क्लासिक",
+    "presets.minimal": "मिनिमल",
+    "presets.abstract": "अमूर्त",
+    "label": "लेबल",
+    "progress": "प्रगति",
+    "center": "केंद्र",
+    "labelVariants": {
+      "words": "शब्द",
+      "icons": "आइकन"
+    },
+    "progressVariants": {
+      "dots": "बिंदु",
+      "squares": "वर्ग"
+    },
+    "centerVariants": {
+      "circle": "वृत्त",
+      "ring": "रिंग"
+    },
+    "labelVariantAria": "लेबल शैली",
+    "progressVariantAria": "प्रगति शैली",
+    "centerVariantAria": "केंद्र शैली",
+    "colorScheme": "रंग योजना",
+    "theme": "थीम",
+    "colorSchemeAria": "रंग योजना",
+    "openSettings": "सेटिंग्स खोलें",
+    "enterFullscreen": "पूर्ण स्क्रीन",
+    "exitFullscreen": "पूर्ण स्क्रीन से बाहर",
+    "sessionAria": "श्वास सत्र",
+    "language": "भाषा"
+  },
+  "phases": {
+    "inhale": "साँस लें",
+    "hold": "रोकें",
+    "exhale": "साँस छोड़ें"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "कस्टम"
+  },
+  "breathModes": {
+    "normal": "दोनों",
+    "anulom_vilom": "बारी-बारी"
+  },
+  "visibility": {
+    "off": "बंद",
+    "onTap": "टैप पर",
+    "on": "चालू"
+  },
+  "pace": {
+    "verySlow": "बहुत धीमा",
+    "slow": "धीमा",
+    "calming": "शांत करने वाला",
+    "normal": "सामान्य",
+    "fast": "तेज़"
+  },
+  "footer": {
+    "displayMode": {
+      "cycles": "चक्र",
+      "time": "समय"
+    },
+    "displayModeAria": "चक्र या समय दिखाएं",
+    "cyclesCompleted": "{{count}} चक्र पूर्ण",
+    "noOneElse": "इस समय कोई और नहीं",
+    "othersBreathing_one": "{{count}} अन्य व्यक्ति अभी साँस ले रहा है",
+    "othersBreathing_other": "{{count}} अन्य व्यक्ति अभी साँस ले रहे हैं"
+  },
+  "themes": {
+    "dark": "Dark",
+    "light": "Light",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
+  }
+}

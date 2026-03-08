@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "呼吸设置",
+    "breathStyle": "呼吸方式",
+    "nostrils": "鼻孔",
+    "breathStyleAria": "呼吸方式",
+    "ratio": "呼吸比例",
+    "multiplier": "倍数",
+    "decreaseMultiplier": "减少倍数",
+    "increaseMultiplier": "增加倍数",
+    "inhale": "吸气",
+    "holdTop": "屏气（上）",
+    "exhale": "呼气",
+    "holdBottom": "屏气（下）",
+    "inhaleDuration": "吸气时长",
+    "holdTopDuration": "上屏气时长",
+    "exhaleDuration": "呼气时长",
+    "holdBottomDuration": "下屏气时长",
+    "decreaseInhale": "减少吸气",
+    "increaseInhale": "增加吸气",
+    "decreaseHoldTop": "减少上屏气",
+    "increaseHoldTop": "增加上屏气",
+    "decreaseExhale": "减少呼气",
+    "increaseExhale": "增加呼气",
+    "decreaseHoldBottom": "减少下屏气",
+    "increaseHoldBottom": "增加下屏气",
+    "bpm": "次/分",
+    "bpmLine1": "呼吸",
+    "bpmLine2": "每分钟",
+    "pace": "节奏",
+    "visibility": "可见性",
+    "text": "文字",
+    "dots": "圆点",
+    "sphere": "球体",
+    "cycles": "周期",
+    "phaseTextVisibility": "阶段文字可见性",
+    "dotsVisibility": "圆点可见性",
+    "sphereVisibility": "球体可见性",
+    "cyclesVisibility": "完成周期可见性",
+    "visualization": "可视化",
+    "presets": "预设",
+    "presets.classic": "经典",
+    "presets.minimal": "极简",
+    "presets.abstract": "抽象",
+    "label": "标签",
+    "progress": "进度",
+    "center": "中心",
+    "labelVariants": {
+      "words": "文字",
+      "icons": "图标"
+    },
+    "progressVariants": {
+      "dots": "圆点",
+      "squares": "方块"
+    },
+    "centerVariants": {
+      "circle": "圆形",
+      "ring": "环形"
+    },
+    "labelVariantAria": "标签样式",
+    "progressVariantAria": "进度样式",
+    "centerVariantAria": "中心样式",
+    "colorScheme": "配色方案",
+    "theme": "主题",
+    "colorSchemeAria": "配色方案",
+    "openSettings": "打开设置",
+    "enterFullscreen": "全屏",
+    "exitFullscreen": "退出全屏",
+    "sessionAria": "呼吸会话",
+    "language": "语言"
+  },
+  "phases": {
+    "inhale": "吸气",
+    "hold": "屏住",
+    "exhale": "呼气"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "自定义"
+  },
+  "breathModes": {
+    "normal": "双鼻",
+    "anulom_vilom": "交替"
+  },
+  "visibility": {
+    "off": "关闭",
+    "onTap": "点击时",
+    "on": "开启"
+  },
+  "pace": {
+    "verySlow": "非常慢",
+    "slow": "慢",
+    "calming": "舒缓",
+    "normal": "正常",
+    "fast": "快"
+  },
+  "footer": {
+    "displayMode": {
+      "cycles": "周期",
+      "time": "时间"
+    },
+    "displayModeAria": "显示周期或时间",
+    "cyclesCompleted": "已完成 {{count}} 个周期",
+    "noOneElse": "目前没有其他人",
+    "othersBreathing_one": "{{count}} 人正在呼吸",
+    "othersBreathing_other": "{{count}} 人正在呼吸"
+  },
+  "themes": {
+    "dark": "深色",
+    "light": "浅色",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
+  }
+}

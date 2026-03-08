@@ -73,9 +73,9 @@
     "language": "Sprache"
   },
   "phases": {
-    "inhale": "Einatmen",
-    "hold": "Anhalten",
-    "exhale": "Ausatmen"
+    "inhale": "Atme ein",
+    "hold": "Halte an",
+    "exhale": "Atme aus"
   },
   "timingModes": {
     "box": "1:1:1:1",
@@ -146,6 +146,15 @@
   "languages": {
     "en": "English",
     "de": "Deutsch",
-    "ro": "Română"
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
   }
 }

@@ -1,0 +1,160 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "Настройки дыхания",
+    "breathStyle": "Стиль дыхания",
+    "nostrils": "Ноздри",
+    "breathStyleAria": "Стиль дыхания",
+    "ratio": "Соотношение дыхания",
+    "multiplier": "Множитель",
+    "decreaseMultiplier": "Уменьшить множитель",
+    "increaseMultiplier": "Увеличить множитель",
+    "inhale": "Вдох",
+    "holdTop": "Задержка вверху",
+    "exhale": "Выдох",
+    "holdBottom": "Задержка внизу",
+    "inhaleDuration": "Длительность вдоха",
+    "holdTopDuration": "Длительность задержки вверху",
+    "exhaleDuration": "Длительность выдоха",
+    "holdBottomDuration": "Длительность задержки внизу",
+    "decreaseInhale": "Уменьшить вдох",
+    "increaseInhale": "Увеличить вдох",
+    "decreaseHoldTop": "Уменьшить задержку вверху",
+    "increaseHoldTop": "Увеличить задержку вверху",
+    "decreaseExhale": "Уменьшить выдох",
+    "increaseExhale": "Увеличить выдох",
+    "decreaseHoldBottom": "Уменьшить задержку внизу",
+    "increaseHoldBottom": "Увеличить задержку внизу",
+    "bpm": "ДМ",
+    "bpmLine1": "Вдохов",
+    "bpmLine2": "в минуту",
+    "pace": "Темп",
+    "visibility": "Видимость",
+    "text": "Текст",
+    "dots": "Точки",
+    "sphere": "Сфера",
+    "cycles": "Циклы",
+    "phaseTextVisibility": "Видимость текста фазы",
+    "dotsVisibility": "Видимость точек",
+    "sphereVisibility": "Видимость сферы",
+    "cyclesVisibility": "Видимость завершённых циклов",
+    "visualization": "Визуализация",
+    "presets": "Пресеты",
+    "presets.classic": "Классический",
+    "presets.minimal": "Минимальный",
+    "presets.abstract": "Абстрактный",
+    "label": "Подпись",
+    "progress": "Прогресс",
+    "center": "Центр",
+    "labelVariants": {
+      "words": "Слова",
+      "icons": "Иконки"
+    },
+    "progressVariants": {
+      "dots": "Точки",
+      "squares": "Квадраты"
+    },
+    "centerVariants": {
+      "circle": "Круг",
+      "ring": "Кольцо"
+    },
+    "labelVariantAria": "Стиль подписи",
+    "progressVariantAria": "Стиль прогресса",
+    "centerVariantAria": "Стиль центра",
+    "colorScheme": "Цветовая схема",
+    "theme": "Тема",
+    "colorSchemeAria": "Цветовая схема",
+    "openSettings": "Открыть настройки",
+    "enterFullscreen": "Полный экран",
+    "exitFullscreen": "Выйти из полного экрана",
+    "sessionAria": "Сессия дыхания",
+    "language": "Язык"
+  },
+  "phases": {
+    "inhale": "Вдохни",
+    "hold": "Задержи",
+    "exhale": "Выдохни"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "Свой"
+  },
+  "breathModes": {
+    "normal": "Обе",
+    "anulom_vilom": "Поочерёдно"
+  },
+  "visibility": {
+    "off": "Выкл",
+    "onTap": "По нажатию",
+    "on": "Вкл"
+  },
+  "pace": {
+    "verySlow": "Очень медленно",
+    "slow": "Медленно",
+    "calming": "Успокаивающий",
+    "normal": "Нормально",
+    "fast": "Быстро"
+  },
+  "footer": {
+    "displayMode": {
+      "cycles": "Циклы",
+      "time": "Время"
+    },
+    "displayModeAria": "Показать циклы или время",
+    "cyclesCompleted": "{{count}} циклов завершено",
+    "noOneElse": "Никого больше в данный момент",
+    "othersBreathing_one": "{{count}} другой человек дышит сейчас",
+    "othersBreathing_other": "{{count}} других человек дышат сейчас"
+  },
+  "themes": {
+    "dark": "Тёмная",
+    "light": "Светлая",
+    "sepia": "Сепия",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch",
+    "ro": "Română",
+    "es": "Español",
+    "fr": "Français",
+    "pt": "Português",
+    "it": "Italiano",
+    "pl": "Polski",
+    "ru": "Русский",
+    "ja": "日本語",
+    "zh": "中文",
+    "hi": "हिन्दी"
+  }
+}
