@@ -517,18 +517,16 @@
   font-size: 14px;
   color: var(--color-text-primary);
   flex-shrink: 0;
-  min-width: 4em;
-  margin-right: -20px;
 }
 
 .settings-slider-wrap {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1;
   min-width: 0;
-  max-width: 200px;
-  padding: 0 16px;
+  width: 116px;
+  margin-left: auto;
+  align-items: stretch;
 }
 
 .settings-row--slider .settings-slider,
@@ -974,7 +972,7 @@
   display: flex;
   align-items: stretch;
   height: 100%;
-  width: 224px;
+  width: 236px;
   gap: 4px;
   transition: transform 0.3s ease;
 }
@@ -1014,6 +1012,10 @@
 }
 
 .difficulty-scale__zone:nth-child(4)::before {
+  left: 2px;
+}
+
+.difficulty-scale__zone:nth-child(5)::before {
   left: 2px;
 }
 

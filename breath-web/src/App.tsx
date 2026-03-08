@@ -256,9 +256,28 @@ function SlotDisplay({ value, rank, 'aria-label': ariaLabel, className }: { valu
   )
 }
 
-function PhaseDots({ phase, duration, secondsLeft }: { phase: Phase; duration: number; secondsLeft: number }) {
+function PhaseDots({
+  phase,
+  duration,
+  secondsLeft,
+  timingMode,
+  durations,
+}: {
+  phase: Phase
+  duration: number
+  secondsLeft: number
+  timingMode: TimingMode
+  durations?: Record<Phase, number>
+}) {
   const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
-  const dots = Array.from({ length: duration }, (_, i) => i)
+  const isSimple = timingMode === 'equal'
+  const isLongExhale = timingMode === 'long_exhale'
+  /* 1:2: fixed count so dots stay in final layout; inhale/exhale have different lengths */
+  const dotCount =
+    isLongExhale && durations
+      ? Math.max(durations.INHALE, durations.EXHALE)
+      : duration
+  const dots = Array.from({ length: dotCount }, (_, i) => i)
 
   return (
     <div className="phase-dots" aria-hidden>
@@ -266,29 +285,57 @@ function PhaseDots({ phase, duration, secondsLeft }: { phase: Phase; duration: n
         let visible = true
         let isYellow = false
 
-        switch (phase) {
-          case 'INHALE':
-            visible = i < elapsedSeconds
-            isYellow = false
-            break
-          case 'HOLD_TOP':
-            visible = true
-            isYellow = i < elapsedSeconds
-            break
-          case 'EXHALE':
-            visible = true
-            isYellow = i >= elapsedSeconds
-            break
-          case 'HOLD_BOTTOM':
-            visible = i >= elapsedSeconds
-            isYellow = false
-            break
+        if (isSimple) {
+          /* 1:1 ratio: appear L→R on inhale, disappear L→R on exhale, no coloring */
+          switch (phase) {
+            case 'INHALE':
+              visible = i < elapsedSeconds
+              break
+            case 'EXHALE':
+              visible = i >= elapsedSeconds
+              break
+            default:
+              visible = false
+          }
+        } else if (isLongExhale) {
+          /* 1:2 ratio: appear 2 at a time on inhale, disappear 1 at a time on exhale (both L→R), no coloring */
+          switch (phase) {
+            case 'INHALE':
+              visible = i < Math.min(dotCount, Math.floor(elapsedSeconds) * 2)
+              break
+            case 'EXHALE':
+              visible = i >= elapsedSeconds
+              break
+            default:
+              visible = false
+          }
+        } else {
+          /* 1:1:1:1 box: appear L→R on inhale, disappear L→R on hold bottom; holds show yellow progress */
+          switch (phase) {
+            case 'INHALE':
+              visible = i < elapsedSeconds
+              isYellow = false
+              break
+            case 'HOLD_TOP':
+              visible = true
+              isYellow = i < elapsedSeconds
+              break
+            case 'EXHALE':
+              visible = true
+              isYellow = i >= elapsedSeconds
+              break
+            case 'HOLD_BOTTOM':
+              visible = i >= elapsedSeconds
+              isYellow = false
+              break
+          }
         }
 
+        const colorClass = isSimple || isLongExhale ? 'phase-dot--white' : isYellow ? 'phase-dot--yellow' : 'phase-dot--white'
         return (
           <span
             key={i}
-            className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${isYellow ? 'phase-dot--yellow' : 'phase-dot--white'}`}
+            className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${colorClass}`}
           />
         )
       })}
@@ -490,8 +537,9 @@ function App() {
     durationsRef.current = durations
   }, [durations])
 
-  // When durations are not all equal, set dots slider to Off (controller updates model → view hides dots)
+  // When durations are not all equal (box mode), set dots slider to Off
   useEffect(() => {
+    if (timingMode !== 'box') return
     const allEqual =
       durations.INHALE === durations.HOLD_TOP &&
       durations.HOLD_TOP === durations.EXHALE &&
@@ -500,7 +548,7 @@ function App() {
       setDotsVisibility(0)
       setDotsVisibilityAnimated(0)
     }
-  }, [durations, dotsVisibility])
+  }, [timingMode, durations, dotsVisibility])
 
   // Keep durations in sync when in box, equal, kumbhaka, or long_exhale mode
   useEffect(() => {
@@ -533,9 +581,9 @@ function App() {
     }
   }, [timingMode, multiplierSeconds])
 
-  // When switching to custom, equal, or long_exhale, turn dots off (durations may differ)
+  // When switching to custom, turn dots off (durations may differ)
   useEffect(() => {
-    if (timingMode === 'custom' || timingMode === 'equal' || timingMode === 'long_exhale') {
+    if (timingMode === 'custom') {
       setDotsVisibility(0)
       setDotsVisibilityAnimated(0)
     }
@@ -949,7 +997,7 @@ function App() {
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
             </div>
           </label>
-          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${durations.HOLD_TOP === 0 && timingMode !== 'custom' ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''}`}>
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${(timingMode === 'custom' ? durations.HOLD_TOP === 0 : timingMode === 'equal' || timingMode === 'long_exhale') ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''}`}>
             <span>Hold (top)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
@@ -977,7 +1025,7 @@ function App() {
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
           </div>
           </label>
-          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${durations.HOLD_BOTTOM === 0 && timingMode !== 'custom' ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''}`}>
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${(timingMode === 'custom' ? durations.HOLD_BOTTOM === 0 : timingMode !== 'box') ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''}`}>
             <span>Hold (bottom)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
@@ -1012,12 +1060,12 @@ function App() {
           </div>
         </div>
         <div className="settings-row settings-row--difficulty">
-          <span>Exp. Difficulty</span>
+          <span>Pace</span>
           <div className="settings-duration-wrap">
             {totalBreathSeconds > 0 ? (
               <DifficultyScale bpm={breathsPerMinute} />
             ) : (
-              <div className="difficulty-scale difficulty-scale--empty" aria-label="Exp. Difficulty">
+              <div className="difficulty-scale difficulty-scale--empty" aria-label="Pace">
                 <span className="difficulty-scale__empty">—</span>
               </div>
             )}
@@ -1050,7 +1098,7 @@ function App() {
             />
           </div>
         </div>
-        <div className={`settings-row settings-row--slider ${timingMode !== 'box' ? 'settings-row--disabled' : ''}`}>
+        <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' ? 'settings-row--disabled' : ''}`}>
           <span className="settings-slider-label">Dots</span>
           <div className={`settings-slider-wrap ${Math.round(dotsVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
             <input
@@ -1059,8 +1107,8 @@ function App() {
               max={2}
               step={0.01}
               value={dotsVisibilityAnimated}
-              disabled={timingMode !== 'box'}
-              onPointerDown={() => { timingMode === 'box' && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
+              disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale'}
+              onPointerDown={() => { (timingMode === 'box' || timingMode === 'equal' || timingMode === 'long_exhale') && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
               onPointerUp={() => { draggingSliderRef.current = null }}
               onPointerLeave={() => { draggingSliderRef.current = null }}
               onChange={(e) => {
@@ -1217,7 +1265,7 @@ function App() {
                 onAnimationEnd={() => enteringDots && setEnteringDots(false)}
               >
                 <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} />
+                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} />
                 </div>
               </div>
             )}
