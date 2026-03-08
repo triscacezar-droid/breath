@@ -85,8 +85,8 @@
     "custom": "Personalizat"
   },
   "breathModes": {
-    "normal": "Normal",
-    "anulom_vilom": "Anulom Vilom"
+    "normal": "Ambele",
+    "anulom_vilom": "Alternativ"
   },
   "visibility": {
     "off": "Oprit",

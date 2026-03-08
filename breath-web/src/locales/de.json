@@ -85,8 +85,8 @@
     "custom": "Benutzerdefiniert"
   },
   "breathModes": {
-    "normal": "Normal",
-    "anulom_vilom": "Anulom Vilom"
+    "normal": "Beide",
+    "anulom_vilom": "Abwechselnd"
   },
   "visibility": {
     "off": "Aus",
