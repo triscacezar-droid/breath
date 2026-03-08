@@ -569,10 +569,37 @@ function App() {
             )}
           </div>
         </div>
-        {/* ---------- View: visibility sliders (read/write model) ---------- */}
+        {/* ---------- Visibility: presets + Label/Progress/Center (replaces Text/Dots/Sphere) ---------- */}
         <h2 className="settings-title">{t('settings.visibility')}</h2>
+        <div className="settings-row settings-row--presets">
+          <div className="settings-presets">
+            {(['classic', 'minimal', 'abstract'] as const).map((presetKey) => (
+              <button
+                key={presetKey}
+                type="button"
+                className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center ? 'settings-preset-btn--active' : ''}`}
+                onClick={() => {
+                  setLabelVariant(PRESETS[presetKey].label)
+                  setProgressVariant(PRESETS[presetKey].progress)
+                  setCenterVariant(PRESETS[presetKey].center)
+                }}
+                aria-label={t(`settings.presets.${presetKey}`)}
+              >
+                {t(`settings.presets.${presetKey}`)}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">{t('settings.text')}</span>
+          <SettingsDropdown
+            options={LABEL_VARIANTS.map((v) => ({ value: v, label: t(`settings.labelVariants.${v}`) }))}
+            selected={labelVariant}
+            onSelect={setLabelVariant}
+            ariaLabel={t('settings.labelVariantAria')}
+            triggerLabel={t(`settings.labelVariants.${labelVariant}`)}
+            isOpen={labelVariantDropdownOpen}
+            onOpenChange={setLabelVariantDropdownOpen}
+          />
           <VisibilitySlider
             value={textVisibility}
             valueAnimated={textVisibilityAnimated}
@@ -584,7 +611,15 @@ function App() {
           />
         </div>
         <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka' ? 'settings-row--disabled' : ''}`}>
-          <span className="settings-slider-label">{t('settings.dots')}</span>
+          <SettingsDropdown
+            options={PROGRESS_VARIANTS.map((v) => ({ value: v, label: t(`settings.progressVariants.${v}`) }))}
+            selected={progressVariant}
+            onSelect={setProgressVariant}
+            ariaLabel={t('settings.progressVariantAria')}
+            triggerLabel={t(`settings.progressVariants.${progressVariant}`)}
+            isOpen={progressVariantDropdownOpen}
+            onOpenChange={setProgressVariantDropdownOpen}
+          />
           <VisibilitySlider
             value={dotsVisibility}
             valueAnimated={dotsVisibilityAnimated}
@@ -597,7 +632,15 @@ function App() {
           />
         </div>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">{t('settings.sphere')}</span>
+          <SettingsDropdown
+            options={CENTER_VARIANTS.map((v) => ({ value: v, label: t(`settings.centerVariants.${v}`) }))}
+            selected={centerVariant}
+            onSelect={setCenterVariant}
+            ariaLabel={t('settings.centerVariantAria')}
+            triggerLabel={t(`settings.centerVariants.${centerVariant}`)}
+            isOpen={centerVariantDropdownOpen}
+            onOpenChange={setCenterVariantDropdownOpen}
+          />
           <VisibilitySlider
             value={sphereVisibility}
             valueAnimated={sphereVisibilityAnimated}
@@ -621,63 +664,6 @@ function App() {
             showLabels
           />
         </div>
-        <h2 className="settings-title">{t('settings.visualization')}</h2>
-        <div className="settings-row settings-row--presets">
-          <span className="settings-presets-label" aria-hidden>{t('settings.presets')}</span>
-          <div className="settings-presets">
-            {(['classic', 'minimal', 'abstract'] as const).map((presetKey) => (
-              <button
-                key={presetKey}
-                type="button"
-                className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center ? 'settings-preset-btn--active' : ''}`}
-                onClick={() => {
-                  setLabelVariant(PRESETS[presetKey].label)
-                  setProgressVariant(PRESETS[presetKey].progress)
-                  setCenterVariant(PRESETS[presetKey].center)
-                }}
-                aria-label={t(`settings.presets.${presetKey}`)}
-              >
-                {t(`settings.presets.${presetKey}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-        <label className="settings-row">
-          <span>{t('settings.label')}</span>
-          <SettingsDropdown
-            options={LABEL_VARIANTS.map((v) => ({ value: v, label: t(`settings.labelVariants.${v}`) }))}
-            selected={labelVariant}
-            onSelect={setLabelVariant}
-            ariaLabel={t('settings.labelVariantAria')}
-            triggerLabel={t(`settings.labelVariants.${labelVariant}`)}
-            isOpen={labelVariantDropdownOpen}
-            onOpenChange={setLabelVariantDropdownOpen}
-          />
-        </label>
-        <label className="settings-row">
-          <span>{t('settings.progress')}</span>
-          <SettingsDropdown
-            options={PROGRESS_VARIANTS.map((v) => ({ value: v, label: t(`settings.progressVariants.${v}`) }))}
-            selected={progressVariant}
-            onSelect={setProgressVariant}
-            ariaLabel={t('settings.progressVariantAria')}
-            triggerLabel={t(`settings.progressVariants.${progressVariant}`)}
-            isOpen={progressVariantDropdownOpen}
-            onOpenChange={setProgressVariantDropdownOpen}
-          />
-        </label>
-        <label className="settings-row">
-          <span>{t('settings.center')}</span>
-          <SettingsDropdown
-            options={CENTER_VARIANTS.map((v) => ({ value: v, label: t(`settings.centerVariants.${v}`) }))}
-            selected={centerVariant}
-            onSelect={setCenterVariant}
-            ariaLabel={t('settings.centerVariantAria')}
-            triggerLabel={t(`settings.centerVariants.${centerVariant}`)}
-            isOpen={centerVariantDropdownOpen}
-            onOpenChange={setCenterVariantDropdownOpen}
-          />
-        </label>
         <h2 className="settings-title">{t('settings.colorScheme')}</h2>
         <label className="settings-row">
           <span>{t('settings.theme')}</span>
