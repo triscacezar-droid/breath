@@ -28,6 +28,8 @@
     "decreaseHoldBottom": "Anhalten unten verringern",
     "increaseHoldBottom": "Anhalten unten erhöhen",
     "bpm": "Atemzüge pro Minute",
+    "bpmLine1": "Atemzüge",
+    "bpmLine2": "pro Minute",
     "pace": "Tempo",
     "visibility": "Sichtbarkeit",
     "text": "Text",

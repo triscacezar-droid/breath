@@ -539,34 +539,30 @@ function App() {
           </label>
         </div>
         <div className="settings-row settings-row--bpm">
-          <span>{t('settings.bpm')}</span>
-          <div className="settings-bpm-difficulty-wrap">
-            {totalBreathSeconds > 0 ? (
-              <div className="settings-bpm-value-wrap">
+          <div className="settings-bpm-top">
+            <span className="settings-bpm-label">{t('settings.bpm')}</span>
+          </div>
+          <div className="settings-bpm-bottom">
+            <div className="settings-bpm-value-wrap">
+              {totalBreathSeconds > 0 ? (
                 <SlotDisplay
                   value={breathsPerMinute.toFixed(1)}
                   aria-label={t('settings.bpm')}
                 />
-                <div className="settings-bpm-triangle" aria-hidden />
-              </div>
-            ) : (
-              <div className="settings-bpm-value-wrap">
+              ) : (
                 <SlotDisplay value="—" aria-label={t('settings.bpm')} />
-                <div className="settings-bpm-triangle settings-bpm-triangle--hidden" aria-hidden />
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="settings-row settings-row--difficulty">
-          <span>{t('settings.pace')}</span>
-          <div className="settings-duration-wrap">
-            {totalBreathSeconds > 0 ? (
-              <DifficultyScale bpm={breathsPerMinute} />
-            ) : (
-              <div className="difficulty-scale difficulty-scale--empty" aria-label={t('settings.pace')}>
-                <span className="difficulty-scale__empty">—</span>
-              </div>
-            )}
+              )}
+            </div>
+            <span className="settings-bpm-arrow" aria-hidden>→</span>
+            <div className="settings-bpm-scale-wrap">
+              {totalBreathSeconds > 0 ? (
+                <DifficultyScale bpm={breathsPerMinute} />
+              ) : (
+                <div className="difficulty-scale difficulty-scale--empty difficulty-scale--vertical" aria-label={t('settings.pace')}>
+                  <span className="difficulty-scale__empty">—</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {/* ---------- Visibility: presets + Label/Progress/Center (replaces Text/Dots/Sphere) ---------- */}
