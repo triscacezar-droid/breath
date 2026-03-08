@@ -2,6 +2,7 @@ import type { Phase } from './types'
 import { MIN_SCALE, MAX_SCALE, COLOR_SCHEMES, COLOR_SCHEME_KEY, BREATH_MODE_KEY } from './constants'
 import type { ColorScheme } from './types'
 import type { BreathMode } from './types'
+import i18n from './i18n'
 
 export function easeInOut(t: number) {
   const p = Math.max(0, Math.min(1, t))
@@ -25,17 +26,20 @@ export function nextPhase(phase: Phase): Phase {
   }
 }
 
-export function phaseLabel(phase: Phase) {
+function phaseToKey(phase: Phase): 'inhale' | 'hold' | 'exhale' {
   switch (phase) {
     case 'INHALE':
-      return 'Breathe in'
+      return 'inhale'
     case 'HOLD_TOP':
-      return 'Hold'
-    case 'EXHALE':
-      return 'Breathe out'
     case 'HOLD_BOTTOM':
-      return 'Hold'
+      return 'hold'
+    case 'EXHALE':
+      return 'exhale'
   }
+}
+
+export function phaseLabel(phase: Phase) {
+  return i18n.t(`phases.${phaseToKey(phase)}`)
 }
 
 export function getStoredColorScheme(): ColorScheme {
