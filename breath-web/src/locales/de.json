@@ -38,6 +38,32 @@
     "dotsVisibility": "Punkte-Sichtbarkeit",
     "sphereVisibility": "Kugel-Sichtbarkeit",
     "cyclesVisibility": "Abgeschlossene Zyklen-Sichtbarkeit",
+    "visualization": "Visualisierung",
+    "presets": "Voreinstellungen",
+    "presets.classic": "Klassisch",
+    "presets.minimal": "Minimal",
+    "presets.abstract": "Abstrakt",
+    "label": "Beschriftung",
+    "progress": "Fortschritt",
+    "center": "Mitte",
+    "labelVariants": {
+      "words": "Wörter",
+      "icons": "Symbole",
+      "minimal": "Minimal"
+    },
+    "progressVariants": {
+      "dots": "Punkte",
+      "bar": "Balken",
+      "arc": "Bogen"
+    },
+    "centerVariants": {
+      "circle": "Kreis",
+      "ring": "Ring",
+      "wave": "Welle"
+    },
+    "labelVariantAria": "Beschriftungsstil",
+    "progressVariantAria": "Fortschrittsstil",
+    "centerVariantAria": "Mittelstil",
     "colorScheme": "Farbschema",
     "theme": "Theme",
     "colorSchemeAria": "Farbschema",

@@ -541,6 +541,45 @@
   margin-top: -12px;
 }
 
+.settings-row--presets {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.settings-presets-label {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.settings-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-preset-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.settings-preset-btn:hover {
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-tertiary);
+}
+
+.settings-preset-btn--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle, rgba(var(--color-accent-rgb, 100 149 237), 0.15));
+}
+
 .settings-slider-label {
   font-size: 14px;
   color: var(--color-text-primary);

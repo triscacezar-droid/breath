@@ -8,6 +8,10 @@ export type TimingMode = 'box' | 'equal' | 'kumbhaka' | 'long_exhale' | 'custom'
 
 export type BreathMode = 'normal' | 'anulom_vilom'
 
+export type LabelVariant = 'words' | 'icons' | 'minimal'
+export type ProgressVariant = 'dots' | 'bar' | 'arc'
+export type CenterVariant = 'circle' | 'ring' | 'wave'
+
 export type ColorScheme =
   | 'dark'
   | 'light'

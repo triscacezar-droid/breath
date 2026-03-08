@@ -33,6 +33,17 @@ export const LONG_EXHALE_RATIO: Record<Phase, number> = {
 
 export const BREATH_MODE_KEY = 'breath-mode'
 export const COLOR_SCHEME_KEY = 'breath-color-scheme'
+export const VISUALIZATION_KEY = 'breath-visualization'
+
+export const LABEL_VARIANTS = ['words', 'icons', 'minimal'] as const
+export const PROGRESS_VARIANTS = ['dots', 'bar', 'arc'] as const
+export const CENTER_VARIANTS = ['circle', 'ring', 'wave'] as const
+
+export const PRESETS = {
+  classic: { label: 'words' as const, progress: 'dots' as const, center: 'circle' as const },
+  minimal: { label: 'icons' as const, progress: 'bar' as const, center: 'ring' as const },
+  abstract: { label: 'minimal' as const, progress: 'arc' as const, center: 'wave' as const },
+} as const
 
 export const COLOR_SCHEMES = [
   'dark',

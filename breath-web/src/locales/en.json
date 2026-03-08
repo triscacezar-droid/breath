@@ -38,6 +38,32 @@
     "dotsVisibility": "Dots visibility",
     "sphereVisibility": "Sphere visibility",
     "cyclesVisibility": "Cycles completed visibility",
+    "visualization": "Visualization",
+    "presets": "Presets",
+    "presets.classic": "Classic",
+    "presets.minimal": "Minimal",
+    "presets.abstract": "Abstract",
+    "label": "Label",
+    "progress": "Progress",
+    "center": "Center",
+    "labelVariants": {
+      "words": "Words",
+      "icons": "Icons",
+      "minimal": "Minimal"
+    },
+    "progressVariants": {
+      "dots": "Dots",
+      "bar": "Bar",
+      "arc": "Arc"
+    },
+    "centerVariants": {
+      "circle": "Circle",
+      "ring": "Ring",
+      "wave": "Wave"
+    },
+    "labelVariantAria": "Label style",
+    "progressVariantAria": "Progress style",
+    "centerVariantAria": "Center style",
     "colorScheme": "Color scheme",
     "theme": "Theme",
     "colorSchemeAria": "Color scheme",

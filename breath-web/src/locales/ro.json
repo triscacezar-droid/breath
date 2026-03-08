@@ -38,6 +38,32 @@
     "dotsVisibility": "Vizibilitate puncte",
     "sphereVisibility": "Vizibilitate sferă",
     "cyclesVisibility": "Vizibilitate cicluri completate",
+    "visualization": "Vizualizare",
+    "presets": "Preseturi",
+    "presets.classic": "Clasic",
+    "presets.minimal": "Minimal",
+    "presets.abstract": "Abstract",
+    "label": "Etichetă",
+    "progress": "Progres",
+    "center": "Centru",
+    "labelVariants": {
+      "words": "Cuvinte",
+      "icons": "Pictograme",
+      "minimal": "Minimal"
+    },
+    "progressVariants": {
+      "dots": "Puncte",
+      "bar": "Bară",
+      "arc": "Arc"
+    },
+    "centerVariants": {
+      "circle": "Cerc",
+      "ring": "Inel",
+      "wave": "Undă"
+    },
+    "labelVariantAria": "Stil etichetă",
+    "progressVariantAria": "Stil progres",
+    "centerVariantAria": "Stil centru",
     "colorScheme": "Paletă culori",
     "theme": "Temă",
     "colorSchemeAria": "Paletă culori",
