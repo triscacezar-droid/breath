@@ -17,6 +17,9 @@ pnpm-debug.log*
 .idea/
 .vscode/
 
+### worktrees
+.worktrees/
+
 ### env
 .env
 .env.*
