@@ -88,12 +88,6 @@ export function schemeToThemeKey(scheme: (typeof COLOR_SCHEMES)[number]): string
 
 export const SLOT_ANIMATION_MS = 260
 
-/** Delay before revealing session content on load */
-export const INITIAL_DELAY_MS = 400
-
-/** Duration of fade-out/fade-in when settings change */
-export const SETTINGS_TRANSITION_TOTAL_MS = 500
-
 export function getMaxMultiplier(timingMode: TimingMode): number {
   if (timingMode === 'kumbhaka') return 15
   if (timingMode === 'long_exhale' || timingMode === 'equal') return 30
