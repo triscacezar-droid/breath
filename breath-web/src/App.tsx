@@ -31,9 +31,17 @@ import { useDurationsSync } from './hooks/useDurationsSync'
 import { usePresence } from './hooks/usePresence'
 import { useFullscreen } from './hooks/useFullscreen'
 import { useTranslation } from 'react-i18next'
+import i18n from './i18n'
 
 function App() {
   const { t } = useTranslation()
+
+  useEffect(() => {
+    document.title = t('app.title')
+  }, [t])
+  useEffect(() => {
+    document.documentElement.lang = i18n.language
+  }, [i18n.language])
   /* ---------- Model ---------- */
   const [timingMode, setTimingMode] = useState<TimingMode>('box')
   const [timingModeDropdownOpen, setTimingModeDropdownOpen] = useState(false)
@@ -391,25 +399,25 @@ function App() {
   /* ---------- View ---------- */
   return (
     <main className="app">
-      <aside ref={settingsRef} className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
-        <h2 className="settings-title">Breath Style</h2>
+      <aside ref={settingsRef} className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label={t('settings.ariaLabel')} aria-hidden={!showSettings}>
+        <h2 className="settings-title">{t('settings.breathStyle')}</h2>
         <label className="settings-row">
-          <span>Nostrils</span>
+          <span>{t('settings.nostrils')}</span>
           <SettingsDropdown
             options={[
-              { value: 'normal' as const, label: 'Normal' },
-              { value: 'anulom_vilom' as const, label: 'Anulom Vilom' },
+              { value: 'normal' as const, label: t('breathModes.normal') },
+              { value: 'anulom_vilom' as const, label: t('breathModes.anulom_vilom') },
             ]}
             selected={breathMode}
             onSelect={setBreathMode}
-            ariaLabel="Breath style"
-            triggerLabel={breathMode === 'normal' ? 'Normal' : 'Anulom Vilom'}
+            ariaLabel={t('settings.breathStyleAria')}
+            triggerLabel={breathMode === 'normal' ? t('breathModes.normal') : t('breathModes.anulom_vilom')}
             isOpen={breathModeDropdownOpen}
             onOpenChange={setBreathModeDropdownOpen}
           />
         </label>
         <label className="settings-row">
-          <span>Ratio</span>
+          <span>{t('settings.ratio')}</span>
           <SettingsDropdown
             options={[
               { value: 'long_exhale' as const, label: t('timingModes.long_exhale') },
@@ -420,119 +428,119 @@ function App() {
             ]}
             selected={timingMode}
             onSelect={(mode) => handleTimingModeChange(mode)}
-            ariaLabel="Breathing ratio"
+            ariaLabel={t('settings.ratio')}
             triggerLabel={t(`timingModes.${timingMode}`)}
             isOpen={timingModeDropdownOpen}
             onOpenChange={setTimingModeDropdownOpen}
           />
         </label>
         <label className={`settings-row ${timingMode === 'custom' ? 'settings-row--disabled' : ''}`}>
-          <span>Multiplier</span>
+          <span>{t('settings.multiplier')}</span>
           <div className={`settings-duration-wrap ${timingMode === 'custom' ? 'settings-duration-wrap--disabled' : ''}`}>
-            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.max(0, v - 1))} aria-label="Decrease multiplier">−</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.max(0, v - 1))} aria-label={t('settings.decreaseMultiplier')}>−</button>
             <SlotInput
               value={multiplierDisplayValue}
               onChange={(e) => timingMode !== 'custom' && handleMultiplierChange(e.target.value)}
               onBlur={handleMultiplierBlur}
               disabled={timingMode === 'custom'}
-              aria-label="Multiplier"
+              aria-label={t('settings.multiplier')}
             />
-            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(getMaxMultiplier(timingMode), v + 1))} aria-label="Increase multiplier">+</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(getMaxMultiplier(timingMode), v + 1))} aria-label={t('settings.increaseMultiplier')}>+</button>
           </div>
         </label>
         <div className="settings-duration-rows">
           <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-            <span>Inhale</span>
+            <span>{t('settings.inhale')}</span>
             <div className="settings-duration-wrap">
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label="Decrease inhale">−</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label={t('settings.decreaseInhale')}>−</button>
               <SlotInput
                 value={durationDisplayValue('INHALE')}
                 onChange={(e) => timingMode === 'custom' && handleDurationChange('INHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
                 onBlur={() => timingMode === 'custom' && handleDurationBlur('INHALE')}
                 disabled={timingMode !== 'custom'}
-                aria-label="Inhale duration"
+                aria-label={t('settings.inhaleDuration')}
               />
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label={t('settings.increaseInhale')}>+</button>
             </div>
           </label>
           <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${(timingMode === 'custom' ? durations.HOLD_TOP === 0 : timingMode === 'equal' || timingMode === 'long_exhale') ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''}`}>
-            <span>Hold (top)</span>
+            <span>{t('settings.holdTop')}</span>
             <div className="settings-duration-wrap">
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label={t('settings.decreaseHoldTop')}>−</button>
               <SlotInput
                 value={durationDisplayValue('HOLD_TOP')}
                 onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_TOP', e.target.value.replace(/\D/g, '').slice(0, 2))}
                 onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_TOP')}
                 disabled={timingMode !== 'custom'}
-                aria-label="Hold top duration"
+                aria-label={t('settings.holdTopDuration')}
               />
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label={t('settings.increaseHoldTop')}>+</button>
             </div>
           </label>
           <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-            <span>Exhale</span>
+            <span>{t('settings.exhale')}</span>
           <div className="settings-duration-wrap">
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.max(0, durations.EXHALE - 1))} aria-label="Decrease exhale">−</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.max(0, durations.EXHALE - 1))} aria-label={t('settings.decreaseExhale')}>−</button>
             <SlotInput
               value={durationDisplayValue('EXHALE')}
               onChange={(e) => timingMode === 'custom' && handleDurationChange('EXHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
               onBlur={() => timingMode === 'custom' && handleDurationBlur('EXHALE')}
               disabled={timingMode !== 'custom'}
-              aria-label="Exhale duration"
+              aria-label={t('settings.exhaleDuration')}
             />
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label={t('settings.increaseExhale')}>+</button>
           </div>
           </label>
           <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${(timingMode === 'custom' ? durations.HOLD_BOTTOM === 0 : timingMode !== 'box') ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''}`}>
-            <span>Hold (bottom)</span>
+            <span>{t('settings.holdBottom')}</span>
             <div className="settings-duration-wrap">
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label={t('settings.decreaseHoldBottom')}>−</button>
               <SlotInput
                 value={durationDisplayValue('HOLD_BOTTOM')}
                 onChange={(e) => timingMode === 'custom' && handleDurationChange('HOLD_BOTTOM', e.target.value.replace(/\D/g, '').slice(0, 2))}
                 onBlur={() => timingMode === 'custom' && handleDurationBlur('HOLD_BOTTOM')}
                 disabled={timingMode !== 'custom'}
-                aria-label="Hold bottom duration"
+                aria-label={t('settings.holdBottomDuration')}
               />
-              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label={t('settings.increaseHoldBottom')}>+</button>
             </div>
           </label>
         </div>
         <div className="settings-row settings-row--bpm">
-          <span>Breaths per minute</span>
+          <span>{t('settings.bpm')}</span>
           <div className="settings-bpm-difficulty-wrap">
             {totalBreathSeconds > 0 ? (
               <div className="settings-bpm-value-wrap">
                 <SlotDisplay
                   value={breathsPerMinute.toFixed(1)}
-                  aria-label="Breaths per minute"
+                  aria-label={t('settings.bpm')}
                 />
                 <div className="settings-bpm-triangle" aria-hidden />
               </div>
             ) : (
               <div className="settings-bpm-value-wrap">
-                <SlotDisplay value="—" aria-label="Breaths per minute" />
+                <SlotDisplay value="—" aria-label={t('settings.bpm')} />
                 <div className="settings-bpm-triangle settings-bpm-triangle--hidden" aria-hidden />
               </div>
             )}
           </div>
         </div>
         <div className="settings-row settings-row--difficulty">
-          <span>Pace</span>
+          <span>{t('settings.pace')}</span>
           <div className="settings-duration-wrap">
             {totalBreathSeconds > 0 ? (
               <DifficultyScale bpm={breathsPerMinute} />
             ) : (
-              <div className="difficulty-scale difficulty-scale--empty" aria-label="Pace">
+              <div className="difficulty-scale difficulty-scale--empty" aria-label={t('settings.pace')}>
                 <span className="difficulty-scale__empty">—</span>
               </div>
             )}
           </div>
         </div>
         {/* ---------- View: visibility sliders (read/write model) ---------- */}
-        <h2 className="settings-title">Visibility</h2>
+        <h2 className="settings-title">{t('settings.visibility')}</h2>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">Text</span>
+          <span className="settings-slider-label">{t('settings.text')}</span>
           <VisibilitySlider
             value={textVisibility}
             valueAnimated={textVisibilityAnimated}
@@ -540,11 +548,11 @@ function App() {
             onPointerDown={getSliderHandlers('text').onPointerDown}
             onPointerUp={getSliderHandlers('text').onPointerUp}
             onPointerLeave={getSliderHandlers('text').onPointerLeave}
-            ariaLabel="Phase text visibility"
+            ariaLabel={t('settings.phaseTextVisibility')}
           />
         </div>
         <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka' ? 'settings-row--disabled' : ''}`}>
-          <span className="settings-slider-label">Dots</span>
+          <span className="settings-slider-label">{t('settings.dots')}</span>
           <VisibilitySlider
             value={dotsVisibility}
             valueAnimated={dotsVisibilityAnimated}
@@ -553,11 +561,11 @@ function App() {
             onPointerUp={getSliderHandlers('dots').onPointerUp}
             onPointerLeave={getSliderHandlers('dots').onPointerLeave}
             disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka'}
-            ariaLabel="Dots visibility"
+            ariaLabel={t('settings.dotsVisibility')}
           />
         </div>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">Sphere</span>
+          <span className="settings-slider-label">{t('settings.sphere')}</span>
           <VisibilitySlider
             value={sphereVisibility}
             valueAnimated={sphereVisibilityAnimated}
@@ -565,11 +573,11 @@ function App() {
             onPointerDown={getSliderHandlers('sphere').onPointerDown}
             onPointerUp={getSliderHandlers('sphere').onPointerUp}
             onPointerLeave={getSliderHandlers('sphere').onPointerLeave}
-            ariaLabel="Sphere visibility"
+            ariaLabel={t('settings.sphereVisibility')}
           />
         </div>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">Cycles</span>
+          <span className="settings-slider-label">{t('settings.cycles')}</span>
           <VisibilitySlider
             value={cyclesVisibility}
             valueAnimated={cyclesVisibilityAnimated}
@@ -577,18 +585,18 @@ function App() {
             onPointerDown={getSliderHandlers('cycles').onPointerDown}
             onPointerUp={getSliderHandlers('cycles').onPointerUp}
             onPointerLeave={getSliderHandlers('cycles').onPointerLeave}
-            ariaLabel="Cycles completed visibility"
+            ariaLabel={t('settings.cyclesVisibility')}
             showLabels
           />
         </div>
-        <h2 className="settings-title">Color scheme</h2>
+        <h2 className="settings-title">{t('settings.colorScheme')}</h2>
         <label className="settings-row">
-          <span>Theme</span>
+          <span>{t('settings.theme')}</span>
           <SettingsDropdown
             options={COLOR_SCHEMES.map((scheme) => ({ value: scheme, label: t(`themes.${schemeToThemeKey(scheme)}`) }))}
             selected={colorScheme}
             onSelect={setColorScheme}
-            ariaLabel="Color scheme"
+            ariaLabel={t('settings.colorSchemeAria')}
             triggerLabel={t(`themes.${schemeToThemeKey(colorScheme)}`)}
             isOpen={colorSchemeDropdownOpen}
             onOpenChange={setColorSchemeDropdownOpen}
@@ -600,7 +608,7 @@ function App() {
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
-          <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings">
+          <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label={t('settings.openSettings')}>
             <span className="settings-trigger-icon" aria-hidden />
           </button>
           {isFullscreenSupported && (
@@ -609,13 +617,13 @@ function App() {
               className="app-controls__btn fullscreen-trigger"
               onClick={(e) => { e.stopPropagation(); toggleFullscreen() }}
               onTouchStart={(e) => e.stopPropagation()}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+              aria-label={isFullscreen ? t('settings.exitFullscreen') : t('settings.enterFullscreen')}
             >
               <span className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`} aria-hidden />
             </button>
           )}
         </div>
-      <section className="session" aria-label="Breathing session">
+      <section className="session" aria-label={t('settings.sessionAria')}>
         <div
           ref={stackRef}
           className="breath-stack"
@@ -693,10 +701,10 @@ function App() {
         )}
       </section>
       <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
-        <span>{cycleCount} cycles completed</span>
+        <span>{t('footer.cyclesCompleted', { count: cycleCount })}</span>
         {othersOnline !== null && (
           <span className="cycles-footer__presence">
-            {othersOnline === 0 ? 'No one else right now' : `${othersOnline} ${othersOnline === 1 ? 'other' : 'others'} breathing now`}
+            {othersOnline === 0 ? t('footer.noOneElse') : t('footer.othersBreathing', { count: othersOnline })}
           </span>
         )}
       </footer>

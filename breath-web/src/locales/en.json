@@ -5,6 +5,7 @@
   "settings": {
     "ariaLabel": "Breathing settings",
     "breathStyle": "Breath Style",
+    "nostrils": "Nostrils",
     "breathStyleAria": "Breath style",
     "ratio": "Breathing ratio",
     "multiplier": "Multiplier",
@@ -38,6 +39,7 @@
     "sphereVisibility": "Sphere visibility",
     "cyclesVisibility": "Cycles completed visibility",
     "colorScheme": "Color scheme",
+    "theme": "Theme",
     "colorSchemeAria": "Color scheme",
     "openSettings": "Open settings",
     "enterFullscreen": "Enter fullscreen",
@@ -76,7 +78,8 @@
   "footer": {
     "cyclesCompleted": "{{count}} cycles completed",
     "noOneElse": "No one else right now",
-    "othersBreathing": "{{count}} {{count, plural, one {other} other {others}}} breathing now"
+    "othersBreathing_one": "{{count}} other breathing now",
+    "othersBreathing_other": "{{count}} others breathing now"
   },
   "themes": {
     "dark": "Dark",

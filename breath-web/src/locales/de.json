@@ -5,6 +5,7 @@
   "settings": {
     "ariaLabel": "Atem-Einstellungen",
     "breathStyle": "Atem-Stil",
+    "nostrils": "Nasenlöcher",
     "breathStyleAria": "Atem-Stil",
     "ratio": "Atem-Verhältnis",
     "multiplier": "Multiplikator",
@@ -38,6 +39,7 @@
     "sphereVisibility": "Kugel-Sichtbarkeit",
     "cyclesVisibility": "Abgeschlossene Zyklen-Sichtbarkeit",
     "colorScheme": "Farbschema",
+    "theme": "Theme",
     "colorSchemeAria": "Farbschema",
     "openSettings": "Einstellungen öffnen",
     "enterFullscreen": "Vollbild",
@@ -76,7 +78,8 @@
   "footer": {
     "cyclesCompleted": "{{count}} Zyklen abgeschlossen",
     "noOneElse": "Gerade niemand anderes",
-    "othersBreathing": "{{count}} {{count, plural, one {andere Person} other {andere Personen}}} atmen gerade"
+    "othersBreathing_one": "{{count}} andere Person atmet gerade",
+    "othersBreathing_other": "{{count}} andere Personen atmen gerade"
   },
   "themes": {
     "dark": "Dunkel",
