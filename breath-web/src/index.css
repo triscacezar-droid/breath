@@ -1026,26 +1026,14 @@ html:-webkit-full-screen {
   background: var(--color-bg-page);
 }
 
-/* Cover gap at top (status bar) - Android often has env(safe-area-inset-top)=0 */
-html::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: max(28px, env(safe-area-inset-top));
-  background-color: inherit;
-  z-index: 9999;
-  pointer-events: none;
-}
-
 body {
   margin: 0;
   min-width: 320px;
   height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
-  background: var(--color-bg-page);
+  background-color: var(--color-bg-page);
+  background-attachment: fixed;
   overflow: hidden;
   overscroll-behavior: none;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
