@@ -1,381 +1,27 @@
 import './App.css'
-import { createClient } from '@supabase/supabase-js'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DifficultyScale } from './DifficultyScale'
-
-const HAS_TOUCH = typeof window !== 'undefined' && 'ontouchstart' in window
-/** Double-tap window: longer on touch devices (finger latency) */
-const DOUBLE_TAP_WINDOW_MS = HAS_TOUCH ? 500 : 350
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
-
-type Phase = 'INHALE' | 'HOLD_TOP' | 'EXHALE' | 'HOLD_BOTTOM'
-
-/** 0 = off, 1 = visible on tap, 2 = always visible */
-type VisibilityMode = 0 | 1 | 2
-
-const DEFAULT_DURATIONS: Record<Phase, number> = {
-  INHALE: 5,
-  HOLD_TOP: 5,
-  EXHALE: 5,
-  HOLD_BOTTOM: 5,
-}
-
-const MIN_SCALE = 0.01
-const MAX_SCALE = 0.5
-
-/** Box = equal phases; Equal = 1:1 (inhale:exhale, no holds); Kumbhaka = 1:4:2:0; Long Exhale = 1:0:2:0; Custom = user values */
-type TimingMode = 'box' | 'equal' | 'kumbhaka' | 'long_exhale' | 'custom'
-
-const TIMING_MODE_LABELS: Record<TimingMode, string> = {
-  box: '1:1:1:1',
-  equal: '1:1',
-  kumbhaka: '1:4:2',
-  long_exhale: '1:2',
-  custom: 'Custom',
-}
-
-type BreathMode = 'normal' | 'anulom_vilom'
-
-const BREATH_MODE_KEY = 'breath-mode'
-
-function getStoredBreathMode(): BreathMode {
-  const s = localStorage.getItem(BREATH_MODE_KEY)
-  if (s === 'normal' || s === 'anulom_vilom') return s
-  return 'normal'
-}
-
-const COLOR_SCHEMES = [
-  'dark', 'light', 'sepia', 'dracula', 'monokai', 'solarized-dark', 'solarized-light',
-  'one-dark', 'one-light', 'nord', 'gruvbox-dark', 'gruvbox-light', 'tokyo-night',
-  'catppuccin-mocha', 'night-owl', 'github-dark', 'github-light', 'rose-pine',
-  'forest', 'cyberpunk',
-] as const
-
-type ColorScheme = (typeof COLOR_SCHEMES)[number]
-
-const THEME_LABELS: Record<ColorScheme, string> = {
-  dark: 'Dark',
-  light: 'Light',
-  sepia: 'Sepia',
-  dracula: 'Dracula',
-  monokai: 'Monokai',
-  'solarized-dark': 'Solarized Dark',
-  'solarized-light': 'Solarized Light',
-  'one-dark': 'One Dark',
-  'one-light': 'One Light',
-  nord: 'Nord',
-  'gruvbox-dark': 'Gruvbox Dark',
-  'gruvbox-light': 'Gruvbox Light',
-  'tokyo-night': 'Tokyo Night',
-  'catppuccin-mocha': 'Catppuccin Mocha',
-  'night-owl': 'Night Owl',
-  'github-dark': 'GitHub Dark',
-  'github-light': 'GitHub Light',
-  'rose-pine': 'Rose Pine',
-  forest: 'Forest',
-  cyberpunk: 'Cyberpunk',
-}
-
-const COLOR_SCHEME_KEY = 'breath-color-scheme'
-
-function getStoredColorScheme(): ColorScheme {
-  const s = localStorage.getItem(COLOR_SCHEME_KEY)
-  if (s && COLOR_SCHEMES.includes(s as ColorScheme)) return s as ColorScheme
-  return 'dark'
-}
-
-const KUMBHAKA_RATIO: Record<Phase, number> = {
-  INHALE: 1,
-  HOLD_TOP: 4,
-  EXHALE: 2,
-  HOLD_BOTTOM: 0,
-}
-
-const EQUAL_RATIO: Record<Phase, number> = {
-  INHALE: 1,
-  HOLD_TOP: 0,
-  EXHALE: 1,
-  HOLD_BOTTOM: 0,
-}
-
-const LONG_EXHALE_RATIO: Record<Phase, number> = {
-  INHALE: 1,
-  HOLD_TOP: 0,
-  EXHALE: 2,
-  HOLD_BOTTOM: 0,
-}
-
-function easeInOut(t: number) {
-  const p = Math.max(0, Math.min(1, t))
-  return p * p * (3 - 2 * p)
-}
-
-function lerpScale(t: number) {
-  return MIN_SCALE + (MAX_SCALE - MIN_SCALE) * easeInOut(t)
-}
-
-function nextPhase(phase: Phase): Phase {
-  switch (phase) {
-    case 'INHALE':
-      return 'HOLD_TOP'
-    case 'HOLD_TOP':
-      return 'EXHALE'
-    case 'EXHALE':
-      return 'HOLD_BOTTOM'
-    case 'HOLD_BOTTOM':
-      return 'INHALE'
-  }
-}
-
-function phaseLabel(phase: Phase) {
-  switch (phase) {
-    case 'INHALE':
-      return 'Breathe in'
-    case 'HOLD_TOP':
-      return 'Hold'
-    case 'EXHALE':
-      return 'Breathe out'
-    case 'HOLD_BOTTOM':
-      return 'Hold'
-  }
-}
-
-function SlotInput({
-  value,
-  onChange,
-  onBlur,
-  disabled,
-  inputMode = 'numeric',
-  'aria-label': ariaLabel,
-}: {
-  value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur: () => void
-  disabled: boolean
-  inputMode?: 'numeric' | 'text'
-  'aria-label'?: string
-}) {
-  const [prevValue, setPrevValue] = useState(value)
-  const [animating, setAnimating] = useState(false)
-  const [direction, setDirection] = useState<'up' | 'down'>('up')
-  const [focused, setFocused] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (value !== prevValue && !focused) {
-      const prevNum = parseInt(prevValue, 10)
-      const nextNum = parseInt(value, 10)
-      if (!Number.isNaN(prevNum) && !Number.isNaN(nextNum)) {
-        setDirection(nextNum > prevNum ? 'up' : 'down')
-        setAnimating(true)
-        const t = window.setTimeout(() => {
-          setPrevValue(value)
-          setAnimating(false)
-        }, 260)
-        return () => window.clearTimeout(t)
-      }
-    }
-    setPrevValue(value)
-  }, [value, focused])
-
-  return (
-    <div className={`slot-input ${focused ? 'slot-input--focused' : ''}`}>
-      <input
-        ref={inputRef}
-        type="text"
-        inputMode={inputMode}
-        value={value}
-        onChange={onChange}
-        onBlur={() => { setFocused(false); onBlur() }}
-        onFocus={() => setFocused(true)}
-        disabled={disabled}
-        className="slot-input__field"
-        aria-label={ariaLabel}
-      />
-      <div
-        className={`slot-input__display ${focused ? 'slot-input__display--hidden' : ''}`}
-        onClick={() => !disabled && inputRef.current?.focus()}
-        aria-hidden={focused}
-      >
-        {animating ? (
-          <>
-            <div className={`slot-input__in slot-input__in--${direction}`}>{value}</div>
-            <div className={`slot-input__out slot-input__out--${direction}`}>{prevValue}</div>
-          </>
-        ) : (
-          <div className="slot-input__value">{value}</div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function SlotDisplay({ value, rank, 'aria-label': ariaLabel, className }: { value: string; rank?: number; 'aria-label'?: string; className?: string }) {
-  const [prevValue, setPrevValue] = useState(value)
-  const [prevRank, setPrevRank] = useState(rank)
-  const [animating, setAnimating] = useState(false)
-  const [direction, setDirection] = useState<'up' | 'down'>('up')
-
-  useEffect(() => {
-    if (value !== prevValue) {
-      const prevNum = parseFloat(prevValue)
-      const nextNum = parseFloat(value)
-      const useRank = rank !== undefined && prevRank !== undefined
-      const useNumeric = !Number.isNaN(prevNum) && !Number.isNaN(nextNum)
-      if (useRank || useNumeric) {
-        setDirection(useRank ? (rank! > prevRank! ? 'up' : 'down') : (nextNum > prevNum ? 'up' : 'down'))
-        setPrevRank(rank)
-        setAnimating(true)
-        const t = window.setTimeout(() => {
-          setPrevValue(value)
-          setPrevRank(rank)
-          setAnimating(false)
-        }, 260)
-        return () => window.clearTimeout(t)
-      }
-      setPrevValue(value)
-      setPrevRank(rank)
-    }
-  }, [value, rank])
-
-  return (
-    <div className={`slot-input slot-input--readonly ${className ?? ''}`}>
-      <div className="slot-input__display" aria-label={ariaLabel} aria-live="polite">
-        {animating ? (
-          <>
-            <div className={`slot-input__in slot-input__in--${direction}`}>{value}</div>
-            <div className={`slot-input__out slot-input__out--${direction}`}>{prevValue}</div>
-          </>
-        ) : (
-          <div className="slot-input__value">{value}</div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function PhaseDots({
-  phase,
-  duration,
-  secondsLeft,
-  timingMode,
-  durations,
-  breathMode,
-  cycleCount,
-}: {
-  phase: Phase
-  duration: number
-  secondsLeft: number
-  timingMode: TimingMode
-  durations?: Record<Phase, number>
-  breathMode?: BreathMode
-  cycleCount?: number
-}) {
-  const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
-  const isSimple = timingMode === 'equal'
-  const isLongExhale = timingMode === 'long_exhale'
-  const isKumbhaka = timingMode === 'kumbhaka'
-  /* Anulom Vilom: right nostril (cycle even) = L→R, left nostril (cycle odd) = R→L */
-  const dotsRtl = breathMode === 'anulom_vilom' && (cycleCount ?? 0) % 2 === 1
-  /* 1:2: fixed count so dots stay in final layout; 1:4:2: 4 dots; inhale/exhale have different lengths */
-  const dotCount =
-    isKumbhaka
-      ? 4
-      : isLongExhale && durations
-        ? Math.max(durations.INHALE, durations.EXHALE)
-        : duration
-  const dots = Array.from({ length: dotCount }, (_, i) => i)
-
-  return (
-    <div className="phase-dots" aria-hidden>
-      {dots.map((i) => {
-        let visible = true
-        let isYellow = false
-
-        if (isSimple) {
-          /* 1:1 ratio: L→R or R→L based on nostril */
-          switch (phase) {
-            case 'INHALE':
-              visible = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
-              break
-            case 'EXHALE':
-              visible = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
-              break
-            default:
-              visible = false
-          }
-        } else if (isLongExhale) {
-          /* 1:2 ratio: L→R or R→L based on nostril */
-          const inhaleProgress = Math.min(dotCount, Math.floor(elapsedSeconds) * 2)
-          switch (phase) {
-            case 'INHALE':
-              visible = dotsRtl ? i >= dotCount - inhaleProgress : i < inhaleProgress
-              break
-            case 'EXHALE':
-              visible = dotsRtl ? i < dotCount - elapsedSeconds : i >= elapsedSeconds
-              break
-            default:
-              visible = false
-          }
-        } else if (isKumbhaka) {
-          /* 1:4:2: 4 dots appear at once, one turns yellow per quarter of hold, two disappear at a time during exhale */
-          const holdProgress = duration > 0 ? Math.min(0.99, elapsedSeconds / duration) : 0
-          const holdYellowCount = Math.min(dotCount, Math.ceil(holdProgress * dotCount))
-          const exhaleHiddenCount = Math.floor(elapsedSeconds) * 2
-          switch (phase) {
-            case 'INHALE':
-              /* 4 dots appear at a time at the beginning */
-              visible = true
-              isYellow = false
-              break
-            case 'HOLD_TOP':
-              /* All 4 visible, one turns yellow per quarter of hold (last turns at 99.9% so it's visible before transition) */
-              visible = true
-              isYellow = dotsRtl ? i >= dotCount - holdYellowCount : i < holdYellowCount
-              break
-            case 'EXHALE':
-              /* Two disappear at a time, keep yellow from hold as they disappear */
-              visible = dotsRtl ? i < dotCount - exhaleHiddenCount : i >= exhaleHiddenCount
-              isYellow = true
-              break
-            default:
-              visible = false
-          }
-        } else {
-          /* 1:1:1:1 box: L→R or R→L based on nostril; holds show yellow progress */
-          switch (phase) {
-            case 'INHALE':
-              visible = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
-              isYellow = false
-              break
-            case 'HOLD_TOP':
-              visible = true
-              isYellow = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
-              break
-            case 'EXHALE':
-              visible = true
-              isYellow = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
-              break
-            case 'HOLD_BOTTOM':
-              visible = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
-              isYellow = false
-              break
-          }
-        }
-
-        const colorClass = isSimple || isLongExhale ? 'phase-dot--white' : isYellow ? 'phase-dot--yellow' : 'phase-dot--white'
-        return (
-          <span
-            key={i}
-            className={`phase-dot ${visible ? 'phase-dot--visible' : ''} ${colorClass}`}
-          />
-        )
-      })}
-    </div>
-  )
-}
+import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme } from './types'
+import {
+  DEFAULT_DURATIONS,
+  TIMING_MODE_LABELS,
+  COLOR_SCHEMES,
+  THEME_LABELS,
+  BREATH_MODE_KEY,
+  COLOR_SCHEME_KEY,
+  DOUBLE_TAP_WINDOW_MS,
+  getMaxMultiplier,
+} from './constants'
+import { getStoredColorScheme, getStoredBreathMode } from './utils'
+import { SlotInput, SlotDisplay } from './components/SlotInput'
+import { PhaseDots } from './components/PhaseDots'
+import { SettingsDropdown } from './components/SettingsDropdown'
+import { VisibilitySlider } from './components/VisibilitySlider'
+import { useVisibilityLerp } from './hooks/useVisibilityLerp'
+import { useBreathTimer } from './hooks/useBreathTimer'
+import { useBreathAnimation } from './hooks/useBreathAnimation'
+import { useDurationsSync } from './hooks/useDurationsSync'
+import { usePresence } from './hooks/usePresence'
 
 function App() {
   /* ---------- Model ---------- */
@@ -383,56 +29,62 @@ function App() {
   const [timingModeDropdownOpen, setTimingModeDropdownOpen] = useState(false)
   const [multiplierSeconds, setMultiplierSeconds] = useState(4)
   const [durations, setDurations] = useState<Record<Phase, number>>(() => ({ ...DEFAULT_DURATIONS }))
-  const [phase, setPhase] = useState<Phase>('INHALE')
-  const [secondsLeft, setSecondsLeft] = useState(DEFAULT_DURATIONS.INHALE)
-  const [cycleCount, setCycleCount] = useState(0)
+  const durationsRef = useRef<Record<Phase, number>>(durations)
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [textVisibility, setTextVisibility] = useState<VisibilityMode>(2)
   const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(0)
   const [sphereVisibility, setSphereVisibility] = useState<VisibilityMode>(2)
   const [cyclesVisibility, setCyclesVisibility] = useState<VisibilityMode>(1)
-  const [textVisibilityAnimated, setTextVisibilityAnimated] = useState(2)
-  const [dotsVisibilityAnimated, setDotsVisibilityAnimated] = useState(0)
-  const [sphereVisibilityAnimated, setSphereVisibilityAnimated] = useState(2)
-  const [cyclesVisibilityAnimated, setCyclesVisibilityAnimated] = useState(1)
-  const [labelAnimating, setLabelAnimating] = useState(false)
-  const [prevLabel, setPrevLabel] = useState<string>(() => phaseLabel('INHALE'))
+
+  const {
+    textVisibilityAnimated,
+    dotsVisibilityAnimated,
+    sphereVisibilityAnimated,
+    cyclesVisibilityAnimated,
+    setDotsVisibilityAnimated,
+    getSliderHandlers,
+  } = useVisibilityLerp(
+    textVisibility,
+    dotsVisibility,
+    sphereVisibility,
+    cyclesVisibility,
+    setTextVisibility,
+    setDotsVisibility,
+    setSphereVisibility,
+    setCyclesVisibility
+  )
   const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
   const [editingBoxBreath, setEditingBoxBreath] = useState<string | undefined>(undefined)
   const [initialDelayPassed, setInitialDelayPassed] = useState(false)
   const [contentRevealed, setContentRevealed] = useState(false)
-  const [othersOnline, setOthersOnline] = useState<number | null>(null)
+  const othersOnline = usePresence()
   const [colorScheme, setColorScheme] = useState<ColorScheme>(getStoredColorScheme)
   const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
   const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
   const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
 
-  const intervalRef = useRef<number | null>(null)
-  const animationRef = useRef<number | null>(null)
-  const sliderLerpRef = useRef<number | null>(null)
-  const draggingSliderRef = useRef<'text' | 'dots' | 'sphere' | 'cycles' | null>(null)
-  const sliderChangeCountRef = useRef(0)
   const hideInfoTimeoutRef = useRef<number | null>(null)
-  const phaseRef = useRef<Phase>('INHALE')
-  const secondsLeftRef = useRef<number>(DEFAULT_DURATIONS.INHALE)
-  const phaseStartTimeRef = useRef<number>(performance.now())
-  const durationsRef = useRef<Record<Phase, number>>(durations)
-  const cycleCountRef = useRef(0)
   const breathModeRef = useRef<BreathMode>('normal')
+
+  const timer = useBreathTimer(durationsRef)
+  const { phase, secondsLeft, cycleCount, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
+  const { scale, sphereAnulomLeft } = useBreathAnimation(
+    phaseRef,
+    durationsRef,
+    phaseStartTimeRef,
+    breathModeRef,
+    cycleCountRef
+  )
   const stackRef = useRef<HTMLDivElement>(null)
   const slot1Ref = useRef<HTMLDivElement>(null)
   const slot2Ref = useRef<HTMLDivElement>(null)
   const slot3Ref = useRef<HTMLDivElement>(null)
-  const timingModeDropdownRef = useRef<HTMLDivElement>(null)
-  const colorSchemeDropdownRef = useRef<HTMLDivElement>(null)
-  const breathModeDropdownRef = useRef<HTMLDivElement>(null)
   const lastTapTimeRef = useRef<number>(0)
   const singleTapTimeoutRef = useRef<number | null>(null)
   const lastClosedByDoubleTapRef = useRef<number>(0)
+  const settingsRef = useRef<HTMLElement>(null)
 
-  const [scale, setScale] = useState<number>(MIN_SCALE)
-  const [sphereAnulomLeft, setSphereAnulomLeft] = useState<number>(50)
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
   const [measuredSlotTop, setMeasuredSlotTop] = useState<'text' | null>(null)
   const [measuredSlotMiddle, setMeasuredSlotMiddle] = useState<'text' | 'dots' | null>(null)
@@ -443,7 +95,6 @@ function App() {
   const prevMeasuredRef = useRef({ top: null as 'text' | null, middle: null as 'text' | 'dots' | null, bottom: null as 'text' | 'dots' | 'sphere' | null })
 
   /* ---------- Derived from model (view uses these) ---------- */
-  const label = phaseLabel(phase)
   const totalBreathSeconds =
     durations.INHALE + durations.HOLD_TOP + durations.EXHALE + durations.HOLD_BOTTOM
   const breathsPerMinute = totalBreathSeconds > 0 ? 60 / totalBreathSeconds : 0
@@ -500,6 +151,16 @@ function App() {
 
   const hasContentBeenRevealedRef = useRef(false)
 
+  useEffect(() => {
+    const el = settingsRef.current
+    if (!el) return
+    if (showSettings) {
+      el.removeAttribute('inert')
+    } else {
+      el.setAttribute('inert', '')
+    }
+  }, [showSettings])
+
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -516,25 +177,9 @@ function App() {
     if (!hasContentBeenRevealedRef.current) return
     setContentRevealed(false)
     setInitialDelayPassed(false)
-    phaseRef.current = 'INHALE'
-    cycleCountRef.current = 0
-    setPhase('INHALE')
-    setCycleCount(0)
-    setLabelAnimating(false)
-    setPrevLabel(phaseLabel('INHALE'))
+    resetToInhale()
     const t = window.setTimeout(() => {
-      const d = durationsRef.current
-      let firstPhase: Phase = 'INHALE'
-      for (let i = 0; i < 4; i++) {
-        if (d[firstPhase] > 0) break
-        firstPhase = nextPhase(firstPhase)
-      }
-      const firstDuration = d[firstPhase]
-      secondsLeftRef.current = firstDuration
-      phaseStartTimeRef.current = performance.now()
-      phaseRef.current = firstPhase
-      setPhase(firstPhase)
-      setSecondsLeft(firstDuration)
+      reset()
       setInitialDelayPassed(true)
       setContentRevealed(true)
       setShowInfo(true)
@@ -554,35 +199,6 @@ function App() {
     sphereVisibility,
     cyclesVisibility,
   ])
-
-  /* ---------- Presence: how many others are using the app (Supabase Realtime) ---------- */
-  useEffect(() => {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    const PRESENCE_KEY = 'breath-presence'
-    let sessionId = sessionStorage.getItem(PRESENCE_KEY)
-    if (!sessionId) {
-      sessionId = crypto.randomUUID()
-      sessionStorage.setItem(PRESENCE_KEY, sessionId)
-    }
-    const channel = supabase.channel('breath-users', {
-      config: { presence: { key: sessionId } },
-    })
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState()
-        const total = Object.keys(state).length
-        setOthersOnline(Math.max(0, total - 1))
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          channel.track({ breathing: true })
-        }
-      })
-    return () => {
-      channel.unsubscribe()
-    }
-  }, [])
 
   /* ---------- Controller: effects and actions that update the model ---------- */
   useEffect(() => {
@@ -604,16 +220,6 @@ function App() {
     }
   }, [showInfo])
 
-  const TEXT_TRANSITION_MS = 700
-
-  useEffect(() => {
-    if (!labelAnimating) return
-    const timeout = window.setTimeout(() => {
-      setLabelAnimating(false)
-    }, TEXT_TRANSITION_MS)
-    return () => window.clearTimeout(timeout)
-  }, [labelAnimating])
-
   useEffect(() => {
     durationsRef.current = durations
   }, [durations])
@@ -631,36 +237,7 @@ function App() {
     }
   }, [timingMode, durations, dotsVisibility])
 
-  // Keep durations in sync when in box, equal, kumbhaka, or long_exhale mode
-  useEffect(() => {
-    if (timingMode === 'custom') return
-    const maxM = timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60
-    const m = Math.max(0, Math.min(maxM, multiplierSeconds))
-    if (timingMode === 'box') {
-      setDurations(() => ({ INHALE: m, HOLD_TOP: m, EXHALE: m, HOLD_BOTTOM: m }))
-    } else if (timingMode === 'equal') {
-      setDurations(() => ({
-        INHALE: Math.min(60, Math.round(EQUAL_RATIO.INHALE * m)),
-        HOLD_TOP: Math.min(60, Math.round(EQUAL_RATIO.HOLD_TOP * m)),
-        EXHALE: Math.min(60, Math.round(EQUAL_RATIO.EXHALE * m)),
-        HOLD_BOTTOM: Math.min(60, Math.round(EQUAL_RATIO.HOLD_BOTTOM * m)),
-      }))
-    } else if (timingMode === 'long_exhale') {
-      setDurations(() => ({
-        INHALE: Math.min(60, Math.round(LONG_EXHALE_RATIO.INHALE * m)),
-        HOLD_TOP: Math.min(60, Math.round(LONG_EXHALE_RATIO.HOLD_TOP * m)),
-        EXHALE: Math.min(60, Math.round(LONG_EXHALE_RATIO.EXHALE * m)),
-        HOLD_BOTTOM: Math.min(60, Math.round(LONG_EXHALE_RATIO.HOLD_BOTTOM * m)),
-      }))
-    } else {
-      setDurations(() => ({
-        INHALE: Math.min(60, Math.round(KUMBHAKA_RATIO.INHALE * m)),
-        HOLD_TOP: Math.min(60, Math.round(KUMBHAKA_RATIO.HOLD_TOP * m)),
-        EXHALE: Math.min(60, Math.round(KUMBHAKA_RATIO.EXHALE * m)),
-        HOLD_BOTTOM: Math.min(60, Math.round(KUMBHAKA_RATIO.HOLD_BOTTOM * m)),
-      }))
-    }
-  }, [timingMode, multiplierSeconds])
+  useDurationsSync(timingMode, multiplierSeconds, setDurations)
 
   // When switching to custom, turn dots off (durations may differ)
   useEffect(() => {
@@ -671,188 +248,8 @@ function App() {
   }, [timingMode])
 
   useEffect(() => {
-    phaseRef.current = phase
-  }, [phase])
-
-  useEffect(() => {
-    cycleCountRef.current = cycleCount
-  }, [cycleCount])
-
-  useEffect(() => {
     breathModeRef.current = breathMode
   }, [breathMode])
-
-  useEffect(() => {
-    secondsLeftRef.current = secondsLeft
-  }, [secondsLeft])
-
-  useEffect(() => {
-    const animate = () => {
-      const currentPhase = phaseRef.current
-      const phaseDuration = durationsRef.current[currentPhase]
-      const elapsed =
-        (performance.now() - phaseStartTimeRef.current) / 1000
-
-      let desiredScale: number
-
-      if (currentPhase === 'HOLD_TOP') {
-        desiredScale = lerpScale(1)
-      } else if (currentPhase === 'HOLD_BOTTOM') {
-        desiredScale = lerpScale(0)
-      } else {
-        const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
-        const progress =
-          phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
-
-        if (currentPhase === 'INHALE') {
-          desiredScale = lerpScale(progress)
-        } else if (currentPhase === 'EXHALE') {
-          desiredScale = lerpScale(1 - progress)
-        } else {
-          desiredScale = MIN_SCALE
-        }
-      }
-
-      setScale((prev) => {
-        const smoothing = 0.03
-        return prev + (desiredScale - prev) * smoothing
-      })
-
-      /* Anulom Vilom: 8-phase alternation. Even cycle: inhale left→center, exhale center→right. Odd: inhale right→center, exhale center→left */
-      if (breathModeRef.current === 'anulom_vilom') {
-        const cc = cycleCountRef.current
-        const leftSide = 35
-        const center = 50
-        const rightSide = 65
-        const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
-        const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
-        let desiredLeft: number
-        if (currentPhase === 'INHALE') {
-          desiredLeft = cc % 2 === 0
-            ? leftSide + (center - leftSide) * easeInOut(progress)
-            : rightSide + (center - rightSide) * easeInOut(progress)
-        } else if (currentPhase === 'HOLD_TOP') {
-          desiredLeft = center
-        } else if (currentPhase === 'EXHALE') {
-          desiredLeft = cc % 2 === 0
-            ? center + (rightSide - center) * easeInOut(progress)
-            : center + (leftSide - center) * easeInOut(progress)
-        } else {
-          desiredLeft = cc % 2 === 0 ? rightSide : leftSide
-        }
-        setSphereAnulomLeft((prev) => {
-          const smoothing = 0.08
-          return prev + (desiredLeft - prev) * smoothing
-        })
-      }
-
-      animationRef.current = window.requestAnimationFrame(animate)
-    }
-
-    animationRef.current = window.requestAnimationFrame(animate)
-
-    return () => {
-      if (animationRef.current !== null) {
-        window.cancelAnimationFrame(animationRef.current)
-        animationRef.current = null
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    const LERP = 0.2
-    const EPS = 0.01
-    const tick = () => {
-      setTextVisibilityAnimated((prev) => {
-        if (draggingSliderRef.current === 'text') return prev
-        const target = textVisibility
-        const next = prev + (target - prev) * LERP
-        return Math.abs(next - target) < EPS ? target : next
-      })
-      setDotsVisibilityAnimated((prev) => {
-        if (draggingSliderRef.current === 'dots') return prev
-        const target = dotsVisibility
-        const next = prev + (target - prev) * LERP
-        return Math.abs(next - target) < EPS ? target : next
-      })
-      setSphereVisibilityAnimated((prev) => {
-        if (draggingSliderRef.current === 'sphere') return prev
-        const target = sphereVisibility
-        const next = prev + (target - prev) * LERP
-        return Math.abs(next - target) < EPS ? target : next
-      })
-      setCyclesVisibilityAnimated((prev) => {
-        if (draggingSliderRef.current === 'cycles') return prev
-        const target = cyclesVisibility
-        const next = prev + (target - prev) * LERP
-        return Math.abs(next - target) < EPS ? target : next
-      })
-      sliderLerpRef.current = window.requestAnimationFrame(tick)
-    }
-    sliderLerpRef.current = window.requestAnimationFrame(tick)
-    return () => {
-      if (sliderLerpRef.current !== null) {
-        window.cancelAnimationFrame(sliderLerpRef.current)
-        sliderLerpRef.current = null
-      }
-    }
-  }, [textVisibility, dotsVisibility, sphereVisibility, cyclesVisibility])
-
-  useEffect(() => {
-    const tick = () => {
-      const currentPhase = phaseRef.current
-      const phaseDuration = durationsRef.current[currentPhase]
-      const elapsed = (performance.now() - phaseStartTimeRef.current) / 1000
-      const currentLeft = Math.max(0, Math.ceil(phaseDuration - elapsed))
-
-      if (currentLeft !== secondsLeftRef.current) {
-        secondsLeftRef.current = currentLeft
-        setSecondsLeft(currentLeft)
-      }
-
-      if (elapsed < phaseDuration) {
-        return
-      }
-
-      let next = nextPhase(currentPhase)
-      let lastDisplayedPhase = currentPhase
-
-      /* Skip zero-duration phases completely */
-      for (let i = 0; i < 4 && durationsRef.current[next] === 0; i++) {
-        if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
-          const newC = cycleCountRef.current + 1
-          cycleCountRef.current = newC
-          setCycleCount(newC)
-        }
-        lastDisplayedPhase = next
-        next = nextPhase(next)
-      }
-
-      if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
-        const newC = cycleCountRef.current + 1
-        cycleCountRef.current = newC
-        setCycleCount(newC)
-      }
-
-      /* prevLabel = phase we actually displayed (left), not skipped phases */
-      setPrevLabel(phaseLabel(currentPhase))
-      phaseRef.current = next
-      setLabelAnimating(true)
-      setPhase(next)
-      phaseStartTimeRef.current = performance.now()
-
-      const nextDuration = durationsRef.current[next]
-      secondsLeftRef.current = nextDuration
-      setSecondsLeft(nextDuration)
-    }
-
-    intervalRef.current = window.setInterval(tick, 100)
-
-    return () => {
-      if (intervalRef.current !== null) window.clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [])
 
   const handleUserInteract = () => {
     if (showSettings) {
@@ -944,33 +341,12 @@ function App() {
     const s = editingBoxBreath
     if (s === undefined) return
     const n = parseInt(s, 10)
-    const maxM = timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60
+    const maxM = getMaxMultiplier(timingMode)
     const v = Number.isNaN(n) ? 0 : Math.max(0, Math.min(maxM, n))
     setMultiplierSeconds(v)
     setEditingBoxBreath(undefined)
   }
 
-  useEffect(() => {
-    if (!timingModeDropdownOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (timingModeDropdownRef.current && !timingModeDropdownRef.current.contains(e.target as Node)) {
-        setTimingModeDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [timingModeDropdownOpen])
-
-  useEffect(() => {
-    if (!colorSchemeDropdownOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (colorSchemeDropdownRef.current && !colorSchemeDropdownRef.current.contains(e.target as Node)) {
-        setColorSchemeDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [colorSchemeDropdownOpen])
 
   useEffect(() => {
     document.documentElement.dataset.theme = colorScheme
@@ -981,26 +357,6 @@ function App() {
     localStorage.setItem(BREATH_MODE_KEY, breathMode)
   }, [breathMode])
 
-  useEffect(() => {
-    if (!breathModeDropdownOpen) return
-    const handleClickOutside = (e: MouseEvent) => {
-      if (breathModeDropdownRef.current && !breathModeDropdownRef.current.contains(e.target as Node)) {
-        setBreathModeDropdownOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [breathModeDropdownOpen])
-
-  const handleColorSchemeChange = (scheme: ColorScheme) => {
-    setColorSchemeDropdownOpen(false)
-    setColorScheme(scheme)
-  }
-
-  const handleBreathModeChange = (mode: BreathMode) => {
-    setBreathModeDropdownOpen(false)
-    setBreathMode(mode)
-  }
 
   const handleTimingModeChange = (mode: TimingMode) => {
     setTimingModeDropdownOpen(false)
@@ -1017,50 +373,40 @@ function App() {
   /* ---------- View ---------- */
   return (
     <main className="app">
-      <aside className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
+      <aside ref={settingsRef} className={`settings ${showSettings ? 'settings--open' : ''}`} onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} aria-label="Breathing settings" aria-hidden={!showSettings}>
         <h2 className="settings-title">Breath Style</h2>
         <label className="settings-row">
           <span>Nostrils</span>
-          <div ref={breathModeDropdownRef} className="settings-dropdown">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setBreathModeDropdownOpen((o) => !o)}
-              aria-expanded={breathModeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Breath style"
-            >
-              {breathMode === 'normal' ? 'Normal' : 'Anulom Vilom'}
-              <span className="settings-dropdown__chevron" aria-hidden>{breathModeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel ${breathModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              <button type="button" role="option" aria-selected={breathMode === 'normal'} className="settings-dropdown__option" onClick={() => handleBreathModeChange('normal')}>Normal</button>
-              <button type="button" role="option" aria-selected={breathMode === 'anulom_vilom'} className="settings-dropdown__option" onClick={() => handleBreathModeChange('anulom_vilom')}>Anulom Vilom</button>
-            </div>
-          </div>
+          <SettingsDropdown
+            options={[
+              { value: 'normal' as const, label: 'Normal' },
+              { value: 'anulom_vilom' as const, label: 'Anulom Vilom' },
+            ]}
+            selected={breathMode}
+            onSelect={setBreathMode}
+            ariaLabel="Breath style"
+            triggerLabel={breathMode === 'normal' ? 'Normal' : 'Anulom Vilom'}
+            isOpen={breathModeDropdownOpen}
+            onOpenChange={setBreathModeDropdownOpen}
+          />
         </label>
         <label className="settings-row">
           <span>Ratio</span>
-          <div ref={timingModeDropdownRef} className="settings-dropdown">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setTimingModeDropdownOpen((o) => !o)}
-              aria-expanded={timingModeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Breathing ratio"
-            >
-              {TIMING_MODE_LABELS[timingMode]}
-              <span className="settings-dropdown__chevron" aria-hidden>{timingModeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel ${timingModeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              <button type="button" role="option" aria-selected={timingMode === 'long_exhale'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('long_exhale')}>1:2</button>
-              <button type="button" role="option" aria-selected={timingMode === 'equal'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('equal')}>1:1</button>
-              <button type="button" role="option" aria-selected={timingMode === 'kumbhaka'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('kumbhaka')}>1:4:2</button>
-              <button type="button" role="option" aria-selected={timingMode === 'box'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('box')}>1:1:1:1</button>
-              <button type="button" role="option" aria-selected={timingMode === 'custom'} className="settings-dropdown__option" onClick={() => handleTimingModeChange('custom')}>Custom</button>
-            </div>
-          </div>
+          <SettingsDropdown
+            options={[
+              { value: 'long_exhale' as const, label: '1:2' },
+              { value: 'equal' as const, label: '1:1' },
+              { value: 'kumbhaka' as const, label: '1:4:2' },
+              { value: 'box' as const, label: '1:1:1:1' },
+              { value: 'custom' as const, label: 'Custom' },
+            ]}
+            selected={timingMode}
+            onSelect={(mode) => handleTimingModeChange(mode)}
+            ariaLabel="Breathing ratio"
+            triggerLabel={TIMING_MODE_LABELS[timingMode]}
+            isOpen={timingModeDropdownOpen}
+            onOpenChange={setTimingModeDropdownOpen}
+          />
         </label>
         <label className={`settings-row ${timingMode === 'custom' ? 'settings-row--disabled' : ''}`}>
           <span>Multiplier</span>
@@ -1073,7 +419,7 @@ function App() {
               disabled={timingMode === 'custom'}
               aria-label="Multiplier"
             />
-            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
+            <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(getMaxMultiplier(timingMode), v + 1))} aria-label="Increase multiplier">+</button>
           </div>
         </label>
         <div className="settings-duration-rows">
@@ -1169,131 +515,68 @@ function App() {
         <h2 className="settings-title">Visibility</h2>
         <div className="settings-row settings-row--slider">
           <span className="settings-slider-label">Text</span>
-          <div className={`settings-slider-wrap ${Math.round(textVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
-            <input
-              type="range"
-              min={0}
-              max={2}
-              step={0.01}
-              value={textVisibilityAnimated}
-              onPointerDown={() => { draggingSliderRef.current = 'text'; sliderChangeCountRef.current = 0 }}
-              onPointerUp={() => { draggingSliderRef.current = null }}
-              onPointerLeave={() => { draggingSliderRef.current = null }}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                setTextVisibility(Math.round(v) as VisibilityMode)
-                if (draggingSliderRef.current === 'text') {
-                  sliderChangeCountRef.current += 1
-                  if (sliderChangeCountRef.current >= 2) setTextVisibilityAnimated(v)
-                }
-              }}
-              aria-label="Phase text visibility"
-              className={`settings-slider settings-slider--mode-${Math.round(textVisibilityAnimated)}`}
-            />
-          </div>
+          <VisibilitySlider
+            value={textVisibility}
+            valueAnimated={textVisibilityAnimated}
+            onChange={getSliderHandlers('text').onChange}
+            onPointerDown={getSliderHandlers('text').onPointerDown}
+            onPointerUp={getSliderHandlers('text').onPointerUp}
+            onPointerLeave={getSliderHandlers('text').onPointerLeave}
+            ariaLabel="Phase text visibility"
+          />
         </div>
         <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka' ? 'settings-row--disabled' : ''}`}>
           <span className="settings-slider-label">Dots</span>
-          <div className={`settings-slider-wrap ${Math.round(dotsVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
-            <input
-              type="range"
-              min={0}
-              max={2}
-              step={0.01}
-              value={dotsVisibilityAnimated}
-              disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka'}
-              onPointerDown={() => { (timingMode === 'box' || timingMode === 'equal' || timingMode === 'long_exhale' || timingMode === 'kumbhaka') && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
-              onPointerUp={() => { draggingSliderRef.current = null }}
-              onPointerLeave={() => { draggingSliderRef.current = null }}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                setDotsVisibility(Math.round(v) as VisibilityMode)
-                if (draggingSliderRef.current === 'dots') {
-                  sliderChangeCountRef.current += 1
-                  if (sliderChangeCountRef.current >= 2) setDotsVisibilityAnimated(v)
-                }
-              }}
-              aria-label="Dots visibility"
-              className={`settings-slider settings-slider--mode-${Math.round(dotsVisibilityAnimated)}`}
-            />
-          </div>
+          <VisibilitySlider
+            value={dotsVisibility}
+            valueAnimated={dotsVisibilityAnimated}
+            onChange={getSliderHandlers('dots').onChange}
+            onPointerDown={getSliderHandlers('dots').onPointerDown}
+            onPointerUp={getSliderHandlers('dots').onPointerUp}
+            onPointerLeave={getSliderHandlers('dots').onPointerLeave}
+            disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka'}
+            ariaLabel="Dots visibility"
+          />
         </div>
         <div className="settings-row settings-row--slider">
           <span className="settings-slider-label">Sphere</span>
-          <div className={`settings-slider-wrap ${Math.round(sphereVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
-            <input
-              type="range"
-              min={0}
-              max={2}
-              step={0.01}
-              value={sphereVisibilityAnimated}
-              onPointerDown={() => { draggingSliderRef.current = 'sphere'; sliderChangeCountRef.current = 0 }}
-              onPointerUp={() => { draggingSliderRef.current = null }}
-              onPointerLeave={() => { draggingSliderRef.current = null }}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                setSphereVisibility(Math.round(v) as VisibilityMode)
-                if (draggingSliderRef.current === 'sphere') {
-                  sliderChangeCountRef.current += 1
-                  if (sliderChangeCountRef.current >= 2) setSphereVisibilityAnimated(v)
-                }
-              }}
-              aria-label="Sphere visibility"
-              className={`settings-slider settings-slider--mode-${Math.round(sphereVisibilityAnimated)}`}
-            />
-          </div>
+          <VisibilitySlider
+            value={sphereVisibility}
+            valueAnimated={sphereVisibilityAnimated}
+            onChange={getSliderHandlers('sphere').onChange}
+            onPointerDown={getSliderHandlers('sphere').onPointerDown}
+            onPointerUp={getSliderHandlers('sphere').onPointerUp}
+            onPointerLeave={getSliderHandlers('sphere').onPointerLeave}
+            ariaLabel="Sphere visibility"
+          />
         </div>
         <div className="settings-row settings-row--slider">
           <span className="settings-slider-label">Cycles</span>
-          <div className={`settings-slider-wrap ${Math.round(cyclesVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
-            <input
-              type="range"
-              min={0}
-              max={2}
-              step={0.01}
-              value={cyclesVisibilityAnimated}
-              onPointerDown={() => { draggingSliderRef.current = 'cycles'; sliderChangeCountRef.current = 0 }}
-              onPointerUp={() => { draggingSliderRef.current = null }}
-              onPointerLeave={() => { draggingSliderRef.current = null }}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                setCyclesVisibility(Math.round(v) as VisibilityMode)
-                if (draggingSliderRef.current === 'cycles') {
-                  sliderChangeCountRef.current += 1
-                  if (sliderChangeCountRef.current >= 2) setCyclesVisibilityAnimated(v)
-                }
-              }}
-              aria-label="Cycles completed visibility"
-              className={`settings-slider settings-slider--mode-${Math.round(cyclesVisibilityAnimated)}`}
-            />
-            <div className="settings-slider-labels" aria-hidden>
-              <span>Off</span>
-              <span>On tap</span>
-              <span>On</span>
-            </div>
-          </div>
+          <VisibilitySlider
+            value={cyclesVisibility}
+            valueAnimated={cyclesVisibilityAnimated}
+            onChange={getSliderHandlers('cycles').onChange}
+            onPointerDown={getSliderHandlers('cycles').onPointerDown}
+            onPointerUp={getSliderHandlers('cycles').onPointerUp}
+            onPointerLeave={getSliderHandlers('cycles').onPointerLeave}
+            ariaLabel="Cycles completed visibility"
+            showLabels
+          />
         </div>
         <h2 className="settings-title">Color scheme</h2>
         <label className="settings-row">
           <span>Theme</span>
-          <div ref={colorSchemeDropdownRef} className="settings-dropdown settings-dropdown--dropup">
-            <button
-              type="button"
-              className="settings-dropdown__trigger"
-              onClick={() => setColorSchemeDropdownOpen((o) => !o)}
-              aria-expanded={colorSchemeDropdownOpen}
-              aria-haspopup="listbox"
-              aria-label="Color scheme"
-            >
-              {THEME_LABELS[colorScheme]}
-              <span className="settings-dropdown__chevron" aria-hidden>{colorSchemeDropdownOpen ? '▲' : '▼'}</span>
-            </button>
-            <div className={`settings-dropdown__panel settings-dropdown__panel--themes ${colorSchemeDropdownOpen ? 'settings-dropdown__panel--open' : ''}`} role="listbox">
-              {COLOR_SCHEMES.map((scheme) => (
-                <button key={scheme} type="button" role="option" aria-selected={colorScheme === scheme} className="settings-dropdown__option" onClick={() => handleColorSchemeChange(scheme)}>{THEME_LABELS[scheme]}</button>
-              ))}
-            </div>
-          </div>
+          <SettingsDropdown
+            options={COLOR_SCHEMES.map((scheme) => ({ value: scheme, label: THEME_LABELS[scheme] }))}
+            selected={colorScheme}
+            onSelect={setColorScheme}
+            ariaLabel="Color scheme"
+            triggerLabel={THEME_LABELS[colorScheme]}
+            isOpen={colorSchemeDropdownOpen}
+            onOpenChange={setColorSchemeDropdownOpen}
+            dropup
+            panelClassName="settings-dropdown__panel--themes"
+          />
         </label>
       </aside>
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>

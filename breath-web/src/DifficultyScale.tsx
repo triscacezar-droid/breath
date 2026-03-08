@@ -8,8 +8,7 @@ const ZONES = [
 
 const BPM_MAX = 24
 const VIEWPORT_HALF = 58
-const VIEWPORT_WIDTH = 116
-const STRIP_WIDTH = 52 + 36 + 48 + 52 + 32 + 4 * 4
+const MAX_POSITION = 196 + 32
 
 /** BPM → strip position. Very slow <1.5, Slow 1.5–3, Calming 3–8, Normal 8–16, Fast 16+ */
 function bpmToPosition(bpm: number): number {
@@ -25,12 +24,12 @@ export function DifficultyScale({ bpm }: { bpm: number }) {
   const clampedBpm = Math.max(0, Math.min(BPM_MAX, bpm))
   const position = bpmToPosition(clampedBpm)
   const translateX = Math.max(
-    VIEWPORT_WIDTH - STRIP_WIDTH,
+    VIEWPORT_HALF - MAX_POSITION,
     Math.min(VIEWPORT_HALF, VIEWPORT_HALF - position)
   )
 
   return (
-    <div className="difficulty-scale" role="img" aria-label={`Pace: ${getCurrentZone(bpm)}`}>
+    <div className="difficulty-scale" role="img" aria-label={`Pace: ${getCurrentZone(clampedBpm)}`}>
       <div className="difficulty-scale__viewport">
         <div
           className="difficulty-scale__strip"
