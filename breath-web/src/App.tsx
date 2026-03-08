@@ -79,6 +79,7 @@ function App() {
   const othersOnline = usePresence()
   const [colorScheme, setColorScheme] = useState<ColorScheme>(getStoredColorScheme)
   const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
   const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
   const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
 
@@ -602,6 +603,22 @@ function App() {
             onOpenChange={setColorSchemeDropdownOpen}
             dropup
             panelClassName="settings-dropdown__panel--themes"
+          />
+        </label>
+        <h2 className="settings-title">{t('settings.language')}</h2>
+        <label className="settings-row">
+          <span>{t('settings.language')}</span>
+          <SettingsDropdown
+            options={[
+              { value: 'en', label: t('languages.en') },
+              { value: 'de', label: t('languages.de') },
+            ]}
+            selected={i18n.resolvedLanguage === 'de' ? 'de' : 'en'}
+            onSelect={(lng) => i18n.changeLanguage(lng)}
+            ariaLabel={t('settings.language')}
+            triggerLabel={t(`languages.${i18n.resolvedLanguage === 'de' ? 'de' : 'en'}`)}
+            isOpen={languageDropdownOpen}
+            onOpenChange={setLanguageDropdownOpen}
           />
         </label>
       </aside>
