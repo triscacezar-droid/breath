@@ -60,8 +60,7 @@
     },
     "centerVariants": {
       "circle": "Cerc",
-      "ring": "Inel",
-      "wave": "Undă"
+      "ring": "Inel"
     },
     "labelVariantAria": "Stil etichetă",
     "progressVariantAria": "Stil progres",

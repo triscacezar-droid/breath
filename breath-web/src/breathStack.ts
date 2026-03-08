@@ -58,37 +58,24 @@ export function isEntering(prev: BreathStack, next: BreathStack, item: StackItem
   return !prev.includes(item) && next.includes(item)
 }
 
-/** Viewport-relative gaps: 10vh above sphere, 5vh above dots */
+/** Viewport-relative positions: slot 2 = center, slot 1 = 15vh above, slot 0 = 25vh above */
 const GAP_ABOVE_SPHERE_VH = 15
 const GAP_ABOVE_DOTS_VH = 10
 const CENTER_VH = 50
 
+const SLOT_TOP_VH: Record<number, number> = {
+  0: CENTER_VH - GAP_ABOVE_SPHERE_VH - GAP_ABOVE_DOTS_VH, // top: 25vh
+  1: CENTER_VH - GAP_ABOVE_SPHERE_VH, // middle: 35vh
+  2: CENTER_VH, // bottom/center: 50vh
+}
+
 /**
  * Returns the vertical center position (in vh) for viewport-relative stacking.
- * Sphere at 50vh; next item 10vh above; item above dots 5vh above dots.
+ * Position is determined by slot index only, so it works for any visibility combination
+ * (sphere on/off, dots on/off, text on/off).
  */
 export function getViewportTopVh(stack: BreathStack, item: StackItem): number {
   const slot = getSlotIndex(stack, item)
   if (slot < 0) return CENTER_VH
-
-  const sphereInStack = stack[2] === 'sphere'
-  const dotsInStack = stack.includes('dots')
-  const dotsSlot = getSlotIndex(stack, 'dots')
-  const textSlot = getSlotIndex(stack, 'text')
-
-  if (item === 'sphere') return CENTER_VH
-
-  if (item === 'dots') {
-    return sphereInStack ? CENTER_VH - GAP_ABOVE_SPHERE_VH : CENTER_VH
-  }
-
-  if (item === 'text') {
-    if (dotsInStack && textSlot >= 0 && dotsSlot >= 0 && textSlot < dotsSlot) {
-      const dotsVh = getViewportTopVh(stack, 'dots')
-      return dotsVh - GAP_ABOVE_DOTS_VH
-    }
-    return CENTER_VH - GAP_ABOVE_SPHERE_VH
-  }
-
-  return CENTER_VH
+  return SLOT_TOP_VH[slot]
 }

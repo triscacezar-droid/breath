@@ -60,8 +60,7 @@
     },
     "centerVariants": {
       "circle": "Circle",
-      "ring": "Ring",
-      "wave": "Wave"
+      "ring": "Ring"
     },
     "labelVariantAria": "Label style",
     "progressVariantAria": "Progress style",

@@ -936,6 +936,12 @@
   flex-shrink: 0;
 }
 
+.circle--ring {
+  background: transparent;
+  border: 2px solid var(--color-circle);
+  box-sizing: border-box;
+}
+
 .circle--visible {
   opacity: 1;
   pointer-events: auto;
@@ -991,6 +997,17 @@
   min-height: 1.5em;
   overflow: visible;
   text-align: center;
+}
+
+.phase-stack--minimal .phase-row {
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-text-secondary);
+}
+
+.phase-stack--icons .phase-row {
+  font-size: 1.2em;
+  line-height: 1.2;
 }
 
 .settings-row--bpm {
@@ -1229,6 +1246,14 @@
   animation: slide-in-from-bottom 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+.phase-stack--exhaling .phase-out {
+  animation-name: slide-out-down;
+}
+
+.phase-stack--exhaling .phase-in {
+  animation-name: slide-in-from-top;
+}
+
 .phase-dots {
   display: flex;
   flex-wrap: nowrap;
@@ -1348,6 +1373,28 @@
 @keyframes slide-in-from-bottom {
   0% {
     transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-down {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-from-top {
+  0% {
+    transform: translateY(-100%);
     opacity: 0;
   }
   100% {

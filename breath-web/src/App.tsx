@@ -17,7 +17,7 @@ import {
   getMaxMultiplier,
   schemeToThemeKey,
 } from './constants'
-import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterDisplayMode, formatElapsedSeconds } from './utils'
+import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterDisplayMode, formatElapsedSeconds, getPhaseLabelDisplay } from './utils'
 import {
   buildBreathStack,
   getSpacerClass,
@@ -122,7 +122,7 @@ function App() {
   const [contentTransitionOpacity, setContentTransitionOpacity] = useState(1)
 
   const timer = useBreathTimer(durationsRef)
-  const { phase, secondsLeft, cycleCount, elapsedSeconds, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
+  const { phase, secondsLeft, cycleCount, elapsedSeconds, prevPhase, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
   const { scale, sphereAnulomLeft, restart: restartAnimation } = useBreathAnimation(
     phaseRef,
     durationsRef,
@@ -141,7 +141,6 @@ function App() {
   const settingsRef = useRef<HTMLElement>(null)
 
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
-  const [measuredStack, setMeasuredStack] = useState<BreathStack>([null, null, null])
   const [enteringText, setEnteringText] = useState(false)
   const [enteringDots, setEnteringDots] = useState(false)
   const prevMeasuredRef = useRef<BreathStack>([null, null, null])
@@ -187,7 +186,6 @@ function App() {
   useLayoutEffect(() => {
     measureSlots()
     const prev = prevMeasuredRef.current
-    setMeasuredStack(stack)
     setEnteringText(isEntering(prev, stack, 'text'))
     setEnteringDots(isEntering(prev, stack, 'dots'))
     prevMeasuredRef.current = stack
@@ -213,14 +211,13 @@ function App() {
     if (isZoomSnapRef.current) isZoomSnapRef.current = false
   }, [slotTops])
 
-  const measuredReady = measuredStack.some((s) => s !== null)
-  const activeStack = measuredReady ? measuredStack : stack
+  /* Use stack (not measuredStack) for viewport positions: measuredStack lags one render,
+     so when dots turn off, text would stay at 25vh instead of moving to 35vh. */
+  const textTopVh = getViewportTopVh(stack, 'text')
+  const dotsTopVh = getViewportTopVh(stack, 'dots')
 
-  const textTopVh = getViewportTopVh(activeStack, 'text')
-  const dotsTopVh = getViewportTopVh(activeStack, 'dots')
-
-  const showFloatingText = stackTextVisible && isInStack(activeStack, 'text')
-  const showFloatingDots = stackDotsVisible && isInStack(activeStack, 'dots')
+  const showFloatingText = stackTextVisible && isInStack(stack, 'text')
+  const showFloatingDots = stackDotsVisible && isInStack(stack, 'dots')
 
   const hasContentBeenRevealedRef = useRef(false)
 
@@ -308,9 +305,17 @@ function App() {
     durationsRef.current = durations
   }, [durations])
 
-  // When durations are not all equal (box mode), set dots slider to Off
+  useDurationsSync(timingMode, multiplierSeconds, setDurations)
+
+  // When durations are not all equal (box mode), set dots slider to Off.
+  // Run after useDurationsSync so we see synced durations; skip when switching TO box
+  // (durations may still be from previous mode before sync).
+  const prevTimingModeRef = useRef<TimingMode>(timingMode)
   useEffect(() => {
+    const prev = prevTimingModeRef.current
+    prevTimingModeRef.current = timingMode
     if (timingMode !== 'box') return
+    if (prev !== 'box') return // just switched to box, skip (durations may be stale)
     const allEqual =
       durations.INHALE === durations.HOLD_TOP &&
       durations.HOLD_TOP === durations.EXHALE &&
@@ -320,8 +325,6 @@ function App() {
       setDotsVisibilityAnimated(0)
     }
   }, [timingMode, durations, dotsVisibility])
-
-  useDurationsSync(timingMode, multiplierSeconds, setDurations)
 
   // When switching to custom, turn dots off (durations may differ)
   useEffect(() => {
@@ -806,14 +809,14 @@ function App() {
               onAnimationEnd={() => enteringText && setEnteringText(false)}
             >
               <div className={`status ${contentVisible && displayTextVisible ? 'status--visible' : 'status--hidden'}`}>
-                <div className="phase-stack">
+                <div className={`phase-stack phase-stack--${labelVariant} ${labelAnimating && (phase === 'EXHALE' || phase === 'HOLD_BOTTOM') ? 'phase-stack--exhaling' : ''}`}>
                   {labelAnimating ? (
                     <>
-                      <div className="phase-row phase-out" key="out">{prevLabel}</div>
-                      <div className="phase-row phase-in" key="in">{label}</div>
+                      <div className="phase-row phase-out" key="out">{getPhaseLabelDisplay(prevPhase, labelVariant)}</div>
+                      <div className="phase-row phase-in" key="in">{getPhaseLabelDisplay(phase, labelVariant)}</div>
                     </>
                   ) : (
-                    <div className="phase-row">{label}</div>
+                    <div className="phase-row">{getPhaseLabelDisplay(phase, labelVariant)}</div>
                   )}
                 </div>
               </div>
@@ -836,7 +839,7 @@ function App() {
         </div>
         {stack[2] === 'sphere' && (
           <div
-            className={`circle circle--viewport-center ${contentVisible && displaySphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+            className={`circle circle--viewport-center ${centerVariant === 'ring' ? 'circle--ring' : ''} ${contentVisible && displaySphereVisible ? 'circle--visible' : 'circle--hidden'}`}
             data-phase={phase}
             style={{
               transform: `translate(-50%, -50%) scale(${scale})`,

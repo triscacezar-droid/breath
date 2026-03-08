@@ -11,6 +11,7 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
   const [cycleCount, setCycleCount] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [prevLabel, setPrevLabel] = useState(() => phaseLabel('INHALE'))
+  const [prevPhase, setPrevPhase] = useState<Phase>('INHALE')
   const [labelAnimating, setLabelAnimating] = useState(false)
 
   const intervalRef = useRef<number | null>(null)
@@ -86,6 +87,7 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
       }
 
       setPrevLabel(phaseLabel(currentPhase))
+      setPrevPhase(currentPhase)
       phaseRef.current = next
       setLabelAnimating(true)
       setPhase(next)
@@ -108,6 +110,7 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
     phaseRef.current = 'INHALE'
     cycleCountRef.current = 0
     setPhase('INHALE')
+    setPrevPhase('INHALE')
     setCycleCount(0)
     setLabelAnimating(false)
     setPrevLabel(phaseLabel('INHALE'))
@@ -132,6 +135,7 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
     setElapsedSeconds(0)
     setLabelAnimating(false)
     setPrevLabel(phaseLabel(firstPhase))
+    setPrevPhase(firstPhase)
   }
 
   return {
@@ -141,6 +145,7 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
     elapsedSeconds,
     label,
     prevLabel,
+    prevPhase,
     labelAnimating,
     setPhase,
     setSecondsLeft,

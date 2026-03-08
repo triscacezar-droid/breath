@@ -60,8 +60,7 @@
     },
     "centerVariants": {
       "circle": "Kreis",
-      "ring": "Ring",
-      "wave": "Welle"
+      "ring": "Ring"
     },
     "labelVariantAria": "Beschriftungsstil",
     "progressVariantAria": "Fortschrittsstil",
