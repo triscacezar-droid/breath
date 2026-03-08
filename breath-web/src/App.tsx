@@ -138,6 +138,7 @@ function App() {
   const lastTapTimeRef = useRef<number>(0)
   const singleTapTimeoutRef = useRef<number | null>(null)
   const lastClosedByDoubleTapRef = useRef<number>(0)
+  const lastDoubleTapHandledRef = useRef<number>(0)
   const settingsRef = useRef<HTMLElement>(null)
 
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
@@ -351,7 +352,7 @@ function App() {
     setShowInfo(true)
   }
 
-  const handleDoubleTapOrDoubleClick = () => {
+  const handleDoubleTapOrDoubleClick = (fromTouch?: boolean) => {
     if (showSettings) {
       lastClosedByDoubleTapRef.current = Date.now()
       setShowSettings(false)
@@ -360,14 +361,16 @@ function App() {
     if (Date.now() - lastClosedByDoubleTapRef.current < 400) {
       return
     }
+    if (fromTouch) lastDoubleTapHandledRef.current = Date.now()
     setShowSettings(true)
   }
 
   const handleContentClick = () => {
+    if (Date.now() - lastDoubleTapHandledRef.current < 400) return
     handleUserInteract()
   }
 
-  const handleContentTouchStart = () => {
+  const handleContentTouchStart = (e: React.TouchEvent) => {
     const now = Date.now()
     if (singleTapTimeoutRef.current !== null) {
       window.clearTimeout(singleTapTimeoutRef.current)
@@ -375,7 +378,8 @@ function App() {
     }
     if (now - lastTapTimeRef.current < DOUBLE_TAP_WINDOW_MS) {
       lastTapTimeRef.current = 0
-      handleDoubleTapOrDoubleClick()
+      e.preventDefault()
+      handleDoubleTapOrDoubleClick(true)
       return
     }
     lastTapTimeRef.current = now
@@ -759,7 +763,7 @@ function App() {
           />
         </label>
       </aside>
-      <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
+      <div className="content-wrap" onClick={handleContentClick} onDoubleClick={() => handleDoubleTapOrDoubleClick()} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
         <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
