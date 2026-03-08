@@ -788,13 +788,6 @@ function App() {
                   </a>
                 </p>
               </div>
-              <button
-                type="button"
-                className="about-close-btn"
-                onClick={() => setShowAbout(false)}
-              >
-                {t('about.close')}
-              </button>
             </div>
           </div>,
           document.body
