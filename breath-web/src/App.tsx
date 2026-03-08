@@ -122,7 +122,7 @@ function App() {
   const [contentTransitionOpacity, setContentTransitionOpacity] = useState(1)
 
   const timer = useBreathTimer(durationsRef)
-  const { phase, secondsLeft, cycleCount, elapsedSeconds, prevPhase, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
+  const { phase, cycleCount, elapsedSeconds, prevPhase, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
   const { scale, sphereAnulomLeft, restart: restartAnimation } = useBreathAnimation(
     phaseRef,
     durationsRef,
@@ -833,7 +833,7 @@ function App() {
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
             >
               <div className={`phase-dots-wrap ${contentVisible && displayDotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} phaseStartTimeRef={phaseStartTimeRef} progressVariant={progressVariant} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
+                <PhaseDots phase={phase} duration={durations[phase]} phaseStartTimeRef={phaseStartTimeRef} progressVariant={progressVariant} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
               </div>
             </div>
           )}

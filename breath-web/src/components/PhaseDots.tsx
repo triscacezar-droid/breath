@@ -6,7 +6,6 @@ const MID_SECOND_OFFSET = 0.5
 export function PhaseDots({
   phase,
   duration,
-  secondsLeft,
   phaseStartTimeRef,
   progressVariant,
   timingMode,
@@ -16,7 +15,6 @@ export function PhaseDots({
 }: {
   phase: Phase
   duration: number
-  secondsLeft: number
   phaseStartTimeRef: React.MutableRefObject<number>
   progressVariant: ProgressVariant
   timingMode: TimingMode
