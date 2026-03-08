@@ -743,12 +743,19 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 60px; /* space for fixed footer */
 }
 
 .cycles-footer {
-  margin-top: auto;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 24px);
+  padding-left: max(clamp(16px, 4vw, 24px), env(safe-area-inset-left));
+  padding-right: max(clamp(16px, 4vw, 24px), env(safe-area-inset-right));
   padding-bottom: max(clamp(12px, 3vw, 16px), env(safe-area-inset-bottom));
   font-size: clamp(13px, 3vmin, 15px);
   color: var(--color-text-secondary);
@@ -759,6 +766,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  background: var(--color-bg-page);
 }
 
 .cycles-footer__presence {

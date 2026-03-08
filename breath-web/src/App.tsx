@@ -442,6 +442,11 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = colorScheme
     localStorage.setItem(COLOR_SCHEME_KEY, colorScheme)
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) {
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--color-bg-page').trim()
+      meta.setAttribute('content', bg || '#111')
+    }
   }, [colorScheme])
 
   useEffect(() => {

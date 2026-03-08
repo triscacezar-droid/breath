@@ -1026,14 +1026,14 @@ html:-webkit-full-screen {
   background: var(--color-bg-page);
 }
 
-/* Cover any gap at top (status bar area) on mobile */
+/* Cover gap at top (status bar) - Android often has env(safe-area-inset-top)=0 */
 html::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: max(1px, env(safe-area-inset-top));
+  height: max(28px, env(safe-area-inset-top));
   background: var(--color-bg-page);
   z-index: 9999;
   pointer-events: none;
