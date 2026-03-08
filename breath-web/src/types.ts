@@ -12,6 +12,8 @@ export type LabelVariant = 'words' | 'icons' | 'minimal'
 export type ProgressVariant = 'dots' | 'bar' | 'arc'
 export type CenterVariant = 'circle' | 'ring' | 'wave'
 
+export type FooterDisplayMode = 'cycles' | 'time'
+
 export type ColorScheme =
   | 'dark'
   | 'light'

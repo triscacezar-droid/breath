@@ -104,6 +104,11 @@
     "fast": "Fast"
   },
   "footer": {
+    "displayMode": {
+      "cycles": "Cycles",
+      "time": "Time"
+    },
+    "displayModeAria": "Show cycles or time",
     "cyclesCompleted": "{{count}} cycles completed",
     "noOneElse": "No one else right now",
     "othersBreathing_one": "{{count}} other breathing now",

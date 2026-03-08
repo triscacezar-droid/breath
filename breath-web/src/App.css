@@ -532,7 +532,7 @@
 
 .settings-row--slider {
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   margin-top: 8px;
 }

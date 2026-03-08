@@ -34,6 +34,7 @@ export const LONG_EXHALE_RATIO: Record<Phase, number> = {
 export const BREATH_MODE_KEY = 'breath-mode'
 export const COLOR_SCHEME_KEY = 'breath-color-scheme'
 export const VISUALIZATION_KEY = 'breath-visualization'
+export const FOOTER_DISPLAY_KEY = 'breath-footer-display'
 
 export const LABEL_VARIANTS = ['words', 'icons', 'minimal'] as const
 export const PROGRESS_VARIANTS = ['dots', 'bar', 'arc'] as const

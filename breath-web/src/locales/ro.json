@@ -104,6 +104,11 @@
     "fast": "Rapid"
   },
   "footer": {
+    "displayMode": {
+      "cycles": "Cicluri",
+      "time": "Timp"
+    },
+    "displayModeAria": "Afișează cicluri sau timp",
     "cyclesCompleted": "{{count}} cicluri completate",
     "noOneElse": "Nimeni altcineva acum",
     "othersBreathing_one": "{{count}} altă persoană respiră acum",

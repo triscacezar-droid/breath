@@ -1,13 +1,14 @@
 import './App.css'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { DifficultyScale } from './DifficultyScale'
-import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, LabelVariant, ProgressVariant, CenterVariant } from './types'
+import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, FooterDisplayMode, LabelVariant, ProgressVariant, CenterVariant } from './types'
 import {
   DEFAULT_DURATIONS,
   COLOR_SCHEMES,
   BREATH_MODE_KEY,
   COLOR_SCHEME_KEY,
   VISUALIZATION_KEY,
+  FOOTER_DISPLAY_KEY,
   PRESETS,
   LABEL_VARIANTS,
   PROGRESS_VARIANTS,
@@ -16,7 +17,7 @@ import {
   getMaxMultiplier,
   schemeToThemeKey,
 } from './constants'
-import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization } from './utils'
+import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterDisplayMode, formatElapsedSeconds } from './utils'
 import {
   buildBreathStack,
   getSpacerClass,
@@ -107,6 +108,8 @@ function App() {
   const [labelVariantDropdownOpen, setLabelVariantDropdownOpen] = useState(false)
   const [progressVariantDropdownOpen, setProgressVariantDropdownOpen] = useState(false)
   const [centerVariantDropdownOpen, setCenterVariantDropdownOpen] = useState(false)
+  const [footerDisplayMode, setFooterDisplayMode] = useState<FooterDisplayMode>(getStoredFooterDisplayMode)
+  const [footerDisplayDropdownOpen, setFooterDisplayDropdownOpen] = useState(false)
 
   const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
 
@@ -114,7 +117,7 @@ function App() {
   const breathModeRef = useRef<BreathMode>('normal')
 
   const timer = useBreathTimer(durationsRef)
-  const { phase, secondsLeft, cycleCount, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
+  const { phase, secondsLeft, cycleCount, elapsedSeconds, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
   const { scale, sphereAnulomLeft } = useBreathAnimation(
     phaseRef,
     durationsRef,
@@ -416,6 +419,10 @@ function App() {
     )
   }, [labelVariant, progressVariant, centerVariant])
 
+  useEffect(() => {
+    localStorage.setItem(FOOTER_DISPLAY_KEY, footerDisplayMode)
+  }, [footerDisplayMode])
+
   const handleTimingModeChange = (mode: TimingMode) => {
     setTimingModeDropdownOpen(false)
     if (mode === 'custom') {
@@ -648,7 +655,18 @@ function App() {
           />
         </div>
         <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">{t('settings.cycles')}</span>
+          <SettingsDropdown
+            options={[
+              { value: 'cycles' as const, label: t('footer.displayMode.cycles') },
+              { value: 'time' as const, label: t('footer.displayMode.time') },
+            ]}
+            selected={footerDisplayMode}
+            onSelect={setFooterDisplayMode}
+            ariaLabel={t('footer.displayModeAria')}
+            triggerLabel={footerDisplayMode === 'cycles' ? t('footer.displayMode.cycles') : t('footer.displayMode.time')}
+            isOpen={footerDisplayDropdownOpen}
+            onOpenChange={setFooterDisplayDropdownOpen}
+          />
           <VisibilitySlider
             value={cyclesVisibility}
             valueAnimated={cyclesVisibilityAnimated}
@@ -790,7 +808,11 @@ function App() {
         )}
       </section>
       <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
-        <span>{t('footer.cyclesCompleted', { count: cycleCount })}</span>
+        <span>
+          {footerDisplayMode === 'cycles'
+            ? t('footer.cyclesCompleted', { count: cycleCount })
+            : formatElapsedSeconds(elapsedSeconds)}
+        </span>
         {othersOnline !== null && (
           <span className="cycles-footer__presence">
             {othersOnline === 0 ? t('footer.noOneElse') : t('footer.othersBreathing', { count: othersOnline })}

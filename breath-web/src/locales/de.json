@@ -104,6 +104,11 @@
     "fast": "Schnell"
   },
   "footer": {
+    "displayMode": {
+      "cycles": "Zyklen",
+      "time": "Zeit"
+    },
+    "displayModeAria": "Zyklen oder Zeit anzeigen",
     "cyclesCompleted": "{{count}} Zyklen abgeschlossen",
     "noOneElse": "Gerade niemand anderes",
     "othersBreathing_one": "{{count}} andere Person atmet gerade",
