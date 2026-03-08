@@ -4,22 +4,19 @@ import type { VisibilityMode } from '../types'
 const LERP = 0.2
 const EPS = 0.01
 
-type SliderId = 'text' | 'dots' | 'sphere' | 'cycles'
+type SliderId = 'text' | 'dots' | 'sphere'
 
 export function useVisibilityLerp(
   textVisibility: VisibilityMode,
   dotsVisibility: VisibilityMode,
   sphereVisibility: VisibilityMode,
-  cyclesVisibility: VisibilityMode,
   setTextVisibility: (v: VisibilityMode) => void,
   setDotsVisibility: (v: VisibilityMode) => void,
-  setSphereVisibility: (v: VisibilityMode) => void,
-  setCyclesVisibility: (v: VisibilityMode) => void
+  setSphereVisibility: (v: VisibilityMode) => void
 ) {
   const [textVisibilityAnimated, setTextVisibilityAnimated] = useState<number>(textVisibility)
   const [dotsVisibilityAnimated, setDotsVisibilityAnimated] = useState<number>(dotsVisibility)
   const [sphereVisibilityAnimated, setSphereVisibilityAnimated] = useState<number>(sphereVisibility)
-  const [cyclesVisibilityAnimated, setCyclesVisibilityAnimated] = useState<number>(cyclesVisibility)
 
   const sliderLerpRef = useRef<number | null>(null)
   const draggingSliderRef = useRef<SliderId | null>(null)
@@ -45,12 +42,6 @@ export function useVisibilityLerp(
         const next = prev + (target - prev) * LERP
         return Math.abs(next - target) < EPS ? target : next
       })
-      setCyclesVisibilityAnimated((prev) => {
-        if (draggingSliderRef.current === 'cycles') return prev
-        const target = cyclesVisibility
-        const next = prev + (target - prev) * LERP
-        return Math.abs(next - target) < EPS ? target : next
-      })
       sliderLerpRef.current = window.requestAnimationFrame(tick)
     }
     sliderLerpRef.current = window.requestAnimationFrame(tick)
@@ -60,20 +51,18 @@ export function useVisibilityLerp(
         sliderLerpRef.current = null
       }
     }
-  }, [textVisibility, dotsVisibility, sphereVisibility, cyclesVisibility])
+  }, [textVisibility, dotsVisibility, sphereVisibility])
 
   const setters: Record<SliderId, (v: VisibilityMode) => void> = {
     text: setTextVisibility,
     dots: setDotsVisibility,
     sphere: setSphereVisibility,
-    cycles: setCyclesVisibility,
   }
 
   const animatedSetters: Record<SliderId, (v: number) => void> = {
     text: (v) => setTextVisibilityAnimated(v),
     dots: (v) => setDotsVisibilityAnimated(v),
     sphere: (v) => setSphereVisibilityAnimated(v),
-    cycles: (v) => setCyclesVisibilityAnimated(v),
   }
 
   function getSliderHandlers(id: SliderId) {
@@ -105,11 +94,9 @@ export function useVisibilityLerp(
     textVisibilityAnimated,
     dotsVisibilityAnimated,
     sphereVisibilityAnimated,
-    cyclesVisibilityAnimated,
     setTextVisibilityAnimated,
     setDotsVisibilityAnimated,
     setSphereVisibilityAnimated,
-    setCyclesVisibilityAnimated,
     getSliderHandlers,
   }
 }

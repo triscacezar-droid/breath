@@ -1,13 +1,15 @@
 import './App.css'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { DifficultyScale } from './DifficultyScale'
-import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, LabelVariant, ProgressVariant, CenterVariant } from './types'
+import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, LabelVariant, ProgressVariant, CenterVariant, FooterMode } from './types'
 import {
   DEFAULT_DURATIONS,
   COLOR_SCHEMES,
   BREATH_MODE_KEY,
   COLOR_SCHEME_KEY,
   VISUALIZATION_KEY,
+  FOOTER_MODE_KEY,
+  FOOTER_MODES,
   PRESETS,
   LABEL_VARIANTS,
   PROGRESS_VARIANTS,
@@ -16,7 +18,7 @@ import {
   getMaxMultiplier,
   schemeToThemeKey,
 } from './constants'
-import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization } from './utils'
+import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterMode } from './utils'
 import {
   buildBreathStack,
   getSpacerClass,
@@ -65,24 +67,21 @@ function App() {
   const [textVisibility, setTextVisibility] = useState<VisibilityMode>(2)
   const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(0)
   const [sphereVisibility, setSphereVisibility] = useState<VisibilityMode>(2)
-  const [cyclesVisibility, setCyclesVisibility] = useState<VisibilityMode>(1)
+  const [footerMode, setFooterMode] = useState<FooterMode>(getStoredFooterMode)
 
   const {
     textVisibilityAnimated,
     dotsVisibilityAnimated,
     sphereVisibilityAnimated,
-    cyclesVisibilityAnimated,
     setDotsVisibilityAnimated,
     getSliderHandlers,
   } = useVisibilityLerp(
     textVisibility,
     dotsVisibility,
     sphereVisibility,
-    cyclesVisibility,
     setTextVisibility,
     setDotsVisibility,
-    setSphereVisibility,
-    setCyclesVisibility
+    setSphereVisibility
   )
   const [editingDuration, setEditingDuration] = useState<Partial<Record<Phase, string>>>({})
   const [editingBoxBreath, setEditingBoxBreath] = useState<string | undefined>(undefined)
@@ -107,6 +106,7 @@ function App() {
   const [labelVariantDropdownOpen, setLabelVariantDropdownOpen] = useState(false)
   const [progressVariantDropdownOpen, setProgressVariantDropdownOpen] = useState(false)
   const [centerVariantDropdownOpen, setCenterVariantDropdownOpen] = useState(false)
+  const [footerModeDropdownOpen, setFooterModeDropdownOpen] = useState(false)
 
   const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
 
@@ -114,7 +114,7 @@ function App() {
   const breathModeRef = useRef<BreathMode>('normal')
 
   const timer = useBreathTimer(durationsRef)
-  const { phase, secondsLeft, cycleCount, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
+  const { phase, secondsLeft, cycleCount, elapsedSeconds, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
   const { scale, sphereAnulomLeft } = useBreathAnimation(
     phaseRef,
     durationsRef,
@@ -146,7 +146,7 @@ function App() {
   const textVisible = textVisibility === 2 || (textVisibility === 1 && showInfo)
   const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showInfo)
   const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
-  const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
+  const footerVisible = true
   const contentVisible = initialDelayPassed && contentRevealed
 
   const stack = useMemo(
@@ -416,6 +416,10 @@ function App() {
     )
   }, [labelVariant, progressVariant, centerVariant])
 
+  useEffect(() => {
+    localStorage.setItem(FOOTER_MODE_KEY, footerMode)
+  }, [footerMode])
+
   const handleTimingModeChange = (mode: TimingMode) => {
     setTimingModeDropdownOpen(false)
     if (mode === 'custom') {
@@ -608,17 +612,16 @@ function App() {
             ariaLabel={t('settings.sphereVisibility')}
           />
         </div>
-        <div className="settings-row settings-row--slider">
-          <span className="settings-slider-label">{t('settings.cycles')}</span>
-          <VisibilitySlider
-            value={cyclesVisibility}
-            valueAnimated={cyclesVisibilityAnimated}
-            onChange={getSliderHandlers('cycles').onChange}
-            onPointerDown={getSliderHandlers('cycles').onPointerDown}
-            onPointerUp={getSliderHandlers('cycles').onPointerUp}
-            onPointerLeave={getSliderHandlers('cycles').onPointerLeave}
-            ariaLabel={t('settings.cyclesVisibility')}
-            showLabels
+        <div className="settings-row">
+          <span>{t('settings.cycles')}</span>
+          <SettingsDropdown
+            options={FOOTER_MODES.map((v) => ({ value: v, label: t(`settings.footerModes.${v}`) }))}
+            selected={footerMode}
+            onSelect={setFooterMode}
+            ariaLabel={t('settings.footerModeAria')}
+            triggerLabel={t(`settings.footerModes.${footerMode}`)}
+            isOpen={footerModeDropdownOpen}
+            onOpenChange={setFooterModeDropdownOpen}
           />
         </div>
         <h2 className="settings-title">{t('settings.visualization')}</h2>
@@ -807,8 +810,20 @@ function App() {
           />
         )}
       </section>
-      <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
-        <span>{t('footer.cyclesCompleted', { count: cycleCount })}</span>
+      <footer className={`cycles-footer ${contentVisible && footerVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !footerVisible}>
+        <span>
+          {footerMode === 'cycles'
+            ? t('footer.cyclesCompleted', { count: cycleCount })
+            : (() => {
+                const m = Math.floor(elapsedSeconds / 60)
+                const s = elapsedSeconds % 60
+                const mm = Math.floor(m / 60)
+                const ms = m % 60
+                return mm > 0
+                  ? `${mm}:${String(ms).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+                  : `${m}:${String(s).padStart(2, '0')}`
+              })()}
+        </span>
         {othersOnline !== null && (
           <span className="cycles-footer__presence">
             {othersOnline === 0 ? t('footer.noOneElse') : t('footer.othersBreathing', { count: othersOnline })}
