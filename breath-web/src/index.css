@@ -1013,6 +1013,11 @@ a:hover {
 
 html {
   background: var(--color-bg-page);
+  height: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Fullscreen: prevent white bar at top on iOS/mobile (WebKit resets background) */
@@ -1021,14 +1026,35 @@ html:-webkit-full-screen {
   background: var(--color-bg-page);
 }
 
+/* Cover any gap at top (status bar area) on mobile */
+html::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: max(1px, env(safe-area-inset-top));
+  background: var(--color-bg-page);
+  z-index: 9999;
+  pointer-events: none;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
+  height: 100%;
   min-height: 100dvh;
+  min-height: -webkit-fill-available;
   background: var(--color-bg-page);
-  overflow-x: hidden;
+  overflow: hidden;
+  overscroll-behavior: none;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#root {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 h1 {
