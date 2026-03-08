@@ -15,8 +15,6 @@ import {
 import { getStoredColorScheme, getStoredBreathMode } from './utils'
 import {
   buildBreathStack,
-  getSlotIndex,
-  getTopForSlot,
   getSpacerClass,
   getViewportTopVh,
   isInStack,
@@ -99,11 +97,9 @@ function App() {
   const settingsRef = useRef<HTMLElement>(null)
 
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
-  const [slot3Height, setSlot3Height] = useState(0)
   const [measuredStack, setMeasuredStack] = useState<BreathStack>([null, null, null])
   const [enteringText, setEnteringText] = useState(false)
   const [enteringDots, setEnteringDots] = useState(false)
-  const [enteringSphere, setEnteringSphere] = useState(false)
   const prevMeasuredRef = useRef<BreathStack>([null, null, null])
   const isZoomSnapRef = useRef(false)
 
@@ -131,9 +127,7 @@ function App() {
     if (snap) isZoomSnapRef.current = true
     const stackRect = stackEl.getBoundingClientRect()
     const getTop = (el: HTMLElement) => el.getBoundingClientRect().top - stackRect.top
-    const s3Rect = s3.getBoundingClientRect()
     setSlotTops([getTop(s1), getTop(s2), getTop(s3)])
-    setSlot3Height(s3Rect.height)
   }
 
   useLayoutEffect(() => {
@@ -142,7 +136,6 @@ function App() {
     setMeasuredStack(stack)
     setEnteringText(isEntering(prev, stack, 'text'))
     setEnteringDots(isEntering(prev, stack, 'dots'))
-    setEnteringSphere(isEntering(prev, stack, 'sphere'))
     prevMeasuredRef.current = stack
   }, [stack, contentVisible])
 
@@ -168,15 +161,12 @@ function App() {
 
   const measuredReady = measuredStack.some((s) => s !== null)
   const activeStack = measuredReady ? measuredStack : stack
-  const sphereSlotIndex = getSlotIndex(activeStack, 'sphere')
 
   const textTopVh = getViewportTopVh(activeStack, 'text')
   const dotsTopVh = getViewportTopVh(activeStack, 'dots')
-  const sphereTop = getTopForSlot(sphereSlotIndex, slotTops, slot3Height, true)
 
   const showFloatingText = textVisible && isInStack(activeStack, 'text')
   const showFloatingDots = dotsVisible && isInStack(activeStack, 'dots')
-  const showFloatingSphere = sphereVisible && isInStack(activeStack, 'sphere')
 
   const hasContentBeenRevealedRef = useRef(false)
 
@@ -642,25 +632,7 @@ function App() {
               <div className={`breath-stack__spacer ${getSpacerClass(stack[2], 2)}`} aria-hidden />
             )}
           </div>
-          <div className="breath-stack__floating">
-            {showFloatingSphere && breathMode === 'anulom_vilom' && (
-              <div
-                className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-anulom ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
-                style={{
-                  top: sphereTop,
-                  left: `${sphereAnulomLeft}%`,
-                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
-              >
-                <div
-                  className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
-                  data-phase={phase}
-                  style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
-                />
-              </div>
-            )}
-          </div>
+          <div className="breath-stack__floating" />
         </div>
         <div
           className="breath-stack__floating-viewport"
@@ -704,11 +676,14 @@ function App() {
             </div>
           )}
         </div>
-        {stack[2] === 'sphere' && breathMode === 'normal' && (
+        {stack[2] === 'sphere' && (
           <div
             className={`circle circle--viewport-center ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
             data-phase={phase}
-            style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
+            style={{
+              transform: `translate(-50%, -50%) scale(${scale})`,
+              ...(breathMode === 'anulom_vilom' && { left: `${sphereAnulomLeft}%` }),
+            }}
             aria-hidden
           />
         )}
