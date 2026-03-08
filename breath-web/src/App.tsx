@@ -262,21 +262,30 @@ function PhaseDots({
   secondsLeft,
   timingMode,
   durations,
+  breathMode,
+  cycleCount,
 }: {
   phase: Phase
   duration: number
   secondsLeft: number
   timingMode: TimingMode
   durations?: Record<Phase, number>
+  breathMode?: BreathMode
+  cycleCount?: number
 }) {
   const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
   const isSimple = timingMode === 'equal'
   const isLongExhale = timingMode === 'long_exhale'
-  /* 1:2: fixed count so dots stay in final layout; inhale/exhale have different lengths */
+  const isKumbhaka = timingMode === 'kumbhaka'
+  /* Anulom Vilom: right nostril (cycle even) = L→R, left nostril (cycle odd) = R→L */
+  const dotsRtl = breathMode === 'anulom_vilom' && (cycleCount ?? 0) % 2 === 1
+  /* 1:2: fixed count so dots stay in final layout; 1:4:2: 4 dots; inhale/exhale have different lengths */
   const dotCount =
-    isLongExhale && durations
-      ? Math.max(durations.INHALE, durations.EXHALE)
-      : duration
+    isKumbhaka
+      ? 4
+      : isLongExhale && durations
+        ? Math.max(durations.INHALE, durations.EXHALE)
+        : duration
   const dots = Array.from({ length: dotCount }, (_, i) => i)
 
   return (
@@ -286,46 +295,70 @@ function PhaseDots({
         let isYellow = false
 
         if (isSimple) {
-          /* 1:1 ratio: appear L→R on inhale, disappear L→R on exhale, no coloring */
+          /* 1:1 ratio: L→R or R→L based on nostril */
           switch (phase) {
             case 'INHALE':
-              visible = i < elapsedSeconds
+              visible = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
               break
             case 'EXHALE':
-              visible = i >= elapsedSeconds
+              visible = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
               break
             default:
               visible = false
           }
         } else if (isLongExhale) {
-          /* 1:2 ratio: appear 2 at a time on inhale, disappear 1 at a time on exhale (both L→R), no coloring */
+          /* 1:2 ratio: L→R or R→L based on nostril */
+          const inhaleProgress = Math.min(dotCount, Math.floor(elapsedSeconds) * 2)
           switch (phase) {
             case 'INHALE':
-              visible = i < Math.min(dotCount, Math.floor(elapsedSeconds) * 2)
+              visible = dotsRtl ? i >= dotCount - inhaleProgress : i < inhaleProgress
               break
             case 'EXHALE':
-              visible = i >= elapsedSeconds
+              visible = dotsRtl ? i < dotCount - elapsedSeconds : i >= elapsedSeconds
+              break
+            default:
+              visible = false
+          }
+        } else if (isKumbhaka) {
+          /* 1:4:2: 4 dots appear at once, one turns yellow per second during hold, two disappear at a time during exhale */
+          const holdYellowCount = Math.floor(elapsedSeconds)
+          const exhaleHiddenCount = Math.floor(elapsedSeconds) * 2
+          switch (phase) {
+            case 'INHALE':
+              /* 4 dots appear at a time at the beginning */
+              visible = true
+              isYellow = false
+              break
+            case 'HOLD_TOP':
+              /* All 4 visible, one turns yellow per second */
+              visible = true
+              isYellow = dotsRtl ? i >= dotCount - holdYellowCount : i < holdYellowCount
+              break
+            case 'EXHALE':
+              /* Two disappear at a time */
+              visible = dotsRtl ? i < dotCount - exhaleHiddenCount : i >= exhaleHiddenCount
+              isYellow = false
               break
             default:
               visible = false
           }
         } else {
-          /* 1:1:1:1 box: appear L→R on inhale, disappear L→R on hold bottom; holds show yellow progress */
+          /* 1:1:1:1 box: L→R or R→L based on nostril; holds show yellow progress */
           switch (phase) {
             case 'INHALE':
-              visible = i < elapsedSeconds
+              visible = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
               isYellow = false
               break
             case 'HOLD_TOP':
               visible = true
-              isYellow = i < elapsedSeconds
+              isYellow = dotsRtl ? i >= duration - elapsedSeconds : i < elapsedSeconds
               break
             case 'EXHALE':
               visible = true
-              isYellow = i >= elapsedSeconds
+              isYellow = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
               break
             case 'HOLD_BOTTOM':
-              visible = i >= elapsedSeconds
+              visible = dotsRtl ? i < duration - elapsedSeconds : i >= elapsedSeconds
               isYellow = false
               break
           }
@@ -464,15 +497,62 @@ function App() {
   const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
   const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
 
+  const hasContentBeenRevealedRef = useRef(false)
+
   /* ---------- Controller: 1s initial delay, then reveal everything (as if user tapped) ---------- */
   useEffect(() => {
     const t = window.setTimeout(() => {
       setInitialDelayPassed(true)
       setContentRevealed(true)
       setShowInfo(true)
+      hasContentBeenRevealedRef.current = true
     }, 1000)
     return () => window.clearTimeout(t)
   }, [])
+
+  /* ---------- Controller: on any setting change (after initial reveal), hide everything, reset breath state, reveal after 1s ---------- */
+  useEffect(() => {
+    if (!hasContentBeenRevealedRef.current) return
+    setContentRevealed(false)
+    setInitialDelayPassed(false)
+    phaseRef.current = 'INHALE'
+    cycleCountRef.current = 0
+    setPhase('INHALE')
+    setCycleCount(0)
+    setLabelAnimating(false)
+    setPrevLabel(phaseLabel('INHALE'))
+    const t = window.setTimeout(() => {
+      const d = durationsRef.current
+      let firstPhase: Phase = 'INHALE'
+      for (let i = 0; i < 4; i++) {
+        if (d[firstPhase] > 0) break
+        firstPhase = nextPhase(firstPhase)
+      }
+      const firstDuration = d[firstPhase]
+      secondsLeftRef.current = firstDuration
+      phaseStartTimeRef.current = performance.now()
+      phaseRef.current = firstPhase
+      setPhase(firstPhase)
+      setSecondsLeft(firstDuration)
+      setInitialDelayPassed(true)
+      setContentRevealed(true)
+      setShowInfo(true)
+    }, 1000)
+    return () => window.clearTimeout(t)
+  }, [
+    timingMode,
+    multiplierSeconds,
+    breathMode,
+    colorScheme,
+    durations.INHALE,
+    durations.HOLD_TOP,
+    durations.EXHALE,
+    durations.HOLD_BOTTOM,
+    textVisibility,
+    dotsVisibility,
+    sphereVisibility,
+    cyclesVisibility,
+  ])
 
   /* ---------- Presence: how many others are using the app (Supabase Realtime) ---------- */
   useEffect(() => {
@@ -637,24 +717,27 @@ function App() {
         return prev + (desiredScale - prev) * smoothing
       })
 
-      /* Anulom Vilom: sphere position tracks breath phase duration (in/out over full inhale/exhale), eased */
+      /* Anulom Vilom: 8-phase alternation. Even cycle: inhale left→center, exhale center→right. Odd: inhale right→center, exhale center→left */
       if (breathModeRef.current === 'anulom_vilom') {
         const cc = cycleCountRef.current
-        const exhaleTo = cc % 2 === 0 ? 65 : 35
-        const inhaleFrom = cc === 0 ? 65 : (cc - 1) % 2 === 0 ? 65 : 35
+        const leftSide = 35
+        const center = 50
+        const rightSide = 65
+        const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
+        const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
         let desiredLeft: number
         if (currentPhase === 'INHALE') {
-          const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
-          const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
-          desiredLeft = inhaleFrom + (50 - inhaleFrom) * easeInOut(progress)
+          desiredLeft = cc % 2 === 0
+            ? leftSide + (center - leftSide) * easeInOut(progress)
+            : rightSide + (center - rightSide) * easeInOut(progress)
         } else if (currentPhase === 'HOLD_TOP') {
-          desiredLeft = 50
+          desiredLeft = center
         } else if (currentPhase === 'EXHALE') {
-          const clampedElapsed = Math.max(0, Math.min(phaseDuration, elapsed))
-          const progress = phaseDuration === 0 ? 0 : clampedElapsed / phaseDuration
-          desiredLeft = 50 + (exhaleTo - 50) * easeInOut(progress)
+          desiredLeft = cc % 2 === 0
+            ? center + (rightSide - center) * easeInOut(progress)
+            : center + (leftSide - center) * easeInOut(progress)
         } else {
-          desiredLeft = exhaleTo
+          desiredLeft = cc % 2 === 0 ? rightSide : leftSide
         }
         setSphereAnulomLeft((prev) => {
           const smoothing = 0.08
@@ -732,14 +815,18 @@ function App() {
       /* Skip zero-duration phases completely */
       for (let i = 0; i < 4 && durationsRef.current[next] === 0; i++) {
         if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
-          setCycleCount((c) => c + 1)
+          const newC = cycleCountRef.current + 1
+          cycleCountRef.current = newC
+          setCycleCount(newC)
         }
         lastDisplayedPhase = next
         next = nextPhase(next)
       }
 
       if (lastDisplayedPhase === 'HOLD_BOTTOM' && next === 'INHALE') {
-        setCycleCount((c) => c + 1)
+        const newC = cycleCountRef.current + 1
+        cycleCountRef.current = newC
+        setCycleCount(newC)
       }
 
       /* prevLabel = phase we actually displayed (left), not skipped phases */
@@ -1098,7 +1185,7 @@ function App() {
             />
           </div>
         </div>
-        <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' ? 'settings-row--disabled' : ''}`}>
+        <div className={`settings-row settings-row--slider ${timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka' ? 'settings-row--disabled' : ''}`}>
           <span className="settings-slider-label">Dots</span>
           <div className={`settings-slider-wrap ${Math.round(dotsVisibilityAnimated) === 0 ? 'settings-slider-wrap--off' : ''}`}>
             <input
@@ -1107,8 +1194,8 @@ function App() {
               max={2}
               step={0.01}
               value={dotsVisibilityAnimated}
-              disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale'}
-              onPointerDown={() => { (timingMode === 'box' || timingMode === 'equal' || timingMode === 'long_exhale') && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
+              disabled={timingMode !== 'box' && timingMode !== 'equal' && timingMode !== 'long_exhale' && timingMode !== 'kumbhaka'}
+              onPointerDown={() => { (timingMode === 'box' || timingMode === 'equal' || timingMode === 'long_exhale' || timingMode === 'kumbhaka') && (draggingSliderRef.current = 'dots'); sliderChangeCountRef.current = 0 }}
               onPointerUp={() => { draggingSliderRef.current = null }}
               onPointerLeave={() => { draggingSliderRef.current = null }}
               onChange={(e) => {
@@ -1205,11 +1292,7 @@ function App() {
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <button type="button" className={`settings-trigger ${showInfo && contentVisible ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo || !contentVisible}>
-            <span className="settings-trigger-icon" aria-hidden>
-              <span />
-              <span />
-              <span />
-            </span>
+            <span className="settings-trigger-icon" aria-hidden />
           </button>
       <section className="session" aria-label="Breathing session">
         <div
@@ -1265,7 +1348,7 @@ function App() {
                 onAnimationEnd={() => enteringDots && setEnteringDots(false)}
               >
                 <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} />
+                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
                 </div>
               </div>
             )}
