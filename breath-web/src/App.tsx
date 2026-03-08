@@ -320,8 +320,9 @@ function PhaseDots({
               visible = false
           }
         } else if (isKumbhaka) {
-          /* 1:4:2: 4 dots appear at once, one turns yellow per second during hold, two disappear at a time during exhale */
-          const holdYellowCount = Math.floor(elapsedSeconds)
+          /* 1:4:2: 4 dots appear at once, one turns yellow per quarter of hold, two disappear at a time during exhale */
+          const holdProgress = duration > 0 ? Math.min(0.99, elapsedSeconds / duration) : 0
+          const holdYellowCount = Math.min(dotCount, Math.ceil(holdProgress * dotCount))
           const exhaleHiddenCount = Math.floor(elapsedSeconds) * 2
           switch (phase) {
             case 'INHALE':
@@ -330,14 +331,14 @@ function PhaseDots({
               isYellow = false
               break
             case 'HOLD_TOP':
-              /* All 4 visible, one turns yellow per second */
+              /* All 4 visible, one turns yellow per quarter of hold (last turns at 99.9% so it's visible before transition) */
               visible = true
               isYellow = dotsRtl ? i >= dotCount - holdYellowCount : i < holdYellowCount
               break
             case 'EXHALE':
-              /* Two disappear at a time */
+              /* Two disappear at a time, keep yellow from hold as they disappear */
               visible = dotsRtl ? i < dotCount - exhaleHiddenCount : i >= exhaleHiddenCount
-              isYellow = false
+              isYellow = true
               break
             default:
               visible = false
@@ -798,14 +799,18 @@ function App() {
   }, [textVisibility, dotsVisibility, sphereVisibility, cyclesVisibility])
 
   useEffect(() => {
-    intervalRef.current = window.setInterval(() => {
+    const tick = () => {
       const currentPhase = phaseRef.current
-      const currentLeft = secondsLeftRef.current
+      const phaseDuration = durationsRef.current[currentPhase]
+      const elapsed = (performance.now() - phaseStartTimeRef.current) / 1000
+      const currentLeft = Math.max(0, Math.ceil(phaseDuration - elapsed))
 
-      if (currentLeft > 1) {
-        const nextLeft = currentLeft - 1
-        secondsLeftRef.current = nextLeft
-        setSecondsLeft(nextLeft)
+      if (currentLeft !== secondsLeftRef.current) {
+        secondsLeftRef.current = currentLeft
+        setSecondsLeft(currentLeft)
+      }
+
+      if (elapsed < phaseDuration) {
         return
       }
 
@@ -839,7 +844,9 @@ function App() {
       const nextDuration = durationsRef.current[next]
       secondsLeftRef.current = nextDuration
       setSecondsLeft(nextDuration)
-    }, 1000)
+    }
+
+    intervalRef.current = window.setInterval(tick, 100)
 
     return () => {
       if (intervalRef.current !== null) window.clearInterval(intervalRef.current)
