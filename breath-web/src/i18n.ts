@@ -14,11 +14,13 @@ i18n
     resources: { en: { translation: en }, de: { translation: de }, ro: { translation: ro } },
     fallbackLng: 'en',
     supportedLngs: ['en', 'de', 'ro'],
+    load: 'languageOnly',
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: LOCALE_KEY,
       caches: ['localStorage'],
+      convertDetectedLanguage: (lng) => lng.split('-')[0],
     },
   })
 
