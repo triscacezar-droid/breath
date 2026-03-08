@@ -47,6 +47,7 @@ export const PRESETS = {
 
 export const COLOR_SCHEMES = [
   'dark',
+  'black-and-white',
   'light',
   'sepia',
   'dracula',

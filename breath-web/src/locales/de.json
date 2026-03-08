@@ -124,6 +124,7 @@
   },
   "themes": {
     "dark": "Dunkel",
+    "blackAndWhite": "Schwarz-Weiß",
     "light": "Hell",
     "sepia": "Sepia",
     "dracula": "Dracula",

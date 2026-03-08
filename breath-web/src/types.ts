@@ -16,6 +16,7 @@ export type FooterDisplayMode = 'cycles' | 'time'
 
 export type ColorScheme =
   | 'dark'
+  | 'black-and-white'
   | 'light'
   | 'sepia'
   | 'dracula'

@@ -124,6 +124,7 @@
   },
   "themes": {
     "dark": "ダーク",
+    "blackAndWhite": "白黒",
     "light": "ライト",
     "sepia": "セピア",
     "dracula": "Dracula",
