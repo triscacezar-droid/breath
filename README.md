@@ -1,6 +1,8 @@
 # Simple Breath
 
-A minimal breathing exercise app. Follow the prompts to breathe in, hold, and breathe out at a steady pace.
+This is a minimal breathing exercise app I made over the weekend using Cursor. 
+
+I hope it helps you calm down and enjoy the world around around you. 
 
 **Life gets busy. Take it easy.**
 
@@ -11,7 +13,7 @@ A minimal breathing exercise app. Follow the prompts to breathe in, hold, and br
 - **12 languages**: English, German, Romanian, Spanish, French, Portuguese, Italian, Polish, Russian, Japanese, Chinese (Simplified), Hindi
 - **Multiple themes**: Dark, light, sepia, and more
 - **Visualization options**: Words or icons, dots or squares, circle or ring
-- **Pace control**: Adjust breathing speed with a multiplier
+- **Pace control**: Shows the expected pace of the breathing times you've picked
 
 ## Run locally
 
