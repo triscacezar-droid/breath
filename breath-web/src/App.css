@@ -33,11 +33,25 @@
   transform: translateX(0);
 }
 
-.settings-trigger {
+.app-controls {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.app-controls--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app-controls__btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,19 +62,34 @@
   border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease, background 0.2s;
+  transition: background 0.2s;
   -webkit-tap-highlight-color: transparent;
 }
 
-.settings-trigger--visible {
-  opacity: 1;
-  pointer-events: auto;
+.app-controls__btn:hover {
+  background: var(--color-bg-trigger-hover);
 }
 
-.settings-trigger:hover {
-  background: var(--color-bg-trigger-hover);
+/* Fullscreen: expand icon (4 corners) */
+.fullscreen-trigger-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background-image:
+    linear-gradient(var(--color-text-primary), var(--color-text-primary)),
+    linear-gradient(var(--color-text-primary), var(--color-text-primary)),
+    linear-gradient(var(--color-text-primary), var(--color-text-primary)),
+    linear-gradient(var(--color-text-primary), var(--color-text-primary));
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  background-position: 0 0, 12px 0, 12px 12px, 0 12px;
+}
+
+/* Exit fullscreen: single smaller square in center */
+.fullscreen-trigger-icon--exit {
+  background-size: 10px 10px;
+  background-position: 4px 4px;
+  background-image: linear-gradient(var(--color-text-primary), var(--color-text-primary));
 }
 
 /* 3 identical solid layers, no gradient bleeding */
@@ -727,7 +756,7 @@
   position: absolute;
   left: 50%;
   top: 0;
-  bottom: 45%;
+  bottom: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: 100%;
@@ -803,6 +832,15 @@
   left: 50%;
   bottom: 0;
   margin: 0;
+}
+
+/* Sphere fixed to viewport center (outside breath-stack to avoid transform ancestor) */
+.circle--viewport-center {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  margin: 0;
+  pointer-events: auto;
 }
 
 .breath-stack__float-item--entering {

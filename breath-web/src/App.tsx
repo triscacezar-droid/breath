@@ -1,5 +1,5 @@
 import './App.css'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { DifficultyScale } from './DifficultyScale'
 import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme } from './types'
 import {
@@ -13,6 +13,15 @@ import {
   getMaxMultiplier,
 } from './constants'
 import { getStoredColorScheme, getStoredBreathMode } from './utils'
+import {
+  buildBreathStack,
+  getSlotIndex,
+  getTopForSlot,
+  getSpacerClass,
+  isInStack,
+  isEntering,
+  type BreathStack,
+} from './breathStack'
 import { SlotInput, SlotDisplay } from './components/SlotInput'
 import { PhaseDots } from './components/PhaseDots'
 import { SettingsDropdown } from './components/SettingsDropdown'
@@ -22,6 +31,7 @@ import { useBreathTimer } from './hooks/useBreathTimer'
 import { useBreathAnimation } from './hooks/useBreathAnimation'
 import { useDurationsSync } from './hooks/useDurationsSync'
 import { usePresence } from './hooks/usePresence'
+import { useFullscreen } from './hooks/useFullscreen'
 
 function App() {
   /* ---------- Model ---------- */
@@ -64,6 +74,8 @@ function App() {
   const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
   const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
 
+  const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
+
   const hideInfoTimeoutRef = useRef<number | null>(null)
   const breathModeRef = useRef<BreathMode>('normal')
 
@@ -86,13 +98,13 @@ function App() {
   const settingsRef = useRef<HTMLElement>(null)
 
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
-  const [measuredSlotTop, setMeasuredSlotTop] = useState<'text' | null>(null)
-  const [measuredSlotMiddle, setMeasuredSlotMiddle] = useState<'text' | 'dots' | null>(null)
-  const [measuredSlotBottom, setMeasuredSlotBottom] = useState<'text' | 'dots' | 'sphere' | null>(null)
+  const [slot3Height, setSlot3Height] = useState(0)
+  const [measuredStack, setMeasuredStack] = useState<BreathStack>([null, null, null])
   const [enteringText, setEnteringText] = useState(false)
   const [enteringDots, setEnteringDots] = useState(false)
   const [enteringSphere, setEnteringSphere] = useState(false)
-  const prevMeasuredRef = useRef({ top: null as 'text' | null, middle: null as 'text' | 'dots' | null, bottom: null as 'text' | 'dots' | 'sphere' | null })
+  const prevMeasuredRef = useRef<BreathStack>([null, null, null])
+  const isZoomSnapRef = useRef(false)
 
   /* ---------- Derived from model (view uses these) ---------- */
   const totalBreathSeconds =
@@ -104,50 +116,68 @@ function App() {
   const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
   const contentVisible = initialDelayPassed && contentRevealed
 
-  /* Stack slots: bottom = center (sphere's spot), then middle, then top. Priority: sphere > dots > text. */
-  const slotBottom = sphereVisible ? 'sphere' : (dotsVisible ? 'dots' : (textVisible ? 'text' : null))
-  const slotMiddle = sphereVisible
-    ? (dotsVisible ? 'dots' : (textVisible ? 'text' : null))
-    : (dotsVisible && textVisible ? 'text' : null)
-  const slotTop = sphereVisible && dotsVisible && textVisible ? 'text' : null
+  const stack = useMemo(
+    () => buildBreathStack({ text: textVisible, dots: dotsVisible, sphere: sphereVisible }),
+    [textVisible, dotsVisible, sphereVisible]
+  )
 
-  useLayoutEffect(() => {
-    const stack = stackRef.current
+  const measureSlots = (snap = false) => {
+    const stackEl = stackRef.current
     const s1 = slot1Ref.current
     const s2 = slot2Ref.current
     const s3 = slot3Ref.current
-    if (!stack || !s1 || !s2 || !s3) return
-    const stackRect = stack.getBoundingClientRect()
+    if (!stackEl || !s1 || !s2 || !s3) return
+    if (snap) isZoomSnapRef.current = true
+    const stackRect = stackEl.getBoundingClientRect()
     const getTop = (el: HTMLElement) => el.getBoundingClientRect().top - stackRect.top
+    const s3Rect = s3.getBoundingClientRect()
     setSlotTops([getTop(s1), getTop(s2), getTop(s3)])
+    setSlot3Height(s3Rect.height)
+  }
+
+  useLayoutEffect(() => {
+    measureSlots()
     const prev = prevMeasuredRef.current
-    setMeasuredSlotTop(slotTop)
-    setMeasuredSlotMiddle(slotMiddle)
-    setMeasuredSlotBottom(slotBottom)
-    setEnteringText(
-      (slotTop === 'text' || slotMiddle === 'text' || slotBottom === 'text') &&
-      prev.top !== 'text' && prev.middle !== 'text' && prev.bottom !== 'text'
-    )
-    setEnteringDots(
-      (slotMiddle === 'dots' || slotBottom === 'dots') &&
-      prev.middle !== 'dots' && prev.bottom !== 'dots'
-    )
-    setEnteringSphere(
-      slotBottom === 'sphere' && prev.bottom !== 'sphere'
-    )
-    prevMeasuredRef.current = { top: slotTop, middle: slotMiddle, bottom: slotBottom }
-  }, [slotTop, slotMiddle, slotBottom, contentVisible])
+    setMeasuredStack(stack)
+    setEnteringText(isEntering(prev, stack, 'text'))
+    setEnteringDots(isEntering(prev, stack, 'dots'))
+    setEnteringSphere(isEntering(prev, stack, 'sphere'))
+    prevMeasuredRef.current = stack
+  }, [stack, contentVisible])
 
-  const textSlotIndex: 0 | 1 | 2 | -1 = measuredSlotTop === 'text' ? 0 : measuredSlotMiddle === 'text' ? 1 : measuredSlotBottom === 'text' ? 2 : -1
-  const dotsSlotIndex: 0 | 1 | 2 | -1 = measuredSlotMiddle === 'dots' ? 1 : measuredSlotBottom === 'dots' ? 2 : -1
-  const sphereSlotIndex: 2 | -1 = measuredSlotBottom === 'sphere' ? 2 : -1
-  const textTop = textSlotIndex === 0 ? slotTops[0] : textSlotIndex === 1 ? slotTops[1] : textSlotIndex === 2 ? slotTops[2] : 0
-  const dotsTop = dotsSlotIndex === 1 ? slotTops[1] : dotsSlotIndex === 2 ? slotTops[2] : 0
-  const sphereTop = sphereSlotIndex === 2 ? slotTops[2] : 0
+  /* Re-measure on resize/zoom so sphere, text, dots stay correctly positioned; snap to avoid lag */
+  useEffect(() => {
+    const stack = stackRef.current
+    if (!stack) return
+    const ro = new ResizeObserver(() => measureSlots(true))
+    ro.observe(stack)
+    const onResize = () => measureSlots(true)
+    window.visualViewport?.addEventListener('resize', onResize)
+    window.visualViewport?.addEventListener('scroll', onResize)
+    return () => {
+      ro.disconnect()
+      window.visualViewport?.removeEventListener('resize', onResize)
+      window.visualViewport?.removeEventListener('scroll', onResize)
+    }
+  }, [])
 
-  const showFloatingText = textVisible && (measuredSlotTop === 'text' || measuredSlotMiddle === 'text' || measuredSlotBottom === 'text')
-  const showFloatingDots = dotsVisible && (measuredSlotMiddle === 'dots' || measuredSlotBottom === 'dots')
-  const showFloatingSphere = sphereVisible && measuredSlotBottom === 'sphere'
+  useLayoutEffect(() => {
+    if (isZoomSnapRef.current) isZoomSnapRef.current = false
+  }, [slotTops])
+
+  const measuredReady = measuredStack.some((s) => s !== null)
+  const activeStack = measuredReady ? measuredStack : stack
+  const textSlotIndex = getSlotIndex(activeStack, 'text')
+  const dotsSlotIndex = getSlotIndex(activeStack, 'dots')
+  const sphereSlotIndex = getSlotIndex(activeStack, 'sphere')
+
+  const textTop = getTopForSlot(textSlotIndex, slotTops, slot3Height, false)
+  const dotsTop = getTopForSlot(dotsSlotIndex, slotTops, slot3Height, false)
+  const sphereTop = getTopForSlot(sphereSlotIndex, slotTops, slot3Height, true)
+
+  const showFloatingText = textVisible && isInStack(activeStack, 'text')
+  const showFloatingDots = dotsVisible && isInStack(activeStack, 'dots')
+  const showFloatingSphere = sphereVisible && isInStack(activeStack, 'sphere')
 
   const hasContentBeenRevealedRef = useRef(false)
 
@@ -189,15 +219,10 @@ function App() {
     timingMode,
     multiplierSeconds,
     breathMode,
-    colorScheme,
     durations.INHALE,
     durations.HOLD_TOP,
     durations.EXHALE,
     durations.HOLD_BOTTOM,
-    textVisibility,
-    dotsVisibility,
-    sphereVisibility,
-    cyclesVisibility,
   ])
 
   /* ---------- Controller: effects and actions that update the model ---------- */
@@ -581,9 +606,22 @@ function App() {
       </aside>
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
-        <button type="button" className={`settings-trigger ${showInfo && contentVisible ? 'settings-trigger--visible' : ''}`} onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings" aria-hidden={!showInfo || !contentVisible}>
+        <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
+          <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label="Open settings">
             <span className="settings-trigger-icon" aria-hidden />
           </button>
+          {isFullscreenSupported && (
+            <button
+              type="button"
+              className="app-controls__btn fullscreen-trigger"
+              onClick={(e) => { e.stopPropagation(); toggleFullscreen() }}
+              onTouchStart={(e) => e.stopPropagation()}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              <span className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`} aria-hidden />
+            </button>
+          )}
+        </div>
       <section className="session" aria-label="Breathing session">
         <div
           ref={stackRef}
@@ -591,17 +629,18 @@ function App() {
           aria-hidden={!contentVisible || (!textVisible && !dotsVisible && !sphereVisible)}
         >
           <div ref={slot1Ref} className="breath-stack__slot">
-            {slotTop != null && <div className="breath-stack__spacer breath-stack__spacer--top" aria-hidden />}
+            {stack[0] != null && (
+              <div className={`breath-stack__spacer ${getSpacerClass(stack[0], 0)}`} aria-hidden />
+            )}
           </div>
           <div ref={slot2Ref} className="breath-stack__slot">
-            {slotMiddle != null && <div className="breath-stack__spacer breath-stack__spacer--middle" aria-hidden />}
+            {stack[1] != null && (
+              <div className={`breath-stack__spacer ${getSpacerClass(stack[1], 1)}`} aria-hidden />
+            )}
           </div>
           <div ref={slot3Ref} className="breath-stack__slot breath-stack__slot--center">
-            {slotBottom != null && (
-              <div
-                className={`breath-stack__spacer ${slotBottom === 'sphere' ? 'breath-stack__spacer--center' : 'breath-stack__spacer--middle'}`}
-                aria-hidden
-              />
+            {stack[2] != null && (
+              <div className={`breath-stack__spacer ${getSpacerClass(stack[2], 2)}`} aria-hidden />
             )}
           </div>
           <div className="breath-stack__floating">
@@ -610,7 +649,7 @@ function App() {
                 className={`breath-stack__float-item ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
                 style={{
                   top: textTop,
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onAnimationEnd={() => enteringText && setEnteringText(false)}
               >
@@ -633,7 +672,7 @@ function App() {
                 className={`breath-stack__float-item ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
                 style={{
                   top: dotsTop,
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onAnimationEnd={() => enteringDots && setEnteringDots(false)}
               >
@@ -642,30 +681,13 @@ function App() {
                 </div>
               </div>
             )}
-            {showFloatingSphere && breathMode === 'normal' && (
-              <div
-                className={`breath-stack__float-item breath-stack__float-item--sphere ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
-                style={{
-                  top: sphereTop,
-                  left: '50%',
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
-              >
-                <div
-                  className={`circle circle--in-center-slot ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
-                  data-phase={phase}
-                  style={{ transform: `translate(-50%, 50%) scale(${scale})` }}
-                />
-              </div>
-            )}
             {showFloatingSphere && breathMode === 'anulom_vilom' && (
               <div
                 className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-anulom ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
                 style={{
                   top: sphereTop,
                   left: `${sphereAnulomLeft}%`,
-                  transition: 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 onAnimationEnd={() => enteringSphere && setEnteringSphere(false)}
               >
@@ -678,6 +700,14 @@ function App() {
             )}
           </div>
         </div>
+        {stack[2] === 'sphere' && breathMode === 'normal' && (
+          <div
+            className={`circle circle--viewport-center ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+            data-phase={phase}
+            style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
+            aria-hidden
+          />
+        )}
       </section>
       <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
         <span>{cycleCount} cycles completed</span>
