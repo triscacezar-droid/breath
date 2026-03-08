@@ -39,6 +39,7 @@
   bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 10;
   display: flex;
+  flex-direction: column-reverse;
   align-items: center;
   gap: 8px;
   opacity: 0;
@@ -764,10 +765,24 @@
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
-  gap: clamp(24px, 6vmin, 48px);
+  gap: 0;
   pointer-events: none;
   padding: 0;
-  transition: gap 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Viewport-relative floating container: no transform so vh units stay viewport-relative on zoom */
+.breath-stack__floating-viewport {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.breath-stack__float-item--viewport {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  pointer-events: auto;
 }
 
 .breath-stack__slot {

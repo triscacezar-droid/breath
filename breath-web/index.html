@@ -8,7 +8,8 @@
     <script>
       (function() {
         var s = localStorage.getItem('breath-color-scheme');
-        if (s === 'light' || s === 'sepia') document.documentElement.dataset.theme = s;
+        var light = ['light','sepia','solarized-light','one-light','gruvbox-light','github-light','catppuccin-latte'];
+        if (s && light.indexOf(s) !== -1) document.documentElement.dataset.theme = s;
         else document.documentElement.dataset.theme = 'dark';
       })();
     </script>

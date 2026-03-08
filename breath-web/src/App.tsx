@@ -18,6 +18,7 @@ import {
   getSlotIndex,
   getTopForSlot,
   getSpacerClass,
+  getViewportTopVh,
   isInStack,
   isEntering,
   type BreathStack,
@@ -167,12 +168,10 @@ function App() {
 
   const measuredReady = measuredStack.some((s) => s !== null)
   const activeStack = measuredReady ? measuredStack : stack
-  const textSlotIndex = getSlotIndex(activeStack, 'text')
-  const dotsSlotIndex = getSlotIndex(activeStack, 'dots')
   const sphereSlotIndex = getSlotIndex(activeStack, 'sphere')
 
-  const textTop = getTopForSlot(textSlotIndex, slotTops, slot3Height, false)
-  const dotsTop = getTopForSlot(dotsSlotIndex, slotTops, slot3Height, false)
+  const textTopVh = getViewportTopVh(activeStack, 'text')
+  const dotsTopVh = getViewportTopVh(activeStack, 'dots')
   const sphereTop = getTopForSlot(sphereSlotIndex, slotTops, slot3Height, true)
 
   const showFloatingText = textVisible && isInStack(activeStack, 'text')
@@ -644,43 +643,6 @@ function App() {
             )}
           </div>
           <div className="breath-stack__floating">
-            {showFloatingText && (
-              <div
-                className={`breath-stack__float-item ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
-                style={{
-                  top: textTop,
-                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onAnimationEnd={() => enteringText && setEnteringText(false)}
-              >
-                <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
-                  <div className="phase-stack">
-                    {labelAnimating ? (
-                      <>
-                        <div className="phase-row phase-out" key="out">{prevLabel}</div>
-                        <div className="phase-row phase-in" key="in">{label}</div>
-                      </>
-                    ) : (
-                      <div className="phase-row">{label}</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            {showFloatingDots && (
-              <div
-                className={`breath-stack__float-item ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
-                style={{
-                  top: dotsTop,
-                  transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                }}
-                onAnimationEnd={() => enteringDots && setEnteringDots(false)}
-              >
-                <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                  <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
-                </div>
-              </div>
-            )}
             {showFloatingSphere && breathMode === 'anulom_vilom' && (
               <div
                 className={`breath-stack__float-item breath-stack__float-item--sphere breath-stack__float-item--sphere-anulom ${enteringSphere ? 'breath-stack__float-item--entering' : ''}`}
@@ -699,6 +661,48 @@ function App() {
               </div>
             )}
           </div>
+        </div>
+        <div
+          className="breath-stack__floating-viewport"
+          aria-hidden={!contentVisible || (!textVisible && !dotsVisible)}
+        >
+          {showFloatingText && (
+            <div
+              className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
+              style={{
+                top: `${textTopVh}vh`,
+                transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+              onAnimationEnd={() => enteringText && setEnteringText(false)}
+            >
+              <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
+                <div className="phase-stack">
+                  {labelAnimating ? (
+                    <>
+                      <div className="phase-row phase-out" key="out">{prevLabel}</div>
+                      <div className="phase-row phase-in" key="in">{label}</div>
+                    </>
+                  ) : (
+                    <div className="phase-row">{label}</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          {showFloatingDots && (
+            <div
+              className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
+              style={{
+                top: `${dotsTopVh}vh`,
+                transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+              onAnimationEnd={() => enteringDots && setEnteringDots(false)}
+            >
+              <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
+                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
+              </div>
+            </div>
+          )}
         </div>
         {stack[2] === 'sphere' && breathMode === 'normal' && (
           <div
