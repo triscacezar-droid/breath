@@ -2,6 +2,12 @@
   "name": "breath-web",
   "private": true,
   "version": "0.0.0",
+  "description": "A minimal breathing exercise app. Life gets busy. Take it easy.",
+  "repository": {
+    "type": "git",
+    "url": "github:triscacezar-droid/breath"
+  },
+  "homepage": "https://simplebreath.co.uk",
   "type": "module",
   "scripts": {
     "dev": "vite",

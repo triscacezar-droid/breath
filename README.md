@@ -1,6 +1,6 @@
 # Simple Breath
 
-Hosted at: [simplebreath.co.uk](https://simplebreath.co.uk)
+**Live:** [simplebreath.co.uk](https://simplebreath.co.uk) · [breath-jet.vercel.app](https://breath-jet.vercel.app)
 
 This is a minimal breathing exercise app I made over the weekend using Cursor. 
 

@@ -20,6 +20,9 @@ pnpm-debug.log*
 ### worktrees
 .worktrees/
 
+### plans
+docs/plans/
+
 ### env
 .env
 .env.*
