@@ -70,7 +70,17 @@
     "enterFullscreen": "Pełny ekran",
     "exitFullscreen": "Wyjdź z pełnego ekranu",
     "sessionAria": "Sesja oddychania",
-    "language": "Język"
+    "language": "Język",
+    "info": "Info"
+  },
+  "about": {
+    "button": "O aplikacji",
+    "openAria": "Otwórz informacje",
+    "closeAria": "Zamknij informacje",
+    "close": "Zamknij",
+    "title": "O aplikacji",
+    "appDescription": "Życie się zapędza. Odpuść sobie.",
+    "contact": "Kontakt"
   },
   "phases": {
     "inhale": "Wdychaj",

@@ -70,7 +70,17 @@
     "enterFullscreen": "Vollbild",
     "exitFullscreen": "Vollbild beenden",
     "sessionAria": "Atemsitzung",
-    "language": "Sprache"
+    "language": "Sprache",
+    "info": "Info"
+  },
+  "about": {
+    "button": "Über",
+    "openAria": "Über öffnen",
+    "closeAria": "Über schließen",
+    "close": "Schließen",
+    "title": "Über",
+    "appDescription": "Das Leben wird hektisch. Nimm's gelassen.",
+    "contact": "Kontakt"
   },
   "phases": {
     "inhale": "Atme ein",

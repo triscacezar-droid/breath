@@ -70,7 +70,17 @@
     "enterFullscreen": "Tela cheia",
     "exitFullscreen": "Sair da tela cheia",
     "sessionAria": "Sessão de respiração",
-    "language": "Idioma"
+    "language": "Idioma",
+    "info": "Info"
+  },
+  "about": {
+    "button": "Sobre",
+    "openAria": "Abrir sobre",
+    "closeAria": "Fechar sobre",
+    "close": "Fechar",
+    "title": "Sobre",
+    "appDescription": "A vida fica agitada. Vá com calma.",
+    "contact": "Contato"
   },
   "phases": {
     "inhale": "Inspire",

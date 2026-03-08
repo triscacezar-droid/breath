@@ -70,7 +70,17 @@
     "enterFullscreen": "Schermo intero",
     "exitFullscreen": "Esci da schermo intero",
     "sessionAria": "Sessione di respirazione",
-    "language": "Lingua"
+    "language": "Lingua",
+    "info": "Info"
+  },
+  "about": {
+    "button": "Informazioni",
+    "openAria": "Apri informazioni",
+    "closeAria": "Chiudi informazioni",
+    "close": "Chiudi",
+    "title": "Informazioni",
+    "appDescription": "La vita si fa frenetica. Vai con calma.",
+    "contact": "Contatto"
   },
   "phases": {
     "inhale": "Inspira",

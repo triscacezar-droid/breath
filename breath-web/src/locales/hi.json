@@ -70,7 +70,17 @@
     "enterFullscreen": "पूर्ण स्क्रीन",
     "exitFullscreen": "पूर्ण स्क्रीन से बाहर",
     "sessionAria": "श्वास सत्र",
-    "language": "भाषा"
+    "language": "भाषा",
+    "info": "जानकारी"
+  },
+  "about": {
+    "button": "के बारे में",
+    "openAria": "के बारे में खोलें",
+    "closeAria": "बंद करें",
+    "close": "बंद करें",
+    "title": "के बारे में",
+    "appDescription": "जीवन व्यस्त हो जाता है। आराम से।",
+    "contact": "संपर्क"
   },
   "phases": {
     "inhale": "साँस लें",

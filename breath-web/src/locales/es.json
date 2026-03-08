@@ -70,7 +70,17 @@
     "enterFullscreen": "Pantalla completa",
     "exitFullscreen": "Salir de pantalla completa",
     "sessionAria": "Sesión de respiración",
-    "language": "Idioma"
+    "language": "Idioma",
+    "info": "Info"
+  },
+  "about": {
+    "button": "Acerca de",
+    "openAria": "Abrir acerca de",
+    "closeAria": "Cerrar acerca de",
+    "close": "Cerrar",
+    "title": "Acerca de",
+    "appDescription": "La vida se agita. Tómatelo con calma.",
+    "contact": "Contacto"
   },
   "phases": {
     "inhale": "Inspira",

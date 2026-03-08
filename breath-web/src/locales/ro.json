@@ -70,7 +70,17 @@
     "enterFullscreen": "Ecran complet",
     "exitFullscreen": "Ieșire ecran complet",
     "sessionAria": "Sesiune respirație",
-    "language": "Limbă"
+    "language": "Limbă",
+    "info": "Info"
+  },
+  "about": {
+    "button": "Despre",
+    "openAria": "Deschide despre",
+    "closeAria": "Închide despre",
+    "close": "Închide",
+    "title": "Despre",
+    "appDescription": "Suntem mereu în mișcare. Ia-o ușor.",
+    "contact": "Contact"
   },
   "phases": {
     "inhale": "Inspiră",

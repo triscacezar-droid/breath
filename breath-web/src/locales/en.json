@@ -70,7 +70,17 @@
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "sessionAria": "Breathing session",
-    "language": "Language"
+    "language": "Language",
+    "info": "Info"
+  },
+  "about": {
+    "button": "About",
+    "openAria": "Open about",
+    "closeAria": "Close about",
+    "close": "Close",
+    "title": "About",
+    "appDescription": "Life gets busy. Take it easy.",
+    "contact": "Contact"
   },
   "phases": {
     "inhale": "Breathe in",

@@ -70,7 +70,17 @@
     "enterFullscreen": "全画面表示",
     "exitFullscreen": "全画面を終了",
     "sessionAria": "呼吸セッション",
-    "language": "言語"
+    "language": "言語",
+    "info": "情報"
+  },
+  "about": {
+    "button": "アプリについて",
+    "openAria": "アプリについてを開く",
+    "closeAria": "閉じる",
+    "close": "閉じる",
+    "title": "アプリについて",
+    "appDescription": "忙しい日々。ゆっくりいこう。",
+    "contact": "連絡先"
   },
   "phases": {
     "inhale": "吸って",

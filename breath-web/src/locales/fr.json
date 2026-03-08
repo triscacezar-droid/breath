@@ -70,7 +70,17 @@
     "enterFullscreen": "Plein écran",
     "exitFullscreen": "Quitter le plein écran",
     "sessionAria": "Session de respiration",
-    "language": "Langue"
+    "language": "Langue",
+    "info": "Info"
+  },
+  "about": {
+    "button": "À propos",
+    "openAria": "Ouvrir à propos",
+    "closeAria": "Fermer à propos",
+    "close": "Fermer",
+    "title": "À propos",
+    "appDescription": "La vie s'accélère. Prends ton temps.",
+    "contact": "Contact"
   },
   "phases": {
     "inhale": "Inspire",

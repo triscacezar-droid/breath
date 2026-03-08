@@ -1,5 +1,6 @@
 import './App.css'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { DifficultyScale } from './DifficultyScale'
 import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, FooterDisplayMode, LabelVariant, ProgressVariant, CenterVariant } from './types'
 import {
@@ -47,9 +48,23 @@ function App() {
       ? (i18n.resolvedLanguage as SupportedLang)
       : SUPPORTED_LANGS.find((l) => i18n.resolvedLanguage?.startsWith(l)) ?? 'en'
 
+  const [showAbout, setShowAbout] = useState(false)
   useEffect(() => {
     document.title = t('app.title')
   }, [t])
+  useEffect(() => {
+    if (!showAbout) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAbout(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [showAbout])
   useEffect(() => {
     document.documentElement.lang = i18n.language
   }, [i18n.language])
@@ -733,7 +748,57 @@ function App() {
             panelClassName="settings-dropdown__panel--languages"
           />
         </label>
+        <h2 className="settings-title">{t('settings.info')}</h2>
+        <div className="settings-row">
+          <button
+            type="button"
+            className="about-trigger"
+            onClick={() => setShowAbout(true)}
+            aria-label={t('about.openAria')}
+          >
+            {t('about.button')}
+          </button>
+        </div>
       </aside>
+      {showAbout &&
+        createPortal(
+          <div
+            className="about-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="about-title"
+            onClick={() => setShowAbout(false)}
+          >
+            <div className="about-panel" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="about-close"
+                onClick={() => setShowAbout(false)}
+                aria-label={t('about.closeAria')}
+              >
+                ×
+              </button>
+              <h2 id="about-title" className="about-title">{t('about.title')}</h2>
+              <div className="about-content">
+                <p>{t('about.appDescription')}</p>
+                <p>
+                  {t('about.contact')}:{' '}
+                  <a href="mailto:trisca.cezar@gmail.com" className="about-link">
+                    trisca.cezar@gmail.com
+                  </a>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="about-close-btn"
+                onClick={() => setShowAbout(false)}
+              >
+                {t('about.close')}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
       <div className="content-wrap" onClick={handleContentClick}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
