@@ -1034,7 +1034,7 @@ html::before {
   left: 0;
   right: 0;
   height: max(28px, env(safe-area-inset-top));
-  background: var(--color-bg-page);
+  background-color: inherit;
   z-index: 9999;
   pointer-events: none;
 }
