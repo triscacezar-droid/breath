@@ -1014,7 +1014,7 @@
 }
 
 .difficulty-scale__zone:nth-child(4)::before {
-  left: 1px;
+  left: 2px;
 }
 
 .difficulty-scale--empty {
