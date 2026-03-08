@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { DifficultyScale } from './DifficultyScale'
 
+const HAS_TOUCH = typeof window !== 'undefined' && 'ontouchstart' in window
+/** Double-tap window: longer on touch devices (finger latency) */
+const DOUBLE_TAP_WINDOW_MS = HAS_TOUCH ? 500 : 350
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
@@ -322,8 +326,6 @@ function App() {
   const [colorSchemeDropdownOpen, setColorSchemeDropdownOpen] = useState(false)
   const [breathMode, setBreathMode] = useState<BreathMode>(getStoredBreathMode)
   const [breathModeDropdownOpen, setBreathModeDropdownOpen] = useState(false)
-  const [holdTopExiting, setHoldTopExiting] = useState(false)
-  const [holdBottomExiting, setHoldBottomExiting] = useState(false)
 
   const intervalRef = useRef<number | null>(null)
   const animationRef = useRef<number | null>(null)
@@ -487,34 +489,6 @@ function App() {
   useEffect(() => {
     durationsRef.current = durations
   }, [durations])
-
-  const prevHoldTopRef = useRef(durations.HOLD_TOP)
-  const prevHoldBottomRef = useRef(durations.HOLD_BOTTOM)
-  const SETTINGS_ROW_SLIDE_OUT_MS = 280
-
-  useEffect(() => {
-    if (prevHoldTopRef.current > 0 && durations.HOLD_TOP === 0) {
-      setHoldTopExiting(true)
-      const t = window.setTimeout(() => {
-        prevHoldTopRef.current = 0
-        setHoldTopExiting(false)
-      }, SETTINGS_ROW_SLIDE_OUT_MS)
-      return () => window.clearTimeout(t)
-    }
-    prevHoldTopRef.current = durations.HOLD_TOP
-  }, [durations.HOLD_TOP])
-
-  useEffect(() => {
-    if (prevHoldBottomRef.current > 0 && durations.HOLD_BOTTOM === 0) {
-      setHoldBottomExiting(true)
-      const t = window.setTimeout(() => {
-        prevHoldBottomRef.current = 0
-        setHoldBottomExiting(false)
-      }, SETTINGS_ROW_SLIDE_OUT_MS)
-      return () => window.clearTimeout(t)
-    }
-    prevHoldBottomRef.current = durations.HOLD_BOTTOM
-  }, [durations.HOLD_BOTTOM])
 
   // When durations are not all equal, set dots slider to Off (controller updates model → view hides dots)
   useEffect(() => {
@@ -769,7 +743,7 @@ function App() {
       window.clearTimeout(singleTapTimeoutRef.current)
       singleTapTimeoutRef.current = null
     }
-    if (now - lastTapTimeRef.current < 350) {
+    if (now - lastTapTimeRef.current < DOUBLE_TAP_WINDOW_MS) {
       lastTapTimeRef.current = 0
       handleDoubleTapOrDoubleClick()
       return
@@ -778,7 +752,7 @@ function App() {
     singleTapTimeoutRef.current = window.setTimeout(() => {
       singleTapTimeoutRef.current = null
       handleUserInteract()
-    }, 350)
+    }, DOUBLE_TAP_WINDOW_MS)
   }
 
   useEffect(() => {
@@ -960,22 +934,22 @@ function App() {
             <button type="button" className="settings-duration-btn" disabled={timingMode === 'custom'} onClick={() => timingMode !== 'custom' && setMultiplierSeconds((v) => Math.min(timingMode === 'kumbhaka' ? 15 : (timingMode === 'long_exhale' || timingMode === 'equal') ? 30 : 60, v + 1))} aria-label="Increase multiplier">+</button>
           </div>
         </label>
-        <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-          <span>Inhale</span>
-          <div className="settings-duration-wrap">
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label="Decrease inhale">−</button>
-            <SlotInput
-              value={durationDisplayValue('INHALE')}
-              onChange={(e) => timingMode === 'custom' && handleDurationChange('INHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
-              onBlur={() => timingMode === 'custom' && handleDurationBlur('INHALE')}
-              disabled={timingMode !== 'custom'}
-              aria-label="Inhale duration"
-            />
-            <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
-          </div>
-        </label>
-        {(durations.HOLD_TOP > 0 || holdTopExiting || timingMode === 'custom') && (
-          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''} ${holdTopExiting ? 'settings-row--exiting' : ''}`}>
+        <div className="settings-duration-rows">
+          <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
+            <span>Inhale</span>
+            <div className="settings-duration-wrap">
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.max(0, durations.INHALE - 1))} aria-label="Decrease inhale">−</button>
+              <SlotInput
+                value={durationDisplayValue('INHALE')}
+                onChange={(e) => timingMode === 'custom' && handleDurationChange('INHALE', e.target.value.replace(/\D/g, '').slice(0, 2))}
+                onBlur={() => timingMode === 'custom' && handleDurationBlur('INHALE')}
+                disabled={timingMode !== 'custom'}
+                aria-label="Inhale duration"
+              />
+              <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('INHALE', Math.min(60, durations.INHALE + 1))} aria-label="Increase inhale">+</button>
+            </div>
+          </label>
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${durations.HOLD_TOP === 0 && timingMode !== 'custom' ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_TOP === 0 ? 'settings-row--zero' : ''}`}>
             <span>Hold (top)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.max(0, durations.HOLD_TOP - 1))} aria-label="Decrease hold top">−</button>
@@ -989,9 +963,8 @@ function App() {
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_TOP', Math.min(60, durations.HOLD_TOP + 1))} aria-label="Increase hold top">+</button>
             </div>
           </label>
-        )}
-        <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
-          <span>Exhale</span>
+          <label className={`settings-row ${timingMode !== 'custom' ? 'settings-row--disabled' : ''}`}>
+            <span>Exhale</span>
           <div className="settings-duration-wrap">
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.max(0, durations.EXHALE - 1))} aria-label="Decrease exhale">−</button>
             <SlotInput
@@ -1003,9 +976,8 @@ function App() {
             />
             <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('EXHALE', Math.min(60, durations.EXHALE + 1))} aria-label="Increase exhale">+</button>
           </div>
-        </label>
-        {(durations.HOLD_BOTTOM > 0 || holdBottomExiting || timingMode === 'custom') && (
-          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''} ${holdBottomExiting ? 'settings-row--exiting' : ''}`}>
+          </label>
+          <label className={`settings-row settings-row--duration ${timingMode !== 'custom' ? 'settings-row--disabled' : ''} ${durations.HOLD_BOTTOM === 0 && timingMode !== 'custom' ? 'settings-row--collapsed' : ''} ${timingMode === 'custom' && durations.HOLD_BOTTOM === 0 ? 'settings-row--zero' : ''}`}>
             <span>Hold (bottom)</span>
             <div className="settings-duration-wrap">
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.max(0, durations.HOLD_BOTTOM - 1))} aria-label="Decrease hold bottom">−</button>
@@ -1019,7 +991,7 @@ function App() {
               <button type="button" className="settings-duration-btn" disabled={timingMode !== 'custom'} onClick={() => timingMode === 'custom' && setDuration('HOLD_BOTTOM', Math.min(60, durations.HOLD_BOTTOM + 1))} aria-label="Increase hold bottom">+</button>
             </div>
           </label>
-        )}
+        </div>
         <div className="settings-row settings-row--bpm">
           <span>Breaths per minute</span>
           <div className="settings-bpm-difficulty-wrap">
