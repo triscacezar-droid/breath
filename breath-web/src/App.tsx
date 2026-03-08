@@ -31,6 +31,7 @@ import { PhaseDots } from './components/PhaseDots'
 import { SettingsDropdown } from './components/SettingsDropdown'
 import { VisibilitySlider } from './components/VisibilitySlider'
 import { useVisibilityLerp } from './hooks/useVisibilityLerp'
+import { useVisibilityWithDelays } from './hooks/useVisibilityWithDelays'
 import { useBreathTimer } from './hooks/useBreathTimer'
 import { useBreathAnimation } from './hooks/useBreathAnimation'
 import { useDurationsSync } from './hooks/useDurationsSync'
@@ -115,10 +116,14 @@ function App() {
 
   const hideInfoTimeoutRef = useRef<number | null>(null)
   const breathModeRef = useRef<BreathMode>('normal')
+  const transitionInProgressRef = useRef(false)
+  const pendingDurationsRef = useRef<Record<Phase, number> | null>(null)
+  const pendingBreathModeRef = useRef<BreathMode | null>(null)
+  const [contentTransitionOpacity, setContentTransitionOpacity] = useState(1)
 
   const timer = useBreathTimer(durationsRef)
   const { phase, secondsLeft, cycleCount, elapsedSeconds, label, prevLabel, labelAnimating, resetToInhale, reset, phaseRef, cycleCountRef, phaseStartTimeRef } = timer
-  const { scale, sphereAnulomLeft } = useBreathAnimation(
+  const { scale, sphereAnulomLeft, restart: restartAnimation } = useBreathAnimation(
     phaseRef,
     durationsRef,
     phaseStartTimeRef,
@@ -152,9 +157,19 @@ function App() {
   const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
   const contentVisible = initialDelayPassed && contentRevealed
 
+  const {
+    displayTextVisible,
+    displayDotsVisible,
+    displaySphereVisible,
+    displayCyclesVisible,
+    stackTextVisible,
+    stackDotsVisible,
+    stackSphereVisible,
+  } = useVisibilityWithDelays({ text: textVisible, dots: dotsVisible, sphere: sphereVisible, cycles: cyclesVisible })
+
   const stack = useMemo(
-    () => buildBreathStack({ text: textVisible, dots: dotsVisible, sphere: sphereVisible }),
-    [textVisible, dotsVisible, sphereVisible]
+    () => buildBreathStack({ text: stackTextVisible, dots: stackDotsVisible, sphere: stackSphereVisible }),
+    [stackTextVisible, stackDotsVisible, stackSphereVisible]
   )
 
   const measureSlots = (snap = false) => {
@@ -204,8 +219,8 @@ function App() {
   const textTopVh = getViewportTopVh(activeStack, 'text')
   const dotsTopVh = getViewportTopVh(activeStack, 'dots')
 
-  const showFloatingText = textVisible && isInStack(activeStack, 'text')
-  const showFloatingDots = dotsVisible && isInStack(activeStack, 'dots')
+  const showFloatingText = stackTextVisible && isInStack(activeStack, 'text')
+  const showFloatingDots = stackDotsVisible && isInStack(activeStack, 'dots')
 
   const hasContentBeenRevealedRef = useRef(false)
 
@@ -228,20 +243,30 @@ function App() {
       hasContentBeenRevealedRef.current = true
       /* Sync animation to spawn: sphere starts at smallest size (beginning of inhale) */
       phaseStartTimeRef.current = performance.now()
+      restartAnimation()
     }, 1000)
     return () => window.clearTimeout(t)
-  }, [])
+  }, [restartAnimation])
 
-  /* ---------- Controller: on any setting change (after initial reveal), hide everything, reset breath state, reveal after 1s ---------- */
+  /* ---------- Controller: on any setting change (after initial reveal), fade out 0.5s (animation keeps running), then reset and fade in ---------- */
   useEffect(() => {
     if (!hasContentBeenRevealedRef.current) return
-    setContentRevealed(false)
-    setInitialDelayPassed(false)
-    resetToInhale()
+    transitionInProgressRef.current = true
+    setContentTransitionOpacity(0)
     const t = window.setTimeout(() => {
+      if (pendingDurationsRef.current) {
+        durationsRef.current = pendingDurationsRef.current
+        pendingDurationsRef.current = null
+      }
+      if (pendingBreathModeRef.current !== null) {
+        breathModeRef.current = pendingBreathModeRef.current
+        pendingBreathModeRef.current = null
+      }
+      transitionInProgressRef.current = false
+      resetToInhale()
       reset()
-      setInitialDelayPassed(true)
-      setContentRevealed(true)
+      restartAnimation()
+      setContentTransitionOpacity(1)
       setShowInfo(true)
     }, 1000)
     return () => window.clearTimeout(t)
@@ -276,6 +301,10 @@ function App() {
   }, [showInfo])
 
   useEffect(() => {
+    if (transitionInProgressRef.current) {
+      pendingDurationsRef.current = durations
+      return
+    }
     durationsRef.current = durations
   }, [durations])
 
@@ -303,6 +332,10 @@ function App() {
   }, [timingMode])
 
   useEffect(() => {
+    if (transitionInProgressRef.current) {
+      pendingBreathModeRef.current = breathMode
+      return
+    }
     breathModeRef.current = breathMode
   }, [breathMode])
 
@@ -719,6 +752,7 @@ function App() {
       </aside>
       <div className="content-wrap" onClick={handleContentClick} onDoubleClick={handleDoubleTapOrDoubleClick} onTouchStart={handleContentTouchStart}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
+        <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
         <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
           <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label={t('settings.openSettings')}>
             <span className="settings-trigger-icon" aria-hidden />
@@ -739,7 +773,7 @@ function App() {
         <div
           ref={stackRef}
           className="breath-stack"
-          aria-hidden={!contentVisible || (!textVisible && !dotsVisible && !sphereVisible)}
+          aria-hidden={!contentVisible || (!stackTextVisible && !stackDotsVisible && !stackSphereVisible)}
         >
           <div ref={slot1Ref} className="breath-stack__slot">
             {stack[0] != null && (
@@ -760,7 +794,7 @@ function App() {
         </div>
         <div
           className="breath-stack__floating-viewport"
-          aria-hidden={!contentVisible || (!textVisible && !dotsVisible)}
+          aria-hidden={!contentVisible || (!stackTextVisible && !stackDotsVisible)}
         >
           {showFloatingText && (
             <div
@@ -771,7 +805,7 @@ function App() {
               }}
               onAnimationEnd={() => enteringText && setEnteringText(false)}
             >
-              <div className={`status ${contentVisible && textVisible ? 'status--visible' : 'status--hidden'}`}>
+              <div className={`status ${contentVisible && displayTextVisible ? 'status--visible' : 'status--hidden'}`}>
                 <div className="phase-stack">
                   {labelAnimating ? (
                     <>
@@ -794,7 +828,7 @@ function App() {
               }}
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
             >
-              <div className={`phase-dots-wrap ${contentVisible && dotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
+              <div className={`phase-dots-wrap ${contentVisible && displayDotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
                 <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
               </div>
             </div>
@@ -802,7 +836,7 @@ function App() {
         </div>
         {stack[2] === 'sphere' && (
           <div
-            className={`circle circle--viewport-center ${contentVisible && sphereVisible ? 'circle--visible' : 'circle--hidden'}`}
+            className={`circle circle--viewport-center ${contentVisible && displaySphereVisible ? 'circle--visible' : 'circle--hidden'}`}
             data-phase={phase}
             style={{
               transform: `translate(-50%, -50%) scale(${scale})`,
@@ -812,7 +846,7 @@ function App() {
           />
         )}
       </section>
-      <footer className={`cycles-footer ${contentVisible && cyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !cyclesVisible}>
+      <footer className={`cycles-footer ${contentVisible && displayCyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !displayCyclesVisible}>
         <span>
           {footerDisplayMode === 'cycles'
             ? t('footer.cyclesCompleted', { count: cycleCount })
@@ -824,6 +858,7 @@ function App() {
           </span>
         )}
       </footer>
+        </div>
         </div>
       </div>
     </main>
