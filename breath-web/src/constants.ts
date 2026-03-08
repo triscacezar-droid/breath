@@ -86,10 +86,6 @@ export function schemeToThemeKey(scheme: (typeof COLOR_SCHEMES)[number]): string
     .join('')
 }
 
-const HAS_TOUCH = typeof window !== 'undefined' && 'ontouchstart' in window
-/** Double-tap window: longer on touch devices (finger latency) */
-export const DOUBLE_TAP_WINDOW_MS = HAS_TOUCH ? 500 : 350
-
 export const SLOT_ANIMATION_MS = 260
 
 /** Delay before revealing session content on load */
@@ -97,9 +93,6 @@ export const INITIAL_DELAY_MS = 400
 
 /** Duration of fade-out/fade-in when settings change */
 export const SETTINGS_TRANSITION_TOTAL_MS = 500
-
-/** Debounce after closing settings via double-tap before allowing reopen */
-export const SETTINGS_CLOSE_DEBOUNCE_MS = 400
 
 export function getMaxMultiplier(timingMode: TimingMode): number {
   if (timingMode === 'kumbhaka') return 15

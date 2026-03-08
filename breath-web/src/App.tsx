@@ -13,7 +13,6 @@ import {
   LABEL_VARIANTS,
   PROGRESS_VARIANTS,
   CENTER_VARIANTS,
-  DOUBLE_TAP_WINDOW_MS,
   getMaxMultiplier,
   schemeToThemeKey,
 } from './constants'
@@ -135,10 +134,6 @@ function App() {
   const slot1Ref = useRef<HTMLDivElement>(null)
   const slot2Ref = useRef<HTMLDivElement>(null)
   const slot3Ref = useRef<HTMLDivElement>(null)
-  const lastTapTimeRef = useRef<number>(0)
-  const singleTapTimeoutRef = useRef<number | null>(null)
-  const lastClosedByDoubleTapRef = useRef<number>(0)
-  const lastDoubleTapHandledRef = useRef<number>(0)
   const settingsRef = useRef<HTMLElement>(null)
 
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
@@ -343,59 +338,13 @@ function App() {
     breathModeRef.current = breathMode
   }, [breathMode])
 
-  const handleUserInteract = () => {
+  const handleContentClick = () => {
     if (showSettings) {
-      lastClosedByDoubleTapRef.current = Date.now()
       setShowSettings(false)
       return
     }
     setShowInfo(true)
   }
-
-  const handleDoubleTapOrDoubleClick = (fromTouch?: boolean) => {
-    if (showSettings) {
-      lastClosedByDoubleTapRef.current = Date.now()
-      setShowSettings(false)
-      return
-    }
-    if (Date.now() - lastClosedByDoubleTapRef.current < 400) {
-      return
-    }
-    if (fromTouch) lastDoubleTapHandledRef.current = Date.now()
-    setShowSettings(true)
-  }
-
-  const handleContentClick = () => {
-    if (Date.now() - lastDoubleTapHandledRef.current < 400) return
-    handleUserInteract()
-  }
-
-  const handleContentTouchStart = (e: React.TouchEvent) => {
-    const now = Date.now()
-    if (singleTapTimeoutRef.current !== null) {
-      window.clearTimeout(singleTapTimeoutRef.current)
-      singleTapTimeoutRef.current = null
-    }
-    if (now - lastTapTimeRef.current < DOUBLE_TAP_WINDOW_MS) {
-      lastTapTimeRef.current = 0
-      e.preventDefault()
-      handleDoubleTapOrDoubleClick(true)
-      return
-    }
-    lastTapTimeRef.current = now
-    singleTapTimeoutRef.current = window.setTimeout(() => {
-      singleTapTimeoutRef.current = null
-      handleUserInteract()
-    }, DOUBLE_TAP_WINDOW_MS)
-  }
-
-  useEffect(() => {
-    return () => {
-      if (singleTapTimeoutRef.current !== null) {
-        window.clearTimeout(singleTapTimeoutRef.current)
-      }
-    }
-  }, [])
 
   const setDuration = (p: Phase, value: number) => {
     const n = Number(value)
@@ -763,7 +712,7 @@ function App() {
           />
         </label>
       </aside>
-      <div className="content-wrap" onClick={handleContentClick} onDoubleClick={() => handleDoubleTapOrDoubleClick()} onTouchStart={handleContentTouchStart}>
+      <div className="content-wrap" onClick={handleContentClick}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
         <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
