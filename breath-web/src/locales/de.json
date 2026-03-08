@@ -1,0 +1,117 @@
+{
+  "app": {
+    "title": "Einfacher Atem"
+  },
+  "settings": {
+    "ariaLabel": "Atem-Einstellungen",
+    "breathStyle": "Atem-Stil",
+    "breathStyleAria": "Atem-Stil",
+    "ratio": "Atem-Verhältnis",
+    "multiplier": "Multiplikator",
+    "decreaseMultiplier": "Multiplikator verringern",
+    "increaseMultiplier": "Multiplikator erhöhen",
+    "inhale": "Einatmen",
+    "holdTop": "Anhalten oben",
+    "exhale": "Ausatmen",
+    "holdBottom": "Anhalten unten",
+    "inhaleDuration": "Einatemdauer",
+    "holdTopDuration": "Anhalte-Dauer oben",
+    "exhaleDuration": "Ausatemdauer",
+    "holdBottomDuration": "Anhalte-Dauer unten",
+    "decreaseInhale": "Einatmen verringern",
+    "increaseInhale": "Einatmen erhöhen",
+    "decreaseHoldTop": "Anhalten oben verringern",
+    "increaseHoldTop": "Anhalten oben erhöhen",
+    "decreaseExhale": "Ausatmen verringern",
+    "increaseExhale": "Ausatmen erhöhen",
+    "decreaseHoldBottom": "Anhalten unten verringern",
+    "increaseHoldBottom": "Anhalten unten erhöhen",
+    "bpm": "Atemzüge pro Minute",
+    "pace": "Tempo",
+    "visibility": "Sichtbarkeit",
+    "text": "Text",
+    "dots": "Punkte",
+    "sphere": "Kugel",
+    "cycles": "Zyklen",
+    "phaseTextVisibility": "Phasen-Text-Sichtbarkeit",
+    "dotsVisibility": "Punkte-Sichtbarkeit",
+    "sphereVisibility": "Kugel-Sichtbarkeit",
+    "cyclesVisibility": "Abgeschlossene Zyklen-Sichtbarkeit",
+    "colorScheme": "Farbschema",
+    "colorSchemeAria": "Farbschema",
+    "openSettings": "Einstellungen öffnen",
+    "enterFullscreen": "Vollbild",
+    "exitFullscreen": "Vollbild beenden",
+    "sessionAria": "Atemsitzung",
+    "language": "Sprache"
+  },
+  "phases": {
+    "inhale": "Einatmen",
+    "hold": "Anhalten",
+    "exhale": "Ausatmen"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "Benutzerdefiniert"
+  },
+  "breathModes": {
+    "normal": "Normal",
+    "anulom_vilom": "Anulom Vilom"
+  },
+  "visibility": {
+    "off": "Aus",
+    "onTap": "Bei Tipp",
+    "on": "An"
+  },
+  "pace": {
+    "verySlow": "Sehr langsam",
+    "slow": "Langsam",
+    "calming": "Beruhigend",
+    "normal": "Normal",
+    "fast": "Schnell"
+  },
+  "footer": {
+    "cyclesCompleted": "{{count}} Zyklen abgeschlossen",
+    "noOneElse": "Gerade niemand anderes",
+    "othersBreathing": "{{count}} {{count, plural, one {andere Person} other {andere Personen}}} atmen gerade"
+  },
+  "themes": {
+    "dark": "Dunkel",
+    "light": "Hell",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch"
+  }
+}

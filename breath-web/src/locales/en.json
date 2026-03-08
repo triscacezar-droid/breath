@@ -1,0 +1,117 @@
+{
+  "app": {
+    "title": "Simple Breath"
+  },
+  "settings": {
+    "ariaLabel": "Breathing settings",
+    "breathStyle": "Breath Style",
+    "breathStyleAria": "Breath style",
+    "ratio": "Breathing ratio",
+    "multiplier": "Multiplier",
+    "decreaseMultiplier": "Decrease multiplier",
+    "increaseMultiplier": "Increase multiplier",
+    "inhale": "Inhale",
+    "holdTop": "Hold top",
+    "exhale": "Exhale",
+    "holdBottom": "Hold bottom",
+    "inhaleDuration": "Inhale duration",
+    "holdTopDuration": "Hold top duration",
+    "exhaleDuration": "Exhale duration",
+    "holdBottomDuration": "Hold bottom duration",
+    "decreaseInhale": "Decrease inhale",
+    "increaseInhale": "Increase inhale",
+    "decreaseHoldTop": "Decrease hold top",
+    "increaseHoldTop": "Increase hold top",
+    "decreaseExhale": "Decrease exhale",
+    "increaseExhale": "Increase exhale",
+    "decreaseHoldBottom": "Decrease hold bottom",
+    "increaseHoldBottom": "Increase hold bottom",
+    "bpm": "Breaths per minute",
+    "pace": "Pace",
+    "visibility": "Visibility",
+    "text": "Text",
+    "dots": "Dots",
+    "sphere": "Sphere",
+    "cycles": "Cycles",
+    "phaseTextVisibility": "Phase text visibility",
+    "dotsVisibility": "Dots visibility",
+    "sphereVisibility": "Sphere visibility",
+    "cyclesVisibility": "Cycles completed visibility",
+    "colorScheme": "Color scheme",
+    "colorSchemeAria": "Color scheme",
+    "openSettings": "Open settings",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "sessionAria": "Breathing session",
+    "language": "Language"
+  },
+  "phases": {
+    "inhale": "Breathe in",
+    "hold": "Hold",
+    "exhale": "Breathe out"
+  },
+  "timingModes": {
+    "box": "1:1:1:1",
+    "equal": "1:1",
+    "kumbhaka": "1:4:2",
+    "long_exhale": "1:2",
+    "custom": "Custom"
+  },
+  "breathModes": {
+    "normal": "Normal",
+    "anulom_vilom": "Anulom Vilom"
+  },
+  "visibility": {
+    "off": "Off",
+    "onTap": "On tap",
+    "on": "On"
+  },
+  "pace": {
+    "verySlow": "Very slow",
+    "slow": "Slow",
+    "calming": "Calming",
+    "normal": "Normal",
+    "fast": "Fast"
+  },
+  "footer": {
+    "cyclesCompleted": "{{count}} cycles completed",
+    "noOneElse": "No one else right now",
+    "othersBreathing": "{{count}} {{count, plural, one {other} other {others}}} breathing now"
+  },
+  "themes": {
+    "dark": "Dark",
+    "light": "Light",
+    "sepia": "Sepia",
+    "dracula": "Dracula",
+    "monokai": "Monokai",
+    "solarizedDark": "Solarized Dark",
+    "solarizedLight": "Solarized Light",
+    "oneDark": "One Dark",
+    "oneLight": "One Light",
+    "nord": "Nord",
+    "gruvboxDark": "Gruvbox Dark",
+    "gruvboxLight": "Gruvbox Light",
+    "tokyoNight": "Tokyo Night",
+    "catppuccinMocha": "Catppuccin Mocha",
+    "catppuccinLatte": "Catppuccin Latte",
+    "nightOwl": "Night Owl",
+    "githubDark": "GitHub Dark",
+    "githubLight": "GitHub Light",
+    "rosePine": "Rose Pine",
+    "forest": "Forest",
+    "cyberpunk": "Cyberpunk",
+    "zenburn": "Zenburn",
+    "shadesOfPurple": "Shades of Purple",
+    "synthwave84": "SynthWave '84",
+    "kanagawa": "Kanagawa",
+    "ayuDark": "Ayu Dark",
+    "horizon": "Horizon",
+    "palenight": "Palenight",
+    "redDark": "Red Dark",
+    "burgundy": "Burgundy"
+  },
+  "languages": {
+    "en": "English",
+    "de": "Deutsch"
+  }
+}
