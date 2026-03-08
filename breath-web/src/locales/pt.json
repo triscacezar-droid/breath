@@ -80,7 +80,8 @@
     "close": "Fechar",
     "title": "Sobre",
     "appDescription": "A vida fica agitada. Vá com calma.",
-    "contact": "Contato"
+    "contact": "Contato",
+    "source": "Código fonte"
   },
   "phases": {
     "inhale": "Inspire",

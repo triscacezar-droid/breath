@@ -787,6 +787,12 @@ function App() {
                     trisca.cezar@gmail.com
                   </a>
                 </p>
+                <p>
+                  {t('about.source')}:{' '}
+                  <a href="https://github.com/triscacezar-droid/breath" target="_blank" rel="noopener noreferrer" className="about-link">
+                    github.com/triscacezar-droid/breath
+                  </a>
+                </p>
               </div>
             </div>
           </div>,

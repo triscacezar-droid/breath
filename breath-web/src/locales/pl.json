@@ -80,7 +80,8 @@
     "close": "Zamknij",
     "title": "O aplikacji",
     "appDescription": "Życie się zapędza. Odpuść sobie.",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "source": "Kod źródłowy"
   },
   "phases": {
     "inhale": "Wdychaj",

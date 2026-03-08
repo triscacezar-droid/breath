@@ -80,7 +80,8 @@
     "close": "Schließen",
     "title": "Über",
     "appDescription": "Das Leben wird hektisch. Nimm's gelassen.",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "source": "Quellcode"
   },
   "phases": {
     "inhale": "Atme ein",

@@ -80,7 +80,8 @@
     "close": "Chiudi",
     "title": "Informazioni",
     "appDescription": "La vita si fa frenetica. Vai con calma.",
-    "contact": "Contatto"
+    "contact": "Contatto",
+    "source": "Codice sorgente"
   },
   "phases": {
     "inhale": "Inspira",

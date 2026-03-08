@@ -80,7 +80,8 @@
     "close": "Cerrar",
     "title": "Acerca de",
     "appDescription": "La vida se agita. Tómatelo con calma.",
-    "contact": "Contacto"
+    "contact": "Contacto",
+    "source": "Código fuente"
   },
   "phases": {
     "inhale": "Inspira",

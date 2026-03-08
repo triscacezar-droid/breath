@@ -80,7 +80,8 @@
     "close": "关闭",
     "title": "关于",
     "appDescription": "生活忙碌。放轻松。",
-    "contact": "联系"
+    "contact": "联系",
+    "source": "源代码"
   },
   "phases": {
     "inhale": "吸气",

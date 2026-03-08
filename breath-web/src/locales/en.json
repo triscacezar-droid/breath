@@ -80,7 +80,8 @@
     "close": "Close",
     "title": "About",
     "appDescription": "Life gets busy. Take it easy.",
-    "contact": "Contact"
+    "contact": "Contact",
+    "source": "Source"
   },
   "phases": {
     "inhale": "Breathe in",

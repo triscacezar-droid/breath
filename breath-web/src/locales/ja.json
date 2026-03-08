@@ -80,7 +80,8 @@
     "close": "閉じる",
     "title": "アプリについて",
     "appDescription": "忙しい日々。ゆっくりいこう。",
-    "contact": "連絡先"
+    "contact": "連絡先",
+    "source": "ソースコード"
   },
   "phases": {
     "inhale": "吸って",
