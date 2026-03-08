@@ -1,5 +1,7 @@
 # Simple Breath
 
+Hosted at: [simplebreath.co.uk](https://simplebreath.co.uk)
+
 This is a minimal breathing exercise app I made over the weekend using Cursor. 
 
 I hope it helps you calm down and enjoy the world around around you. 
