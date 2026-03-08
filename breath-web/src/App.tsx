@@ -4,13 +4,12 @@ import { DifficultyScale } from './DifficultyScale'
 import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme } from './types'
 import {
   DEFAULT_DURATIONS,
-  TIMING_MODE_LABELS,
   COLOR_SCHEMES,
-  THEME_LABELS,
   BREATH_MODE_KEY,
   COLOR_SCHEME_KEY,
   DOUBLE_TAP_WINDOW_MS,
   getMaxMultiplier,
+  schemeToThemeKey,
 } from './constants'
 import { getStoredColorScheme, getStoredBreathMode } from './utils'
 import {
@@ -31,8 +30,10 @@ import { useBreathAnimation } from './hooks/useBreathAnimation'
 import { useDurationsSync } from './hooks/useDurationsSync'
 import { usePresence } from './hooks/usePresence'
 import { useFullscreen } from './hooks/useFullscreen'
+import { useTranslation } from 'react-i18next'
 
 function App() {
+  const { t } = useTranslation()
   /* ---------- Model ---------- */
   const [timingMode, setTimingMode] = useState<TimingMode>('box')
   const [timingModeDropdownOpen, setTimingModeDropdownOpen] = useState(false)
@@ -85,7 +86,8 @@ function App() {
     durationsRef,
     phaseStartTimeRef,
     breathModeRef,
-    cycleCountRef
+    cycleCountRef,
+    contentRevealed
   )
   const stackRef = useRef<HTMLDivElement>(null)
   const slot1Ref = useRef<HTMLDivElement>(null)
@@ -187,6 +189,8 @@ function App() {
       setContentRevealed(true)
       setShowInfo(true)
       hasContentBeenRevealedRef.current = true
+      /* Sync animation to spawn: sphere starts at smallest size (beginning of inhale) */
+      phaseStartTimeRef.current = performance.now()
     }, 1000)
     return () => window.clearTimeout(t)
   }, [])
@@ -408,16 +412,16 @@ function App() {
           <span>Ratio</span>
           <SettingsDropdown
             options={[
-              { value: 'long_exhale' as const, label: '1:2' },
-              { value: 'equal' as const, label: '1:1' },
-              { value: 'kumbhaka' as const, label: '1:4:2' },
-              { value: 'box' as const, label: '1:1:1:1' },
-              { value: 'custom' as const, label: 'Custom' },
+              { value: 'long_exhale' as const, label: t('timingModes.long_exhale') },
+              { value: 'equal' as const, label: t('timingModes.equal') },
+              { value: 'kumbhaka' as const, label: t('timingModes.kumbhaka') },
+              { value: 'box' as const, label: t('timingModes.box') },
+              { value: 'custom' as const, label: t('timingModes.custom') },
             ]}
             selected={timingMode}
             onSelect={(mode) => handleTimingModeChange(mode)}
             ariaLabel="Breathing ratio"
-            triggerLabel={TIMING_MODE_LABELS[timingMode]}
+            triggerLabel={t(`timingModes.${timingMode}`)}
             isOpen={timingModeDropdownOpen}
             onOpenChange={setTimingModeDropdownOpen}
           />
@@ -581,11 +585,11 @@ function App() {
         <label className="settings-row">
           <span>Theme</span>
           <SettingsDropdown
-            options={COLOR_SCHEMES.map((scheme) => ({ value: scheme, label: THEME_LABELS[scheme] }))}
+            options={COLOR_SCHEMES.map((scheme) => ({ value: scheme, label: t(`themes.${schemeToThemeKey(scheme)}`) }))}
             selected={colorScheme}
             onSelect={setColorScheme}
             ariaLabel="Color scheme"
-            triggerLabel={THEME_LABELS[colorScheme]}
+            triggerLabel={t(`themes.${schemeToThemeKey(colorScheme)}`)}
             isOpen={colorSchemeDropdownOpen}
             onOpenChange={setColorSchemeDropdownOpen}
             dropup

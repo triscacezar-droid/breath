@@ -31,14 +31,6 @@ export const LONG_EXHALE_RATIO: Record<Phase, number> = {
   HOLD_BOTTOM: 0,
 }
 
-export const TIMING_MODE_LABELS: Record<TimingMode, string> = {
-  box: '1:1:1:1',
-  equal: '1:1',
-  kumbhaka: '1:4:2',
-  long_exhale: '1:2',
-  custom: 'Custom',
-}
-
 export const BREATH_MODE_KEY = 'breath-mode'
 export const COLOR_SCHEME_KEY = 'breath-color-scheme'
 
@@ -75,37 +67,12 @@ export const COLOR_SCHEMES = [
   'burgundy',
 ] as const
 
-export const THEME_LABELS: Record<(typeof COLOR_SCHEMES)[number], string> = {
-  dark: 'Dark',
-  light: 'Light',
-  sepia: 'Sepia',
-  dracula: 'Dracula',
-  monokai: 'Monokai',
-  'solarized-dark': 'Solarized Dark',
-  'solarized-light': 'Solarized Light',
-  'one-dark': 'One Dark',
-  'one-light': 'One Light',
-  nord: 'Nord',
-  'gruvbox-dark': 'Gruvbox Dark',
-  'gruvbox-light': 'Gruvbox Light',
-  'tokyo-night': 'Tokyo Night',
-  'catppuccin-mocha': 'Catppuccin Mocha',
-  'catppuccin-latte': 'Catppuccin Latte',
-  'night-owl': 'Night Owl',
-  'github-dark': 'GitHub Dark',
-  'github-light': 'GitHub Light',
-  'rose-pine': 'Rose Pine',
-  forest: 'Forest',
-  cyberpunk: 'Cyberpunk',
-  zenburn: 'Zenburn',
-  'shades-of-purple': 'Shades of Purple',
-  'synthwave-84': "SynthWave '84",
-  kanagawa: 'Kanagawa',
-  'ayu-dark': 'Ayu Dark',
-  horizon: 'Horizon',
-  palenight: 'Palenight',
-  'red-dark': 'Red Dark',
-  burgundy: 'Burgundy',
+/** Maps color scheme key to themes.* translation key (e.g. 'solarized-dark' -> 'solarizedDark') */
+export function schemeToThemeKey(scheme: (typeof COLOR_SCHEMES)[number]): string {
+  return scheme
+    .split('-')
+    .map((p, i) => (i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)))
+    .join('')
 }
 
 const HAS_TOUCH = typeof window !== 'undefined' && 'ontouchstart' in window
