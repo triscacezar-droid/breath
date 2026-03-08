@@ -139,8 +139,22 @@ function App() {
   const [slotTops, setSlotTops] = useState<[number, number, number]>([0, 0, 0])
   const [enteringText, setEnteringText] = useState(false)
   const [enteringDots, setEnteringDots] = useState(false)
+  const [viewportSize, setViewportSize] = useState(() =>
+    typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight } : { w: 0, h: 0 }
+  )
   const prevMeasuredRef = useRef<BreathStack>([null, null, null])
   const isZoomSnapRef = useRef(false)
+
+  useEffect(() => {
+    const update = () => setViewportSize({ w: window.innerWidth, h: window.innerHeight })
+    update()
+    window.addEventListener('resize', update)
+    window.visualViewport?.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('resize', update)
+      window.visualViewport?.removeEventListener('resize', update)
+    }
+  }, [])
 
   /* ---------- Derived from model (view uses these) ---------- */
   const totalBreathSeconds =
@@ -209,8 +223,8 @@ function App() {
 
   /* Use stack (not measuredStack) for viewport positions: measuredStack lags one render,
      so when dots turn off, text would stay at 25vh instead of moving to 35vh. */
-  const textTopVh = getViewportTopVh(stack, 'text')
-  const dotsTopVh = getViewportTopVh(stack, 'dots')
+  const textTopVh = getViewportTopVh(stack, 'text', viewportSize.h, viewportSize.w)
+  const dotsTopVh = getViewportTopVh(stack, 'dots', viewportSize.h, viewportSize.w)
 
   const showFloatingText = stackTextVisible && isInStack(stack, 'text')
   const showFloatingDots = stackDotsVisible && isInStack(stack, 'dots')

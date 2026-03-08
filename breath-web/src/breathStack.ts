@@ -63,6 +63,19 @@ const GAP_ABOVE_SPHERE_VH = 15
 const GAP_ABOVE_DOTS_VH = 10
 const CENTER_VH = 50
 
+/** Minimum pixel distance between slot centers (avoids overlap in horizontal/landscape) */
+export const STACK_MIN_GAP_PX = 48
+/** Sphere size from CSS clamp(120px, 48vmin, 280px); min gap above sphere = size/2 + 20px */
+const CIRCLE_MIN_PX = 120
+const CIRCLE_VMIN = 48
+const CIRCLE_MAX_PX = 280
+const GAP_ABOVE_SPHERE_PX = 20
+
+function getSphereSizePx(viewportWidth: number, viewportHeight: number): number {
+  const vminPx = (Math.min(viewportWidth, viewportHeight) / 100) * CIRCLE_VMIN
+  return Math.max(CIRCLE_MIN_PX, Math.min(vminPx, CIRCLE_MAX_PX))
+}
+
 const SLOT_TOP_VH: Record<number, number> = {
   0: CENTER_VH - GAP_ABOVE_SPHERE_VH - GAP_ABOVE_DOTS_VH, // top: 25vh
   1: CENTER_VH - GAP_ABOVE_SPHERE_VH, // middle: 35vh
@@ -71,11 +84,26 @@ const SLOT_TOP_VH: Record<number, number> = {
 
 /**
  * Returns the vertical center position (in vh) for viewport-relative stacking.
- * Position is determined by slot index only, so it works for any visibility combination
- * (sphere on/off, dots on/off, text on/off).
+ * When viewport dimensions are provided, enforces min gaps; sphere gap = sphere size + 20px.
  */
-export function getViewportTopVh(stack: BreathStack, item: StackItem): number {
+export function getViewportTopVh(
+  stack: BreathStack,
+  item: StackItem,
+  viewportHeightPx?: number,
+  viewportWidthPx?: number
+): number {
   const slot = getSlotIndex(stack, item)
   if (slot < 0) return CENTER_VH
-  return SLOT_TOP_VH[slot]
+  if (!viewportHeightPx || viewportHeightPx <= 0) return SLOT_TOP_VH[slot]
+  const minGapVh = (STACK_MIN_GAP_PX * 100) / viewportHeightPx
+  const sphereSize =
+    viewportWidthPx && viewportWidthPx > 0
+      ? getSphereSizePx(viewportWidthPx, viewportHeightPx) / 2 + GAP_ABOVE_SPHERE_PX
+      : 160
+  const minGapSphereVh = (sphereSize * 100) / viewportHeightPx
+  const slot1 = Math.min(SLOT_TOP_VH[1], CENTER_VH - minGapSphereVh)
+  const slot0 = Math.min(SLOT_TOP_VH[0], slot1 - minGapVh)
+  if (slot === 2) return CENTER_VH
+  if (slot === 1) return slot1
+  return slot0
 }
