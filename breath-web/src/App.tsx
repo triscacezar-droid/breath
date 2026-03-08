@@ -833,7 +833,7 @@ function App() {
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
             >
               <div className={`phase-dots-wrap ${contentVisible && displayDotsVisible ? 'phase-dots-wrap--visible' : 'phase-dots-wrap--hidden'}`}>
-                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} progressVariant={progressVariant} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
+                <PhaseDots phase={phase} duration={durations[phase]} secondsLeft={secondsLeft} phaseStartTimeRef={phaseStartTimeRef} progressVariant={progressVariant} timingMode={timingMode} durations={durations} breathMode={breathMode} cycleCount={cycleCount} />
               </div>
             </div>
           )}

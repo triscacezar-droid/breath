@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react'
 import type { Phase, TimingMode, BreathMode, ProgressVariant } from '../types'
+
+const MID_SECOND_OFFSET = 0.5
 
 export function PhaseDots({
   phase,
   duration,
   secondsLeft,
+  phaseStartTimeRef,
   progressVariant,
   timingMode,
   durations,
@@ -13,13 +17,32 @@ export function PhaseDots({
   phase: Phase
   duration: number
   secondsLeft: number
+  phaseStartTimeRef: React.MutableRefObject<number>
   progressVariant: ProgressVariant
   timingMode: TimingMode
   durations?: Record<Phase, number>
   breathMode?: BreathMode
   cycleCount?: number
 }) {
-  const elapsedSeconds = Math.max(0, Math.min(duration, duration - secondsLeft))
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    let raf: number
+    const tick = () => {
+      const e = Math.max(0, (performance.now() - phaseStartTimeRef.current) / 1000)
+      setElapsed(Math.min(duration, e))
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [phase, duration, phaseStartTimeRef])
+  useEffect(() => {
+    setElapsed(0)
+  }, [phase])
+  /* Dots appear at mid-second: 0.5, 1.5, 2.5... effective count = floor(elapsed - 0.5) + 1 when elapsed >= 0.5 */
+  const elapsedSeconds =
+    elapsed >= MID_SECOND_OFFSET
+      ? Math.min(duration, Math.floor(elapsed - MID_SECOND_OFFSET) + 1)
+      : 0
   const isSimple = timingMode === 'equal'
   const isLongExhale = timingMode === 'long_exhale'
   const isKumbhaka = timingMode === 'kumbhaka'
