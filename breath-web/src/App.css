@@ -890,26 +890,47 @@
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.35s ease;
   display: flex;
   flex-direction: column;
   gap: 4px;
   background: var(--color-bg-page);
 }
 
-.cycles-footer__presence {
-  font-size: 0.9em;
-  color: var(--color-text-muted);
-}
-
 .cycles-footer.cycles-footer--visible {
-  opacity: 1;
+  animation: cycles-footer-fade-in 0.35s ease forwards;
   pointer-events: auto;
 }
 
 .cycles-footer.cycles-footer--hidden {
+  transition: opacity 0.35s ease;
   opacity: 0;
   pointer-events: none;
+}
+
+@keyframes cycles-footer-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cycles-footer__cycles {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cycles-footer__cycles--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cycles-footer__cycles--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cycles-footer__presence {
+  font-size: 0.9em;
+  color: var(--color-text-muted);
 }
 
 .header {

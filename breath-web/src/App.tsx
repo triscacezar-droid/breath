@@ -189,6 +189,17 @@ function App() {
     stackSphereVisible,
   } = useVisibilityWithDelays({ text: textVisible, dots: dotsVisible, sphere: sphereVisible, cycles: cyclesVisible })
 
+  const footerShouldShow = contentVisible && (displayCyclesVisible || othersOnline !== null)
+  const [footerVisible, setFooterVisible] = useState(false)
+  useLayoutEffect(() => {
+    if (!footerShouldShow) {
+      setFooterVisible(false)
+      return
+    }
+    const raf = requestAnimationFrame(() => setFooterVisible(true))
+    return () => cancelAnimationFrame(raf)
+  }, [footerShouldShow])
+
   const stack = useMemo(
     () => buildBreathStack({ text: stackTextVisible, dots: stackDotsVisible, sphere: stackSphereVisible }),
     [stackTextVisible, stackDotsVisible, stackSphereVisible]
@@ -894,9 +905,9 @@ function App() {
           />
         )}
       </section>
-      <footer className={`cycles-footer ${contentVisible && (displayCyclesVisible || othersOnline !== null) ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || (!displayCyclesVisible && othersOnline === null)}>
-        {displayCyclesVisible && (
-          <span>
+      <footer className={`cycles-footer ${footerVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!footerShouldShow}>
+        {footerVisible && (
+          <span className={`cycles-footer__cycles ${displayCyclesVisible ? 'cycles-footer__cycles--visible' : 'cycles-footer__cycles--hidden'}`}>
             {footerDisplayMode === 'cycles'
               ? t('footer.cyclesCompleted', { count: cycleCount })
               : formatElapsedSeconds(elapsedSeconds)}
