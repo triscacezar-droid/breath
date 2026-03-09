@@ -66,7 +66,7 @@ function App() {
   const [showInfo, setShowInfo] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [textVisibility, setTextVisibility] = useState<VisibilityMode>(2)
-  const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(0)
+  const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(1)
   const [sphereVisibility, setSphereVisibility] = useState<VisibilityMode>(2)
   const [cyclesVisibility, setCyclesVisibility] = useState<VisibilityMode>(1)
 
