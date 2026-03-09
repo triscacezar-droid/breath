@@ -690,6 +690,7 @@
 
 .settings-row--slider .settings-dropdown {
   flex-shrink: 0;
+  margin-top: 3.5px;
 }
 
 .settings-row--presets {
