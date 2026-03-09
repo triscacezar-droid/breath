@@ -1,5 +1,6 @@
 import type { Phase, LabelVariant, ProgressVariant, CenterVariant, TimingMode, BreathMode, FooterDisplayMode } from '../types'
 import type { BreathStack } from '../breathStack'
+import { CENTER_VH } from '../breathStack'
 import { getSpacerClass } from '../breathStack'
 import { getPhaseLabelDisplay } from '../utils'
 import { PhaseDots } from './PhaseDots'
@@ -129,7 +130,7 @@ export function BreathSession({
             <div
               className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
               style={{
-                top: `${textTopVh}vh`,
+                top: textTopVh === 50 ? '50%' : `${textTopVh}vh`,
                 transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onAnimationEnd={() => enteringText && setEnteringText(false)}
@@ -152,7 +153,7 @@ export function BreathSession({
             <div
               className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
               style={{
-                top: `${dotsTopVh}vh`,
+                top: dotsTopVh === CENTER_VH ? '50%' : `${dotsTopVh}vh`,
                 transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
