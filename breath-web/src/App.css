@@ -952,6 +952,17 @@
 .cycles-footer__presence {
   font-size: 0.9em;
   color: var(--color-text-muted);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cycles-footer__presence--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cycles-footer__presence--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .beads {

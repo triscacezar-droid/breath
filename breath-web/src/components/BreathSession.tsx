@@ -46,6 +46,7 @@ export interface BreathSessionProps {
   footerDisplayMode: FooterDisplayMode
   elapsedSeconds: number
   othersOnline: number | null
+  showOnTap: boolean
   t: (key: string, opts?: { count?: number }) => string
   formatElapsedSeconds: (s: number) => string
 }
@@ -91,6 +92,7 @@ export function BreathSession({
   footerDisplayMode,
   elapsedSeconds,
   othersOnline,
+  showOnTap,
   t,
   formatElapsedSeconds,
 }: BreathSessionProps) {
@@ -182,7 +184,7 @@ export function BreathSession({
           </span>
         )}
         {othersOnline !== null && (
-          <span className="cycles-footer__presence">
+          <span className={`cycles-footer__presence ${showOnTap ? 'cycles-footer__presence--visible' : 'cycles-footer__presence--hidden'}`}>
             {othersOnline === 0 ? t('footer.noOneElse') : t('footer.othersBreathing', { count: othersOnline })}
           </span>
         )}

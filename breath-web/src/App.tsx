@@ -155,7 +155,7 @@ function App() {
     stackSphereVisible,
   } = useVisibilityWithDelays({ text: textVisible, dots: dotsVisible, sphere: sphereVisible, cycles: cyclesVisible })
 
-  const footerShouldShow = contentVisible && (displayCyclesVisible || othersOnline !== null)
+  const footerShouldShow = contentVisible && (displayCyclesVisible || (othersOnline !== null && showOnTap))
   const [footerVisible, setFooterVisible] = useState(false)
   useLayoutEffect(() => {
     if (!footerShouldShow) {
@@ -553,6 +553,7 @@ function App() {
         footerDisplayMode={footerDisplayMode}
         elapsedSeconds={elapsedSeconds}
         othersOnline={othersOnline}
+        showOnTap={showOnTap}
         t={t}
         formatElapsedSeconds={formatElapsedSeconds}
       />
