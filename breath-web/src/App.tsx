@@ -894,12 +894,14 @@ function App() {
           />
         )}
       </section>
-      <footer className={`cycles-footer ${contentVisible && displayCyclesVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || !displayCyclesVisible}>
-        <span>
-          {footerDisplayMode === 'cycles'
-            ? t('footer.cyclesCompleted', { count: cycleCount })
-            : formatElapsedSeconds(elapsedSeconds)}
-        </span>
+      <footer className={`cycles-footer ${contentVisible && (displayCyclesVisible || othersOnline !== null) ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!contentVisible || (!displayCyclesVisible && othersOnline === null)}>
+        {displayCyclesVisible && (
+          <span>
+            {footerDisplayMode === 'cycles'
+              ? t('footer.cyclesCompleted', { count: cycleCount })
+              : formatElapsedSeconds(elapsedSeconds)}
+          </span>
+        )}
         {othersOnline !== null && (
           <span className="cycles-footer__presence">
             {othersOnline === 0 ? t('footer.noOneElse') : t('footer.othersBreathing', { count: othersOnline })}

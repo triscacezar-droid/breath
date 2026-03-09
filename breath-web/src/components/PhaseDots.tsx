@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import type { Phase, TimingMode, BreathMode, ProgressVariant } from '../types'
 
 const MID_SECOND_OFFSET = 0.5
@@ -33,7 +33,8 @@ export function PhaseDots({
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
   }, [phase, duration, phaseStartTimeRef])
-  useEffect(() => {
+  /* useLayoutEffect to reset before paint — avoids one-frame flash at cycle transition */
+  useLayoutEffect(() => {
     setElapsed(0)
   }, [phase])
   /* Dots appear at mid-second: 0.5, 1.5, 2.5... effective count = floor(elapsed - 0.5) + 1 when elapsed >= 0.5 */
