@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Koło",
-      "ring": "Pierścień"
+      "ring": "Pierścień",
+      "aum": "Aum"
     },
     "labelVariantAria": "Styl etykiety",
     "progressVariantAria": "Styl postępu",

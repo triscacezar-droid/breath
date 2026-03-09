@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Круг",
-      "ring": "Кольцо"
+      "ring": "Кольцо",
+      "aum": "Аум"
     },
     "labelVariantAria": "Стиль подписи",
     "progressVariantAria": "Стиль прогресса",

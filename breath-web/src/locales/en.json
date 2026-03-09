@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Circle",
-      "ring": "Ring"
+      "ring": "Ring",
+      "aum": "Aum"
     },
     "labelVariantAria": "Label style",
     "progressVariantAria": "Progress style",

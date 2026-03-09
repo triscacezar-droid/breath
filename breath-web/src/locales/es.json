@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Círculo",
-      "ring": "Anillo"
+      "ring": "Anillo",
+      "aum": "Aum"
     },
     "labelVariantAria": "Estilo de etiqueta",
     "progressVariantAria": "Estilo de progreso",

@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Cerc",
-      "ring": "Inel"
+      "ring": "Inel",
+      "aum": "Aum"
     },
     "labelVariantAria": "Stil etichetă",
     "progressVariantAria": "Stil progres",

@@ -38,7 +38,7 @@ export const FOOTER_DISPLAY_KEY = 'breath-footer-display'
 
 export const LABEL_VARIANTS = ['words', 'icons'] as const
 export const PROGRESS_VARIANTS = ['dots', 'squares'] as const
-export const CENTER_VARIANTS = ['circle', 'ring'] as const
+export const CENTER_VARIANTS = ['circle', 'ring', 'aum'] as const
 
 export const PRESETS = {
   classic: { label: 'words' as const, progress: 'dots' as const, center: 'circle' as const, footer: 'cycles' as const },

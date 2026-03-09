@@ -5,6 +5,7 @@ import { getSpacerClass } from '../breathStack'
 import { getPhaseLabelDisplay } from '../utils'
 import { PhaseDots } from './PhaseDots'
 import { Beads } from './Beads'
+import { CenterAum } from './CenterAum'
 
 export interface BreathSessionProps {
   stack: BreathStack
@@ -164,7 +165,15 @@ export function BreathSession({
             </div>
           )}
         </div>
-        {stack[2] === 'sphere' && (
+        {stack[2] === 'sphere' && centerVariant === 'aum' && (
+          <div
+            className={`center-aum ${contentVisible && displaySphereVisible ? 'center-aum--visible' : 'center-aum--hidden'}`}
+            aria-hidden
+          >
+            <CenterAum />
+          </div>
+        )}
+        {stack[2] === 'sphere' && centerVariant !== 'aum' && (
           <div
             className={`circle circle--viewport-center ${centerVariant === 'ring' ? 'circle--ring' : ''} ${contentVisible && displaySphereVisible ? 'circle--visible' : 'circle--hidden'}`}
             data-phase={phase}

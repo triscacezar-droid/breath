@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Círculo",
-      "ring": "Anel"
+      "ring": "Anel",
+      "aum": "Aum"
     },
     "labelVariantAria": "Estilo de rótulo",
     "progressVariantAria": "Estilo de progresso",

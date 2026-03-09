@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Cerchio",
-      "ring": "Anello"
+      "ring": "Anello",
+      "aum": "Aum"
     },
     "labelVariantAria": "Stile etichetta",
     "progressVariantAria": "Stile progresso",

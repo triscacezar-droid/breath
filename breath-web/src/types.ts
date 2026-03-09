@@ -10,7 +10,7 @@ export type BreathMode = 'normal' | 'anulom_vilom'
 
 export type LabelVariant = 'words' | 'icons'
 export type ProgressVariant = 'dots' | 'squares'
-export type CenterVariant = 'circle' | 'ring'
+export type CenterVariant = 'circle' | 'ring' | 'aum'
 
 export type FooterDisplayMode = 'cycles' | 'time' | 'beads'
 

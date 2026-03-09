@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "圆形",
-      "ring": "环形"
+      "ring": "环形",
+      "aum": "唵"
     },
     "labelVariantAria": "标签样式",
     "progressVariantAria": "进度样式",

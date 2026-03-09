@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "Kreis",
-      "ring": "Ring"
+      "ring": "Ring",
+      "aum": "Aum"
     },
     "labelVariantAria": "Beschriftungsstil",
     "progressVariantAria": "Fortschrittsstil",

@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "円",
-      "ring": "リング"
+      "ring": "リング",
+      "aum": "アウム"
     },
     "labelVariantAria": "ラベルスタイル",
     "progressVariantAria": "進捗スタイル",

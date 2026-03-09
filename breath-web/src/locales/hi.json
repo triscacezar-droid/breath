@@ -58,7 +58,8 @@
     },
     "centerVariants": {
       "circle": "वृत्त",
-      "ring": "रिंग"
+      "ring": "रिंग",
+      "aum": "ॐ"
     },
     "labelVariantAria": "लेबल शैली",
     "progressVariantAria": "प्रगति शैली",
