@@ -1122,7 +1122,7 @@
 
 .circle--ring {
   background: transparent;
-  border: 2px solid var(--color-circle);
+  border: max(2px, 0.5vmin) solid var(--color-circle);
   box-sizing: border-box;
 }
 
