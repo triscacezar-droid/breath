@@ -1,3 +1,17 @@
+/*
+ * App.css — Breath app styles
+ *
+ * === TABLE OF CONTENTS ===
+ * 1. APP SHELL (.app, .content-wrap, .content-inner)
+ * 2. SETTINGS PANEL (.settings, .settings-*)
+ * 3. APP CONTROLS (.app-controls, .app-controls__btn)
+ * 4. SESSION / BREATH STACK (.session, .breath-stack-*, .circle, .status, .phase-dots, .cycles-footer)
+ * 5. COMPONENTS (SlotInput, PhaseDots, DifficultyScale, etc.)
+ * 6. ABOUT OVERLAY (.about-overlay, .about-panel)
+ * 7. ANIMATIONS
+ */
+
+/* === 1. APP SHELL === */
 .app {
   height: 100%;
   min-height: 100dvh;
@@ -8,6 +22,7 @@
   overflow: hidden;
 }
 
+/* === 2. SETTINGS PANEL === */
 .settings {
   position: fixed;
   left: 0;
@@ -34,6 +49,7 @@
   transform: translateX(0);
 }
 
+/* === 3. APP CONTROLS === */
 .app-controls {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
@@ -273,6 +289,7 @@
   background: var(--color-bg-trigger-hover);
 }
 
+/* === 6. ABOUT OVERLAY === */
 .about-overlay {
   position: fixed;
   inset: 0;
@@ -289,6 +306,7 @@
   animation: about-overlay-in 0.2s ease;
 }
 
+/* === 7. ANIMATIONS === */
 @keyframes about-overlay-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -519,6 +537,7 @@
   text-align: center;
 }
 
+/* === 5. COMPONENTS === */
 .slot-input {
   position: relative;
   width: 44px;
@@ -876,6 +895,7 @@
   padding-bottom: 60px; /* space for fixed footer */
 }
 
+/* === 4. SESSION / BREATH STACK === */
 .cycles-footer {
   position: fixed;
   left: 0;

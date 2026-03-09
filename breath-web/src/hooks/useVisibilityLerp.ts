@@ -106,10 +106,7 @@ export function useVisibilityLerp(
     dotsVisibilityAnimated,
     sphereVisibilityAnimated,
     cyclesVisibilityAnimated,
-    setTextVisibilityAnimated,
     setDotsVisibilityAnimated,
-    setSphereVisibilityAnimated,
-    setCyclesVisibilityAnimated,
     getSliderHandlers,
   }
 }

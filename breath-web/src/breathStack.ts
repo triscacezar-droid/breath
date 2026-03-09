@@ -25,22 +25,9 @@ export function buildBreathStack(visible: {
   return [slots[0], slots[1], slots[2]] as BreathStack
 }
 
-export function getSlotIndex(stack: BreathStack, item: StackItem): 0 | 1 | 2 | -1 {
+function getSlotIndex(stack: BreathStack, item: StackItem): 0 | 1 | 2 | -1 {
   const i = stack.indexOf(item)
   return i >= 0 ? (i as 0 | 1 | 2) : -1
-}
-
-export function getTopForSlot(
-  slotIndex: 0 | 1 | 2 | -1,
-  slotTops: readonly [number, number, number],
-  slot3Height: number,
-  isSphere: boolean
-): number {
-  if (slotIndex < 0) return 0
-  if (isSphere && slotIndex === 2) {
-    return slotTops[2] - slot3Height / 2
-  }
-  return slotTops[slotIndex as 0 | 1 | 2]
 }
 
 export function isInStack(stack: BreathStack, item: StackItem): boolean {
@@ -64,7 +51,7 @@ const GAP_ABOVE_DOTS_VH = 10
 const CENTER_VH = 50
 
 /** Minimum pixel distance between slot centers (avoids overlap in horizontal/landscape) */
-export const STACK_MIN_GAP_PX = 48
+const STACK_MIN_GAP_PX = 48
 /** Sphere size from CSS clamp(120px, 48vmin, 280px); min gap above sphere = size/2 + 20px */
 const CIRCLE_MIN_PX = 120
 const CIRCLE_VMIN = 48

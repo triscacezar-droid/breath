@@ -89,6 +89,13 @@ export function schemeToThemeKey(scheme: (typeof COLOR_SCHEMES)[number]): string
 
 export const SLOT_ANIMATION_MS = 260
 
+/** Delay before initial content reveal (ms) */
+export const INITIAL_DELAY_MS = 1000
+/** Delay for settings reset transition (ms) */
+export const SETTINGS_RESET_DELAY_MS = 1000
+/** Auto-hide info overlay after inactivity (ms) */
+export const INFO_AUTO_HIDE_MS = 10_000
+
 export function getMaxMultiplier(timingMode: TimingMode): number {
   if (timingMode === 'kumbhaka') return 15
   if (timingMode === 'long_exhale' || timingMode === 'equal') return 30

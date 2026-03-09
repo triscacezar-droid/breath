@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Phase } from '../types'
 import { DEFAULT_DURATIONS } from '../constants'
-import { nextPhase, phaseLabel } from '../utils'
+import { nextPhase } from '../utils'
 
 const TEXT_TRANSITION_MS = 700
 
@@ -10,7 +10,6 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
   const [secondsLeft, setSecondsLeft] = useState(DEFAULT_DURATIONS.INHALE)
   const [cycleCount, setCycleCount] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [prevLabel, setPrevLabel] = useState(() => phaseLabel('INHALE'))
   const [prevPhase, setPrevPhase] = useState<Phase>('INHALE')
   const [labelAnimating, setLabelAnimating] = useState(false)
 
@@ -21,8 +20,6 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
   const sessionStartTimeRef = useRef<number>(performance.now())
   const cycleCountRef = useRef(0)
   const elapsedSecondsRef = useRef(0)
-
-  const label = phaseLabel(phase)
 
   useEffect(() => {
     phaseRef.current = phase
@@ -86,7 +83,6 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
         setCycleCount(newC)
       }
 
-      setPrevLabel(phaseLabel(currentPhase))
       setPrevPhase(currentPhase)
       phaseRef.current = next
       setLabelAnimating(true)
@@ -113,7 +109,6 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
     setPrevPhase('INHALE')
     setCycleCount(0)
     setLabelAnimating(false)
-    setPrevLabel(phaseLabel('INHALE'))
   }
 
   function reset() {
@@ -134,29 +129,19 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
     setCycleCount(0)
     setElapsedSeconds(0)
     setLabelAnimating(false)
-    setPrevLabel(phaseLabel(firstPhase))
     setPrevPhase(firstPhase)
   }
 
   return {
     phase,
-    secondsLeft,
     cycleCount,
     elapsedSeconds,
-    label,
-    prevLabel,
     prevPhase,
     labelAnimating,
-    setPhase,
-    setSecondsLeft,
-    setCycleCount,
-    setPrevLabel,
-    setLabelAnimating,
     resetToInhale,
     reset,
     phaseRef,
     cycleCountRef,
     phaseStartTimeRef,
-    secondsLeftRef,
   }
 }

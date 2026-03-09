@@ -48,5 +48,4 @@ i18n
     },
   })
 
-export { LOCALE_KEY }
 export default i18n
