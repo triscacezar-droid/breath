@@ -9,6 +9,7 @@ export function useTapHandlers(
   const handleContentClick = () => {
     if (showSettings) {
       setShowSettings(false)
+      setShowInfo(true) /* treat closing settings as a tap: start timer, keep on-tap items visible */
       return
     }
     setShowInfo(true)

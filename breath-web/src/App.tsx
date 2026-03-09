@@ -138,10 +138,11 @@ function App() {
   const totalBreathSeconds =
     durations.INHALE + durations.HOLD_TOP + durations.EXHALE + durations.HOLD_BOTTOM
   const breathsPerMinute = totalBreathSeconds > 0 ? 60 / totalBreathSeconds : 0
-  const textVisible = textVisibility === 2 || (textVisibility === 1 && showInfo)
-  const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showInfo)
-  const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showInfo)
-  const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showInfo)
+  const showOnTap = showInfo || showSettings
+  const textVisible = textVisibility === 2 || (textVisibility === 1 && showOnTap)
+  const dotsVisible = dotsVisibility === 2 || (dotsVisibility === 1 && showOnTap)
+  const sphereVisible = sphereVisibility === 2 || (sphereVisibility === 1 && showOnTap)
+  const cyclesVisible = cyclesVisibility === 2 || (cyclesVisibility === 1 && showOnTap)
   const contentVisible = initialDelayPassed && contentRevealed
 
   const {
@@ -495,7 +496,7 @@ function App() {
       <div className="content-wrap" onClick={handleContentClick}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
         <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
-        <div className={`app-controls ${showInfo && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showInfo || !contentVisible}>
+        <div className={`app-controls ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showOnTap || !contentVisible}>
           <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label={t('settings.openSettings')}>
             <span className="settings-trigger-icon" aria-hidden />
           </button>
