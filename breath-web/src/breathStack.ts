@@ -48,7 +48,7 @@ export function isEntering(prev: BreathStack, next: BreathStack, item: StackItem
 /** Viewport-relative positions: slot 2 = center, slot 1 = 15vh above, slot 0 = 25vh above */
 const GAP_ABOVE_SPHERE_VH = 15
 const GAP_ABOVE_DOTS_VH = 10
-export const CENTER_VH = 50
+export const CENTER_VH = 45
 
 /** Minimum pixel distance between slot centers (avoids overlap in horizontal/landscape) */
 const STACK_MIN_GAP_PX = 48

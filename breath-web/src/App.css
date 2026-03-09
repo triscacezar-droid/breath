@@ -1044,7 +1044,7 @@
   position: absolute;
   left: 50%;
   top: 0;
-  bottom: 50%;
+  bottom: var(--center-top);
   transform: translateX(-50%);
   width: 100%;
   max-width: 100%;
@@ -1145,7 +1145,7 @@
 .circle--viewport-center {
   position: fixed;
   left: 50%;
-  top: 50%;
+  top: var(--center-top);
   margin: 0;
   pointer-events: auto;
 }
@@ -1154,7 +1154,7 @@
 .center-aum {
   position: fixed;
   left: 50%;
-  top: 50%;
+  top: var(--center-top);
   transform: translate(-50%, -50%);
   margin: 0;
   pointer-events: auto;

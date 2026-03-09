@@ -1,6 +1,8 @@
 /* Theme variables — dark (default) */
 :root,
 :root[data-theme="dark"] {
+  /* Vertical center for sphere/Aum/text/dots; keep in sync with breathStack.ts CENTER_VH */
+  --center-top: 45%;
   --color-bg-page: #111;
   --color-bg-page-hover: #222;
   --color-bg-panel: rgba(0, 0, 0, 0.95);

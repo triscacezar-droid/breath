@@ -131,7 +131,7 @@ export function BreathSession({
             <div
               className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringText ? 'breath-stack__float-item--entering' : ''}`}
               style={{
-                top: textTopVh === 50 ? '50%' : `${textTopVh}vh`,
+                top: textTopVh === CENTER_VH ? `${CENTER_VH}%` : `${textTopVh}vh`,
                 transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onAnimationEnd={() => enteringText && setEnteringText(false)}
@@ -154,7 +154,7 @@ export function BreathSession({
             <div
               className={`breath-stack__float-item breath-stack__float-item--viewport ${enteringDots ? 'breath-stack__float-item--entering' : ''}`}
               style={{
-                top: dotsTopVh === CENTER_VH ? '50%' : `${dotsTopVh}vh`,
+                top: dotsTopVh === CENTER_VH ? `${CENTER_VH}%` : `${dotsTopVh}vh`,
                 transition: isZoomSnapRef.current ? 'none' : 'top 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
               onAnimationEnd={() => enteringDots && setEnteringDots(false)}
