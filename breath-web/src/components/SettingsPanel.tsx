@@ -364,14 +364,15 @@ export const SettingsPanel = forwardRef<HTMLElement, SettingsPanelProps>(functio
       </div>
       <div className="settings-row settings-row--slider">
         <SettingsDropdown
-          options={[
-            { value: 'cycles' as const, label: t('footer.displayMode.cycles') },
-            { value: 'time' as const, label: t('footer.displayMode.time') },
-          ]}
-          selected={footerDisplayMode}
-          onSelect={setFooterDisplayMode}
-          ariaLabel={t('footer.displayModeAria')}
-          triggerLabel={footerDisplayMode === 'cycles' ? t('footer.displayMode.cycles') : t('footer.displayMode.time')}
+            options={[
+              { value: 'cycles' as const, label: t('footer.displayMode.cycles') },
+              { value: 'time' as const, label: t('footer.displayMode.time') },
+              { value: 'beads' as const, label: t('footer.displayMode.beads') },
+            ]}
+            selected={footerDisplayMode}
+            onSelect={setFooterDisplayMode}
+            ariaLabel={t('footer.displayModeAria')}
+            triggerLabel={footerDisplayMode === 'cycles' ? t('footer.displayMode.cycles') : footerDisplayMode === 'time' ? t('footer.displayMode.time') : t('footer.displayMode.beads')}
           isOpen={footerDisplayDropdownOpen}
           onOpenChange={setFooterDisplayDropdownOpen}
         />

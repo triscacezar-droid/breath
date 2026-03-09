@@ -80,7 +80,7 @@ export function getStoredBreathMode(): BreathMode {
 
 export function getStoredFooterDisplayMode(): FooterDisplayMode {
   const s = localStorage.getItem(FOOTER_DISPLAY_KEY)
-  if (s === 'cycles' || s === 'time') return s
+  if (s === 'cycles' || s === 'time' || s === 'beads') return s
   return 'cycles'
 }
 

@@ -114,9 +114,10 @@
   "footer": {
     "displayMode": {
       "cycles": "Cycles",
-      "time": "Time"
+      "time": "Time",
+      "beads": "Beads"
     },
-    "displayModeAria": "Show cycles or time",
+    "displayModeAria": "Show cycles, time, or beads",
     "cyclesCompleted": "{{count}} cycles completed",
     "noOneElse": "No one else right now",
     "othersBreathing_one": "{{count}} other breathing now",

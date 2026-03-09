@@ -12,7 +12,7 @@ export type LabelVariant = 'words' | 'icons'
 export type ProgressVariant = 'dots' | 'squares'
 export type CenterVariant = 'circle' | 'ring'
 
-export type FooterDisplayMode = 'cycles' | 'time'
+export type FooterDisplayMode = 'cycles' | 'time' | 'beads'
 
 export type ColorScheme =
   | 'dark'

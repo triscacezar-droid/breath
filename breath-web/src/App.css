@@ -954,6 +954,51 @@
   color: var(--color-text-muted);
 }
 
+.beads {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+}
+
+.beads__svg {
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+}
+
+.beads__circle {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.beads__bead {
+  fill: var(--color-text-secondary);
+  opacity: 0.6;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), fill 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.beads__bead--main {
+  fill: var(--color-text-primary);
+  opacity: 1;
+}
+
+.beads__bead--current {
+  opacity: 1;
+  fill: var(--color-accent, var(--color-text-primary));
+}
+
+.beads__tassel line {
+  stroke: var(--color-text-primary);
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+
+.beads__triangle {
+  fill: var(--color-text-primary);
+  opacity: 0.9;
+  visibility: hidden; /* hidden for now, remove to show */
+}
+
 .header {
   text-align: center;
 }
