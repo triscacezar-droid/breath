@@ -19,6 +19,18 @@ I hope it helps you calm down and enjoy the world around around you.
 
 ## Run locally
 
+**All services (frontend + backend):**
+
+```bash
+npm install
+npm run dev
+```
+
+- Frontend: [http://localhost:5173](http://localhost:5173)
+- Backend: [http://localhost:8000](http://localhost:8000) (Zen Chat API)
+
+**Frontend only:**
+
 ```bash
 cd breath-web
 npm install

@@ -1,0 +1,13 @@
+{
+  "name": "breath",
+  "private": true,
+  "description": "Breath app – breathing exercise + Zen Chat",
+  "scripts": {
+    "dev": "concurrently -n fe,be -c blue,green \"npm run dev:fe\" \"npm run dev:be\"",
+    "dev:fe": "cd breath-web && npm run dev",
+    "dev:be": "cd zen-chat-backend && uv run uvicorn app.main:app --reload --port 8000"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
