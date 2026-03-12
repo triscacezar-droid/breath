@@ -48,6 +48,18 @@ npm run build
 
 Output is in `breath-web/dist/`.
 
+## Deploy Zen Chat (production)
+
+To enable the Zen Chat companion on the deployed app:
+
+1. **Deploy the backend** – See [zen-chat-backend/README.md](zen-chat-backend/README.md#deploy) for Railway, Render, or Docker. You need a public URL (e.g. `https://zen-chat-xxx.up.railway.app`).
+
+2. **Configure Vercel** – In your project’s Environment Variables, add:
+   - `VITE_ZEN_CHAT_ENABLED` = `true`
+   - `VITE_ZEN_CHAT_API_URL` = `https://your-backend-url.com` (no trailing slash)
+
+3. **Redeploy** – Trigger a new deployment so the frontend picks up the env vars.
+
 ## Breath Browser E2E Skill
 
 In Cursor, you can run a full end-to-end regression of the Breath app using the `breath-browser-e2e-regression` skill.
