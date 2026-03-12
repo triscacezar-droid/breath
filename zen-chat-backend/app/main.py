@@ -1,4 +1,11 @@
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from zen-chat-backend directory
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -61,10 +68,10 @@ def _get_openai_client() -> OpenAI:
 
 def _get_model_name() -> str:
   model = os.environ.get("ZEN_CHAT_MODEL", "").strip()
-  return model or "gpt-4.1-mini"
+  return model or "gpt-4o-mini"
 
 
-@app.post("/api/chat", response_model=ChatResponse, responses={400: {"model": ChatErrorResponse}})
+@app.post("/api/chat", response_model=ChatResponse, responses={400: {"model": ChatErrorResponse}, 503: {"model": ChatErrorResponse}})
 async def chat(request: ChatRequest) -> ChatResponse:
   if not request.messages:
     raise HTTPException(
@@ -75,7 +82,19 @@ async def chat(request: ChatRequest) -> ChatResponse:
       ).model_dump(),
     )
 
-  client = _get_openai_client()
+  try:
+    client = _get_openai_client()
+  except RuntimeError as e:
+    if "OPENAI_API_KEY" in str(e):
+      raise HTTPException(
+        status_code=503,
+        detail=ChatErrorResponse(
+          errorCode="api_key_not_configured",
+          errorMessage="Zen chat is not configured. Set OPENAI_API_KEY in the backend environment.",
+        ).model_dump(),
+      ) from e
+    raise
+
   model_name = _get_model_name()
 
   system_prompt = (
@@ -99,12 +118,38 @@ async def chat(request: ChatRequest) -> ChatResponse:
   max_tokens = request.maxTokens if request.maxTokens is not None else 256
   temperature = request.temperature if request.temperature is not None else 0.7
 
-  completion = client.chat.completions.create(
-    model=model_name,
-    messages=openai_messages,
-    max_tokens=max_tokens,
-    temperature=temperature,
-  )
+  try:
+    completion = client.chat.completions.create(
+      model=model_name,
+      messages=openai_messages,
+      max_tokens=max_tokens,
+      temperature=temperature,
+    )
+  except Exception as e:
+    msg = str(e)
+    if "429" in msg or "quota" in msg.lower():
+      raise HTTPException(
+        status_code=503,
+        detail=ChatErrorResponse(
+          errorCode="quota_exceeded",
+          errorMessage="OpenAI quota exceeded. Check your billing at platform.openai.com.",
+        ).model_dump(),
+      ) from e
+    if "api_key" in msg.lower() or "authentication" in msg.lower():
+      raise HTTPException(
+        status_code=503,
+        detail=ChatErrorResponse(
+          errorCode="api_key_invalid",
+          errorMessage="Zen chat API key is invalid or expired. Check OPENAI_API_KEY.",
+        ).model_dump(),
+      ) from e
+    raise HTTPException(
+      status_code=503,
+      detail=ChatErrorResponse(
+        errorCode="chat_service_error",
+        errorMessage="Zen chat is temporarily unavailable. Try again later.",
+      ).model_dump(),
+    ) from e
 
   content = completion.choices[0].message.content or ""
   now = datetime.now(timezone.utc)

@@ -48,6 +48,18 @@ npm run build
 
 Output is in `breath-web/dist/`.
 
+## Breath Browser E2E Skill
+
+In Cursor, you can run a full end-to-end regression of the Breath app using the `breath-browser-e2e-regression` skill.
+
+- **What it does**: Starts from `http://localhost:5173` and walks through breathing session basics, settings and ratios, visibility/presets, themes/languages, About overlay, and Zen Chat (including error handling).
+- **How to use**:
+  - From repo root, run:
+    - `npm install`
+    - `npm run dev`
+  - In Cursor, invoke the `breath-browser-e2e-regression` skill and follow the checklist in `.cursor/skills/breath-browser-e2e-regression/SKILL.md`.
+- **Notes**: For Zen Chat replies, set `OPENAI_API_KEY` for the backend; without it, the skill still verifies that error states are handled gracefully.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

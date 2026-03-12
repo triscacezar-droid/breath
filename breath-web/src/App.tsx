@@ -12,11 +12,13 @@ import {
   INITIAL_DELAY_MS,
   SETTINGS_RESET_DELAY_MS,
   INFO_AUTO_HIDE_MS,
+  ZEN_CHAT_ENABLED,
 } from './constants'
 import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterDisplayMode, formatElapsedSeconds } from './utils'
 import { buildBreathStack } from './breathStack'
 import { SettingsPanel } from './components/SettingsPanel'
 import { BreathSession } from './components/BreathSession'
+import { ZenChatPanel } from './components/ZenChatPanel'
 import { useVisibilityLerp } from './hooks/useVisibilityLerp'
 import { useVisibilityWithDelays } from './hooks/useVisibilityWithDelays'
 import { useBreathTimer } from './hooks/useBreathTimer'
@@ -112,6 +114,7 @@ function App() {
   const [centerVariantDropdownOpen, setCenterVariantDropdownOpen] = useState(false)
   const [footerDisplayMode, setFooterDisplayMode] = useState<FooterDisplayMode>(getStoredFooterDisplayMode)
   const [footerDisplayDropdownOpen, setFooterDisplayDropdownOpen] = useState(false)
+  const [zenChatOpen, setZenChatOpen] = useState(false)
 
   const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
 
@@ -495,24 +498,65 @@ function App() {
         )}
       <div className="content-wrap" onClick={handleContentClick}>
         <div className={`content-inner ${contentVisible ? 'content-inner--visible' : ''}`}>
-        <div className="content-transition-wrap" style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}>
-        <div className={`app-controls ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`} aria-hidden={!showOnTap || !contentVisible}>
-          <button type="button" className="app-controls__btn settings-trigger" onClick={(e) => { e.stopPropagation(); setShowSettings(true) }} onTouchStart={(e) => e.stopPropagation()} aria-label={t('settings.openSettings')}>
-            <span className="settings-trigger-icon" aria-hidden />
-          </button>
-          {isFullscreenSupported && (
-            <button
-              type="button"
-              className="app-controls__btn fullscreen-trigger"
-              onClick={(e) => { e.stopPropagation(); toggleFullscreen() }}
-              onTouchStart={(e) => e.stopPropagation()}
-              aria-label={isFullscreen ? t('settings.exitFullscreen') : t('settings.enterFullscreen')}
+          <div
+            className="content-transition-wrap"
+            style={{ opacity: contentTransitionOpacity, transition: 'opacity 0.5s ease' }}
+          >
+            <div
+              className={`app-controls ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`}
+              aria-hidden={!showOnTap || !contentVisible}
             >
-              <span className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`} aria-hidden />
-            </button>
-          )}
-        </div>
-      <BreathSession
+              <button
+                type="button"
+                className="app-controls__btn settings-trigger"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowSettings(true)
+                }}
+                onTouchStart={(e) => e.stopPropagation()}
+                aria-label={t('settings.openSettings')}
+              >
+                <span className="settings-trigger-icon" aria-hidden />
+              </button>
+              {isFullscreenSupported && (
+                <button
+                  type="button"
+                  className="app-controls__btn fullscreen-trigger"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleFullscreen()
+                  }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  aria-label={isFullscreen ? t('settings.exitFullscreen') : t('settings.enterFullscreen')}
+                >
+                  <span
+                    className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`}
+                    aria-hidden
+                  />
+                </button>
+              )}
+            </div>
+            {ZEN_CHAT_ENABLED && (
+              <div
+                className={`app-controls app-controls--right ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`}
+                aria-hidden={!showOnTap || !contentVisible}
+              >
+                <button
+                  type="button"
+                  className="app-controls__btn zen-chat-trigger"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setZenChatOpen((open) => !open)
+                  }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  aria-label={zenChatOpen ? 'Close Zen chat' : 'Open Zen chat'}
+                >
+                  <span className="zen-chat-trigger-icon" aria-hidden />
+                </button>
+              </div>
+            )}
+            <div className="content-main">
+              <BreathSession
         stack={stack}
         stackRef={stackRef}
         slot1Ref={slot1Ref}
@@ -557,7 +601,11 @@ function App() {
         t={t}
         formatElapsedSeconds={formatElapsedSeconds}
       />
-        </div>
+              {ZEN_CHAT_ENABLED && (
+                <ZenChatPanel isOpen={zenChatOpen} onClose={() => setZenChatOpen(false)} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </main>

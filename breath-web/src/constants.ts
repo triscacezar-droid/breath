@@ -31,6 +31,9 @@ export const LONG_EXHALE_RATIO: Record<Phase, number> = {
   HOLD_BOTTOM: 0,
 }
 
+/** Set VITE_ZEN_CHAT_ENABLED=true in .env to show Zen chat. Off by default for production. */
+export const ZEN_CHAT_ENABLED = import.meta.env.VITE_ZEN_CHAT_ENABLED === 'true'
+
 export const BREATH_MODE_KEY = 'breath-mode'
 export const COLOR_SCHEME_KEY = 'breath-color-scheme'
 export const VISUALIZATION_KEY = 'breath-visualization'

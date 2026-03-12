@@ -12,10 +12,13 @@ Minimal FastAPI backend for the Zen Buddhist chatbot sidebar. Exposes an HTTP AP
 
 ### Run locally
 
+**Required:** Set `OPENAI_API_KEY` in your environment (or create a `.env` file in `zen-chat-backend/`).
+
 ```bash
 cd zen-chat-backend
-uvicorn app.main:app --reload --port 8000
+export OPENAI_API_KEY=sk-...
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Then point the frontend `VITE_ZEN_CHAT_API_URL` to `http://localhost:8000`.
+Or from the project root with `npm run dev` (starts both frontend and backend). Ensure `OPENAI_API_KEY` is set before starting.
 
