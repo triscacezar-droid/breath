@@ -41,7 +41,27 @@ Optional env vars:
 This backend can optionally ground replies in a local corpus of Buddhist texts using
 retrieval-augmented generation (RAG).
 
-- Corpus location: place UTF-8 `.txt` files under `app/data/buddhist_texts/`.
+#### Acquiring the corpus
+
+A small sample (Dhammapada excerpts) is included. For a larger corpus:
+
+```bash
+cd zen-chat-backend
+uv run python -m scripts.fetch_buddhist_corpus --source huggingface
+```
+
+**Sources and licenses:**
+
+| Source       | License | Description                                      |
+|-------------|---------|--------------------------------------------------|
+| `huggingface` | CC BY 4.0 | Buddhist Classics Vol.13 (English, ~1.7GB)      |
+| `sample`    | Public domain | Dhammapada excerpts (included)              |
+
+Ingestion requires `OPENAI_API_KEY` for embeddings.
+
+#### Corpus location and ingestion
+
+- Corpus location: UTF-8 `.txt` files under `data/buddhist_texts/` (subdirs: `sample/`, `huggingface/`, etc.).
 - Ingestion:
   - Ensure `OPENAI_API_KEY` is set.
   - Run `cd zen-chat-backend` then:
