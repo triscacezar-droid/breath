@@ -98,8 +98,8 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     event.preventDefault()
     const value = input.trim()
     if (!value) return
-    await send(value)
     setInput('')
+    await send(value)
   }
 
   useEffect(() => {
