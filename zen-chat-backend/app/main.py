@@ -9,16 +9,27 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
+from app.config import CORS_ORIGINS, MAX_CONTENT_LENGTH, MAX_MESSAGES, PRODUCTION, RATE_LIMIT_CHAT
 
 
 class ChatMessage(BaseModel):
   id: str = Field(..., description="Client-generated unique identifier for the message.")
   role: str = Field(..., pattern="^(user|assistant|system)$")
-  content: str = Field(..., min_length=1, description="Message content in plain text.")
+  content: str = Field(
+    ...,
+    min_length=1,
+    max_length=MAX_CONTENT_LENGTH,
+    description="Message content in plain text.",
+  )
   createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -32,7 +43,7 @@ class ChatCitation(BaseModel):
 
 class ChatRequest(BaseModel):
   sessionId: Optional[str] = None
-  messages: List[ChatMessage]
+  messages: List[ChatMessage] = Field(..., max_length=MAX_MESSAGES)
   maxTokens: Optional[int] = Field(default=None, ge=1, le=4096)
   temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0)
 
@@ -48,11 +59,43 @@ class ChatErrorResponse(BaseModel):
   errorMessage: str
 
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Zen Chat Backend", version="0.1.0")
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+  return JSONResponse(
+    status_code=429,
+    content={
+      "detail": {
+        "errorCode": "rate_limit_exceeded",
+        "errorMessage": "Too many requests. Please try again later.",
+      }
+    },
+  )
+
+
+@app.exception_handler(Exception)
+async def catch_unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
+  if isinstance(exc, HTTPException):
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+  msg = "Zen chat is temporarily unavailable. Try again later." if PRODUCTION else str(exc)[:400]
+  return JSONResponse(
+    status_code=503,
+    content={
+      "detail": {
+        "errorCode": "chat_service_error",
+        "errorMessage": msg,
+      }
+    },
+  )
+
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "*"],
+  allow_origins=CORS_ORIGINS,
   allow_credentials=True,
   allow_methods=["POST", "OPTIONS"],
   allow_headers=["*"],
@@ -71,9 +114,10 @@ def _get_model_name() -> str:
   return model or "gpt-4o-mini"
 
 
-@app.post("/api/chat", response_model=ChatResponse, responses={400: {"model": ChatErrorResponse}, 503: {"model": ChatErrorResponse}})
-async def chat(request: ChatRequest) -> ChatResponse:
-  if not request.messages:
+@app.post("/api/chat", response_model=ChatResponse, responses={400: {"model": ChatErrorResponse}, 429: {"model": ChatErrorResponse}, 503: {"model": ChatErrorResponse}})
+@limiter.limit(RATE_LIMIT_CHAT)
+async def chat(request: Request, body: ChatRequest) -> ChatResponse:
+  if not body.messages:
     raise HTTPException(
       status_code=400,
       detail=ChatErrorResponse(
@@ -107,7 +151,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
   openai_messages: list[dict[str, str]] = [
     {"role": "system", "content": system_prompt},
   ]
-  for message in request.messages:
+  for message in body.messages:
     openai_messages.append(
       {
         "role": message.role,
@@ -115,8 +159,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
       }
     )
 
-  max_tokens = request.maxTokens if request.maxTokens is not None else 256
-  temperature = request.temperature if request.temperature is not None else 0.7
+  max_tokens = body.maxTokens if body.maxTokens is not None else 256
+  temperature = body.temperature if body.temperature is not None else 0.7
 
   try:
     completion = client.chat.completions.create(

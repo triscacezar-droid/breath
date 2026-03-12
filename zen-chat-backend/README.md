@@ -22,6 +22,16 @@ uv run uvicorn app.main:app --reload --port 8000
 
 Or from the project root with `npm run dev` (starts both frontend and backend). Ensure `OPENAI_API_KEY` is set before starting.
 
+### Security & configuration
+
+Optional env vars:
+
+- `CORS_ORIGINS` – Comma-separated allowed origins (default: localhost + simplebreath.co.uk + breath-jet.vercel.app).
+- `ZEN_CHAT_RATE_LIMIT` – Rate limit for `/api/chat` (default: `20/minute` per IP).
+- `ENVIRONMENT=production` or `RAILWAY_ENVIRONMENT=production` – Enables generic error messages (no raw exception text in 503 responses).
+
+**Prompt injection:** User content is sent to OpenAI. The system prompt is fixed and sent first. Consider content filtering or output validation for stricter use cases.
+
 ### Deploy
 
 **Required env:** `OPENAI_API_KEY` (add as secret on your host). Optional: `ZEN_CHAT_MODEL` (default: `gpt-4o-mini`).
