@@ -67,7 +67,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
   const [input, setInput] = useState('')
   const isWide = useIsWideViewport()
   const [panelWidth, setPanelWidth] = usePanelWidth()
-  const [keyboardOffset, setKeyboardOffset] = useState(0)
+  const [, setKeyboardOffset] = useState(0)
 
   const grouped = useMemo(() => groupMessages(messages), [messages])
 
