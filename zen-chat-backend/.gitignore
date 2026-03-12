@@ -2,3 +2,8 @@ __pycache__/
 .venv/
 *.egg-info/
 .env
+
+# Large fetched corpus (run scripts.fetch_buddhist_corpus to populate)
+data/buddhist_vectors/
+data/buddhist_texts/huggingface/*.txt
+data/buddhist_texts/suttacentral/*.txt

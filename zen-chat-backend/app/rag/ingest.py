@@ -21,7 +21,9 @@ from app.rag.schemas import RagChunk
 from app.rag.store import create_chroma_store
 
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "buddhist_texts"
+# zen-chat-backend root (parent of app/)
+_DATA_ROOT = Path(__file__).resolve().parent.parent.parent
+DATA_DIR = _DATA_ROOT / "data" / "buddhist_texts"
 
 
 def _iter_text_files(root: Path) -> Iterable[Path]:
@@ -90,10 +92,18 @@ def ingest_corpus() -> None:
     embedding_model=config.RAG_EMBEDDING_MODEL,
   )
 
-  source = "Buddhist Corpus"
+  SOURCE_MAP: dict[str, str] = {
+    "sample": "Dhammapada (sample)",
+    "huggingface": "Buddhist Classics (Hugging Face)",
+    "suttacentral": "SuttaCentral",
+  }
   all_chunks: list[RagChunk] = []
 
   for path in _iter_text_files(DATA_DIR):
+    rel = path.relative_to(DATA_DIR)
+    parts = rel.parts
+    subdir = parts[0] if len(parts) > 1 else None
+    source = SOURCE_MAP.get(subdir or "", subdir or "Buddhist Corpus")
     all_chunks.extend(build_chunks_for_file(path, source=source))
 
   if not all_chunks:
