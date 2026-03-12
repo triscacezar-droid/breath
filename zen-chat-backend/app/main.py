@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -11,7 +12,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field, ValidationError
 from slowapi import Limiter
@@ -244,6 +245,143 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     id=f"chat-{int(now.timestamp())}",
     message=response_message,
     citations=citations,
+  )
+
+
+def _sse_line(data: dict) -> str:
+  """Format a dict as an SSE data line."""
+  return f"data: {json.dumps(data)}\n\n"
+
+
+async def _stream_chat_generator(
+  body: ChatRequest,
+  client: OpenAI,
+  model_name: str,
+  openai_messages: list[dict[str, str]],
+  max_tokens: int,
+  temperature: float,
+  citations: Optional[List[ChatCitation]],
+) -> str:
+  """Async generator yielding SSE events for streaming chat.
+
+  Yields content deltas, then a done event with message metadata.
+  On OpenAI exception, yields an error event.
+  """
+  try:
+    stream = client.chat.completions.create(
+      model=model_name,
+      messages=openai_messages,
+      max_tokens=max_tokens,
+      temperature=temperature,
+      stream=True,
+    )
+    for chunk in stream:
+      delta = chunk.choices[0].delta.content if chunk.choices else None
+      if delta:
+        yield _sse_line({"type": "content", "delta": delta})
+
+    now = datetime.now(timezone.utc)
+    message_id = f"assistant-{int(now.timestamp())}"
+    chat_id = f"chat-{int(now.timestamp())}"
+    citations_payload = [c.model_dump() for c in (citations or [])]
+    yield _sse_line(
+      {
+        "type": "done",
+        "id": chat_id,
+        "messageId": message_id,
+        "citations": citations_payload,
+      }
+    )
+  except Exception as e:
+    msg = str(e)
+    if "429" in msg or "quota" in msg.lower():
+      yield _sse_line(
+        {
+          "type": "error",
+          "errorCode": "quota_exceeded",
+          "errorMessage": "OpenAI quota exceeded. Check your billing at platform.openai.com.",
+        }
+      )
+    elif "api_key" in msg.lower() or "authentication" in msg.lower():
+      yield _sse_line(
+        {
+          "type": "error",
+          "errorCode": "api_key_invalid",
+          "errorMessage": "Zen chat API key is invalid or expired. Check OPENAI_API_KEY.",
+        }
+      )
+    else:
+      yield _sse_line(
+        {
+          "type": "error",
+          "errorCode": "chat_service_error",
+          "errorMessage": "Zen chat is temporarily unavailable. Try again later.",
+        }
+      )
+
+
+@app.post("/api/chat/stream", responses={400: {"model": ChatErrorResponse}, 429: {"model": ChatErrorResponse}, 503: {"model": ChatErrorResponse}})
+@limiter.limit(RATE_LIMIT_CHAT)
+async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
+  """Stream assistant response token-by-token via SSE."""
+  if not body.messages:
+    raise HTTPException(
+      status_code=400,
+      detail=ChatErrorResponse(
+        errorCode="empty_messages",
+        errorMessage="At least one message is required.",
+      ).model_dump(),
+    )
+
+  try:
+    client = _get_openai_client()
+  except RuntimeError as e:
+    if "OPENAI_API_KEY" in str(e):
+      raise HTTPException(
+        status_code=503,
+        detail=ChatErrorResponse(
+          errorCode="api_key_not_configured",
+          errorMessage="Zen chat is not configured. Set OPENAI_API_KEY in the backend environment.",
+        ).model_dump(),
+      ) from e
+    raise
+
+  rag_service: RagService | None = app.state.rag_service
+  if RAG_ENABLED and rag_service is None:
+    rag_service = init_rag_service_for_app(client)
+    app.state.rag_service = rag_service
+
+  model_name = _get_model_name()
+  system_prompt = build_system_prompt()
+
+  openai_messages: list[dict[str, str]] = [
+    {"role": "system", "content": system_prompt},
+  ]
+  for message in body.messages:
+    openai_messages.append(
+      {"role": message.role, "content": message.content}
+    )
+
+  citations: Optional[List[ChatCitation]] = None
+  if RAG_ENABLED and rag_service is not None:
+    context = rag_service.build_context_for_request(body)
+    openai_messages = append_rag_messages(openai_messages, context)
+    citations = rag_service.context_to_citations(context) or None
+
+  max_tokens = body.maxTokens if body.maxTokens is not None else 256
+  temperature = body.temperature if body.temperature is not None else 0.7
+
+  return StreamingResponse(
+    _stream_chat_generator(
+      body=body,
+      client=client,
+      model_name=model_name,
+      openai_messages=openai_messages,
+      max_tokens=max_tokens,
+      temperature=temperature,
+      citations=citations,
+    ),
+    media_type="text/event-stream",
   )
 
 
