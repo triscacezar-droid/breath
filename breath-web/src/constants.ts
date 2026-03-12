@@ -37,9 +37,7 @@ export const ZEN_CHAT_ENABLED = import.meta.env.VITE_ZEN_CHAT_ENABLED === 'true'
 export const BREATH_MODE_KEY = 'breath-mode'
 export const COLOR_SCHEME_KEY = 'breath-color-scheme'
 export const VISUALIZATION_KEY = 'breath-visualization'
-export const FOOTER_MODE_KEY = 'breath-footer-mode'
-
-export const FOOTER_MODES = ['cycles', 'time'] as const
+export const FOOTER_DISPLAY_KEY = 'breath-footer-display'
 
 export const LABEL_VARIANTS = ['words', 'icons'] as const
 export const PROGRESS_VARIANTS = ['dots', 'squares'] as const

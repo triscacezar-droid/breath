@@ -43,19 +43,12 @@ export function useBreathTimer(durationsRef: React.MutableRefObject<Record<Phase
   }, [labelAnimating])
 
   useEffect(() => {
-    sessionStartTimeRef.current = performance.now()
-  }, [])
-
-  useEffect(() => {
     const tick = () => {
       const currentPhase = phaseRef.current
       const phaseDuration = durationsRef.current[currentPhase]
       const elapsed = (performance.now() - phaseStartTimeRef.current) / 1000
-      const totalElapsed = Math.floor((performance.now() - sessionStartTimeRef.current) / 1000)
       const currentLeft = Math.max(0, Math.ceil(phaseDuration - elapsed))
       const sessionElapsed = Math.floor((performance.now() - sessionStartTimeRef.current) / 1000)
-
-      setElapsedSeconds(totalElapsed)
 
       if (currentLeft !== secondsLeftRef.current) {
         secondsLeftRef.current = currentLeft

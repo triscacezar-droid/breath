@@ -1,20 +1,20 @@
 import './App.css'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, FooterMode, LabelVariant, ProgressVariant, CenterVariant } from './types'
+import type { Phase, VisibilityMode, TimingMode, BreathMode, ColorScheme, FooterDisplayMode, LabelVariant, ProgressVariant, CenterVariant } from './types'
 import {
   DEFAULT_DURATIONS,
   BREATH_MODE_KEY,
   COLOR_SCHEME_KEY,
   VISUALIZATION_KEY,
-  FOOTER_MODE_KEY,
+  FOOTER_DISPLAY_KEY,
   getMaxMultiplier,
   INITIAL_DELAY_MS,
   SETTINGS_RESET_DELAY_MS,
   INFO_AUTO_HIDE_MS,
   ZEN_CHAT_ENABLED,
 } from './constants'
-import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterMode, formatElapsedSeconds } from './utils'
+import { getStoredColorScheme, getStoredBreathMode, getStoredVisualization, getStoredFooterDisplayMode, formatElapsedSeconds } from './utils'
 import { buildBreathStack } from './breathStack'
 import { SettingsPanel } from './components/SettingsPanel'
 import { BreathSession } from './components/BreathSession'
@@ -71,7 +71,6 @@ function App() {
   const [dotsVisibility, setDotsVisibility] = useState<VisibilityMode>(1)
   const [sphereVisibility, setSphereVisibility] = useState<VisibilityMode>(2)
   const [cyclesVisibility, setCyclesVisibility] = useState<VisibilityMode>(1)
-  const [footerMode, setFooterMode] = useState<FooterMode>(getStoredFooterMode)
 
   const {
     textVisibilityAnimated,
@@ -113,7 +112,8 @@ function App() {
   const [labelVariantDropdownOpen, setLabelVariantDropdownOpen] = useState(false)
   const [progressVariantDropdownOpen, setProgressVariantDropdownOpen] = useState(false)
   const [centerVariantDropdownOpen, setCenterVariantDropdownOpen] = useState(false)
-  const [footerModeDropdownOpen, setFooterModeDropdownOpen] = useState(false)
+  const [footerDisplayMode, setFooterDisplayMode] = useState<FooterDisplayMode>(getStoredFooterDisplayMode)
+  const [footerDisplayDropdownOpen, setFooterDisplayDropdownOpen] = useState(false)
   const [zenChatOpen, setZenChatOpen] = useState(false)
 
   const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
@@ -384,8 +384,8 @@ function App() {
   }, [labelVariant, progressVariant, centerVariant])
 
   useEffect(() => {
-    localStorage.setItem(FOOTER_MODE_KEY, footerMode)
-  }, [footerMode])
+    localStorage.setItem(FOOTER_DISPLAY_KEY, footerDisplayMode)
+  }, [footerDisplayMode])
 
   const handleTimingModeChange = (mode: TimingMode) => {
     setTimingModeDropdownOpen(false)
@@ -430,16 +430,16 @@ function App() {
         setProgressVariant={setProgressVariant}
         centerVariant={centerVariant}
         setCenterVariant={setCenterVariant}
-        footerMode={footerMode}
-        setFooterMode={setFooterMode}
+        footerDisplayMode={footerDisplayMode}
+        setFooterDisplayMode={setFooterDisplayMode}
         labelVariantDropdownOpen={labelVariantDropdownOpen}
         setLabelVariantDropdownOpen={setLabelVariantDropdownOpen}
         progressVariantDropdownOpen={progressVariantDropdownOpen}
         setProgressVariantDropdownOpen={setProgressVariantDropdownOpen}
         centerVariantDropdownOpen={centerVariantDropdownOpen}
         setCenterVariantDropdownOpen={setCenterVariantDropdownOpen}
-        footerModeDropdownOpen={footerModeDropdownOpen}
-        setFooterModeDropdownOpen={setFooterModeDropdownOpen}
+        footerDisplayDropdownOpen={footerDisplayDropdownOpen}
+        setFooterDisplayDropdownOpen={setFooterDisplayDropdownOpen}
         textVisibility={textVisibility}
         dotsVisibility={dotsVisibility}
         sphereVisibility={sphereVisibility}
@@ -594,7 +594,7 @@ function App() {
         footerVisible={footerVisible}
         footerShouldShow={footerShouldShow}
         displayCyclesVisible={displayCyclesVisible}
-        footerMode={footerMode}
+        footerDisplayMode={footerDisplayMode}
         elapsedSeconds={elapsedSeconds}
         othersOnline={othersOnline}
         showOnTap={showOnTap}
