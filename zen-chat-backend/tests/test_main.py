@@ -1,6 +1,5 @@
 """Tests for Zen Chat API."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -57,3 +56,21 @@ def test_chat_content_over_limit_returns_422() -> None:
 def test_chat_empty_messages_returns_400() -> None:
   response = client.post("/api/chat", json={"messages": []})
   assert response.status_code == 400
+
+
+def test_chat_response_includes_citations_field() -> None:
+  """Even without RAG enabled, the response model exposes citations."""
+  response = client.post(
+    "/api/chat",
+    json={
+      "messages": [
+        VALID_MESSAGE,
+      ]
+    },
+  )
+  # Backend may return 503 if OPENAI_API_KEY is missing; ensure shape is consistent.
+  if response.status_code == 200:
+    data = response.json()
+    assert "citations" in data
+  else:
+    assert response.status_code in {503, 429}

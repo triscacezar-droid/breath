@@ -5,6 +5,8 @@ Reads from environment variables with sensible defaults.
 
 import os
 
+from typing import Final
+
 # Production flag: when True, error responses are sanitized (no raw exception text).
 PRODUCTION: bool = (
   os.environ.get("ENVIRONMENT") == "production"
@@ -40,3 +42,23 @@ RATE_LIMIT_CHAT: str = os.environ.get("ZEN_CHAT_RATE_LIMIT", "20/minute").strip(
 # Input validation limits.
 MAX_MESSAGES: int = 50
 MAX_CONTENT_LENGTH: int = 4000
+
+# --------------------
+# RAG configuration
+# --------------------
+
+RAG_ENABLED: bool = os.environ.get("RAG_ENABLED", "false").lower() == "true"
+
+RAG_VECTOR_STORE_PATH: str = os.environ.get(
+  "RAG_VECTOR_STORE_PATH",
+  str(os.path.join(os.path.dirname(__file__), "..", "data", "buddhist_vectors")),
+)
+
+RAG_EMBEDDING_MODEL: str = os.environ.get(
+  "RAG_EMBEDDING_MODEL",
+  "text-embedding-3-small",
+)
+
+RAG_TOP_K: int = int(os.environ.get("RAG_TOP_K", "4"))
+
+RAG_MAX_CHUNKS_PER_DOCUMENT: Final[int] = 8

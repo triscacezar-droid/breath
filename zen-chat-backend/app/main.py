@@ -18,7 +18,17 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from app.config import CORS_ORIGIN_REGEX, CORS_ORIGINS, MAX_CONTENT_LENGTH, MAX_MESSAGES, PRODUCTION, RATE_LIMIT_CHAT
+from app.config import (
+  CORS_ORIGIN_REGEX,
+  CORS_ORIGINS,
+  MAX_CONTENT_LENGTH,
+  MAX_MESSAGES,
+  PRODUCTION,
+  RATE_LIMIT_CHAT,
+  RAG_ENABLED,
+)
+from app.rag.prompts import build_system_prompt
+from app.rag.service import RagService, append_rag_messages, init_rag_service_for_app
 
 
 class ChatMessage(BaseModel):
@@ -62,6 +72,7 @@ class ChatErrorResponse(BaseModel):
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Zen Chat Backend", version="0.1.0")
 app.state.limiter = limiter
+app.state.rag_service = None
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -154,14 +165,15 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
       ) from e
     raise
 
+  # Lazily initialize RAG service once, if enabled.
+  rag_service: RagService | None = app.state.rag_service
+  if RAG_ENABLED and rag_service is None:
+    rag_service = init_rag_service_for_app(client)
+    app.state.rag_service = rag_service
+
   model_name = _get_model_name()
 
-  system_prompt = (
-    "You are a calm Zen Buddhist companion inside a breathing app. "
-    "Respond briefly, gently, and concretely. "
-    "Avoid clinical language, avoid talking about yourself as an AI, and avoid giving long lists. "
-    "Gently point attention back to the breath, posture, and direct experience."
-  )
+  system_prompt = build_system_prompt()
 
   openai_messages: list[dict[str, str]] = [
     {"role": "system", "content": system_prompt},
@@ -173,6 +185,12 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
         "content": message.content,
       }
     )
+
+  citations = None
+  if RAG_ENABLED and rag_service is not None:
+    context = rag_service.build_context_for_request(body)
+    openai_messages = append_rag_messages(openai_messages, context)
+    citations = rag_service.context_to_citations(context) or None
 
   max_tokens = body.maxTokens if body.maxTokens is not None else 256
   temperature = body.temperature if body.temperature is not None else 0.7
@@ -225,7 +243,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
   return ChatResponse(
     id=f"chat-{int(now.timestamp())}",
     message=response_message,
-    citations=None,
+    citations=citations,
   )
 
 

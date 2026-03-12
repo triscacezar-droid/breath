@@ -506,101 +506,101 @@ function App() {
               className={`app-controls ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`}
               aria-hidden={!showOnTap || !contentVisible}
             >
-              <button
-                type="button"
-                className="app-controls__btn settings-trigger"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowSettings(true)
-                }}
-                onTouchStart={(e) => e.stopPropagation()}
-                aria-label={t('settings.openSettings')}
-              >
-                <span className="settings-trigger-icon" aria-hidden />
-              </button>
-              {isFullscreenSupported && (
                 <button
                   type="button"
-                  className="app-controls__btn fullscreen-trigger"
+                  className="app-controls__btn settings-trigger"
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleFullscreen()
+                    setShowSettings(true)
                   }}
                   onTouchStart={(e) => e.stopPropagation()}
-                  aria-label={isFullscreen ? t('settings.exitFullscreen') : t('settings.enterFullscreen')}
+                  aria-label={t('settings.openSettings')}
                 >
-                  <span
-                    className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`}
-                    aria-hidden
-                  />
+                  <span className="settings-trigger-icon" aria-hidden />
                 </button>
-              )}
+                {isFullscreenSupported && (
+                  <button
+                    type="button"
+                    className="app-controls__btn fullscreen-trigger"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleFullscreen()
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    aria-label={isFullscreen ? t('settings.exitFullscreen') : t('settings.enterFullscreen')}
+                  >
+                    <span
+                      className={`fullscreen-trigger-icon ${isFullscreen ? 'fullscreen-trigger-icon--exit' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                )}
             </div>
             {ZEN_CHAT_ENABLED && (
               <div
                 className={`app-controls app-controls--right ${showOnTap && contentVisible ? 'app-controls--visible' : ''}`}
                 aria-hidden={!showOnTap || !contentVisible}
               >
-                <button
-                  type="button"
-                  className="app-controls__btn zen-chat-trigger"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setZenChatOpen((open) => !open)
-                  }}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  aria-label={zenChatOpen ? 'Close Zen chat' : 'Open Zen chat'}
-                >
-                  <span className="zen-chat-trigger-icon" aria-hidden />
+                  <button
+                    type="button"
+                    className="app-controls__btn zen-chat-trigger"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setZenChatOpen((open) => !open)
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    aria-label={zenChatOpen ? 'Close Zen chat' : 'Open Zen chat'}
+                  >
+                    <span className="zen-chat-trigger-icon" aria-hidden />
                 </button>
               </div>
             )}
             <div className="content-main">
               <BreathSession
-        stack={stack}
-        stackRef={stackRef}
-        slot1Ref={slot1Ref}
-        slot2Ref={slot2Ref}
-        slot3Ref={slot3Ref}
-        phase={phase}
-        prevPhase={prevPhase}
-        labelAnimating={labelAnimating}
-        labelVariant={labelVariant}
-        scale={scale}
-        sphereAnulomLeft={sphereAnulomLeft}
-        breathMode={breathMode}
-        durations={durations}
-        phaseStartTimeRef={phaseStartTimeRef}
-        progressVariant={progressVariant}
-        timingMode={timingMode}
-        cycleCount={cycleCount}
-        contentVisible={contentVisible}
-        displayTextVisible={displayTextVisible}
-        displayDotsVisible={displayDotsVisible}
-        displaySphereVisible={displaySphereVisible}
-        stackTextVisible={stackTextVisible}
-        stackDotsVisible={stackDotsVisible}
-        stackSphereVisible={stackSphereVisible}
-        showFloatingText={showFloatingText}
-        showFloatingDots={showFloatingDots}
-        enteringText={enteringText}
-        enteringDots={enteringDots}
-        setEnteringText={setEnteringText}
-        setEnteringDots={setEnteringDots}
-        textTopVh={textTopVh}
-        dotsTopVh={dotsTopVh}
-        isZoomSnapRef={isZoomSnapRef}
-        centerVariant={centerVariant}
-        footerVisible={footerVisible}
-        footerShouldShow={footerShouldShow}
-        displayCyclesVisible={displayCyclesVisible}
-        footerDisplayMode={footerDisplayMode}
-        elapsedSeconds={elapsedSeconds}
-        othersOnline={othersOnline}
-        showOnTap={showOnTap}
-        t={t}
-        formatElapsedSeconds={formatElapsedSeconds}
-      />
+                stack={stack}
+                stackRef={stackRef}
+                slot1Ref={slot1Ref}
+                slot2Ref={slot2Ref}
+                slot3Ref={slot3Ref}
+                phase={phase}
+                prevPhase={prevPhase}
+                labelAnimating={labelAnimating}
+                labelVariant={labelVariant}
+                scale={scale}
+                sphereAnulomLeft={sphereAnulomLeft}
+                breathMode={breathMode}
+                durations={durations}
+                phaseStartTimeRef={phaseStartTimeRef}
+                progressVariant={progressVariant}
+                timingMode={timingMode}
+                cycleCount={cycleCount}
+                contentVisible={contentVisible}
+                displayTextVisible={displayTextVisible}
+                displayDotsVisible={displayDotsVisible}
+                displaySphereVisible={displaySphereVisible}
+                stackTextVisible={stackTextVisible}
+                stackDotsVisible={stackDotsVisible}
+                stackSphereVisible={stackSphereVisible}
+                showFloatingText={showFloatingText}
+                showFloatingDots={showFloatingDots}
+                enteringText={enteringText}
+                enteringDots={enteringDots}
+                setEnteringText={setEnteringText}
+                setEnteringDots={setEnteringDots}
+                textTopVh={textTopVh}
+                dotsTopVh={dotsTopVh}
+                isZoomSnapRef={isZoomSnapRef}
+                centerVariant={centerVariant}
+                footerVisible={footerVisible}
+                footerShouldShow={footerShouldShow}
+                displayCyclesVisible={displayCyclesVisible}
+                footerDisplayMode={footerDisplayMode}
+                elapsedSeconds={elapsedSeconds}
+                othersOnline={othersOnline}
+                showOnTap={showOnTap}
+                t={t}
+                formatElapsedSeconds={formatElapsedSeconds}
+              />
               {ZEN_CHAT_ENABLED && (
                 <ZenChatPanel isOpen={zenChatOpen} onClose={() => setZenChatOpen(false)} />
               )}

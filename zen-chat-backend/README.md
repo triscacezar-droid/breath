@@ -29,8 +29,31 @@ Optional env vars:
 - `CORS_ORIGINS` – Comma-separated allowed origins (default: localhost + simplebreath.co.uk + breath-jet.vercel.app).
 - `ZEN_CHAT_RATE_LIMIT` – Rate limit for `/api/chat` (default: `20/minute` per IP).
 - `ENVIRONMENT=production` or `RAILWAY_ENVIRONMENT=production` – Enables generic error messages (no raw exception text in 503 responses).
+- `RAG_ENABLED` – When `true`, enable retrieval-augmented generation over the Buddhist text corpus.
+- `RAG_VECTOR_STORE_PATH` – Directory for the Chroma vector store (default: `app/../data/buddhist_vectors`).
+- `RAG_EMBEDDING_MODEL` – OpenAI embedding model used for indexing and search (default: `text-embedding-3-small`).
+- `RAG_TOP_K` – Maximum number of chunks to retrieve per query (default: `4`).
 
 **Prompt injection:** User content is sent to OpenAI. The system prompt is fixed and sent first. Consider content filtering or output validation for stricter use cases.
+
+### RAG over Buddhist texts
+
+This backend can optionally ground replies in a local corpus of Buddhist texts using
+retrieval-augmented generation (RAG).
+
+- Corpus location: place UTF-8 `.txt` files under `app/data/buddhist_texts/`.
+- Ingestion:
+  - Ensure `OPENAI_API_KEY` is set.
+  - Run `cd zen-chat-backend` then:
+    - `uv run python -m app.rag.ingest`
+- Enabling RAG at runtime:
+  - Set `RAG_ENABLED=true` in the backend environment.
+  - Optionally set `RAG_VECTOR_STORE_PATH`, `RAG_EMBEDDING_MODEL`, and `RAG_TOP_K`.
+- API behavior:
+  - `/api/chat` continues to accept the same `ChatRequest` payload.
+  - When RAG is enabled and the corpus has been ingested, the backend retrieves
+    relevant chunks and passes them as quiet background context to the model.
+  - Citations are returned via the `citations` field in `ChatResponse`.
 
 ### Deploy
 

@@ -25,10 +25,20 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
     let errorMessage: string | undefined
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const parsed = (await response.json()) as { detail?: ChatErrorResponse } | ChatErrorResponse
-      const detail = 'detail' in parsed && parsed.detail ? parsed.detail : parsed
-      errorCode = detail?.errorCode
-      errorMessage = detail?.errorMessage
+      const parsed = (await response.json()) as unknown
+
+      const hasDetail = (value: unknown): value is { detail?: ChatErrorResponse } =>
+        typeof value === 'object' && value !== null && 'detail' in value
+
+      let detail: ChatErrorResponse | undefined
+      if (hasDetail(parsed) && parsed.detail) {
+        detail = parsed.detail
+      } else {
+        detail = parsed as ChatErrorResponse
+      }
+
+      errorCode = detail.errorCode
+      errorMessage = detail.errorMessage
     } catch {
       // ignore parse errors and fall back to generic message
     }
