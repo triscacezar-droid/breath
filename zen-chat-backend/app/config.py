@@ -15,9 +15,14 @@ PRODUCTION: bool = (
 _DEFAULT_CORS_ORIGINS: list[str] = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174",
   "https://simplebreath.co.uk",
   "https://breath-jet.vercel.app",
 ]
+
+# Regex for localhost with any port (dev servers often use 5174, 5175, etc.).
+CORS_ORIGIN_REGEX: str = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
 
 
 def _parse_cors_origins() -> list[str]:

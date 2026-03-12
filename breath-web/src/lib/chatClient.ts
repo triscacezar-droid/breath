@@ -21,21 +21,30 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
   })
 
   if (!response.ok) {
-    let errorBody: ChatErrorResponse | undefined
+    let errorCode: string | undefined
+    let errorMessage: string | undefined
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const parsed = await response.json()
-      errorBody = parsed as ChatErrorResponse
+      const parsed = (await response.json()) as { detail?: ChatErrorResponse } | ChatErrorResponse
+      const detail = 'detail' in parsed && parsed.detail ? parsed.detail : parsed
+      errorCode = detail?.errorCode
+      errorMessage = detail?.errorMessage
     } catch {
       // ignore parse errors and fall back to generic message
     }
 
-    const errorCode = errorBody?.errorCode ?? 'chat_request_failed'
-    const errorMessage =
-      errorBody?.errorMessage ??
-      `Chat request failed with status ${response.status.toString()}`
+    const code = errorCode ?? 'chat_request_failed'
+    let message = errorMessage
+    if (!message) {
+      if (response.status === 500) {
+        message =
+          'Zen chat backend may not be running. Run `npm run dev` from the project root to start both frontend and backend.'
+      } else {
+        message = `Chat request failed with status ${response.status.toString()}`
+      }
+    }
 
-    throw new Error(`${errorCode}: ${errorMessage}`)
+    throw new Error(`${code}: ${message}`)
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

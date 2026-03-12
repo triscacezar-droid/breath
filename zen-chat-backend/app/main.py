@@ -13,12 +13,12 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from openai import OpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from app.config import CORS_ORIGINS, MAX_CONTENT_LENGTH, MAX_MESSAGES, PRODUCTION, RATE_LIMIT_CHAT
+from app.config import CORS_ORIGIN_REGEX, CORS_ORIGINS, MAX_CONTENT_LENGTH, MAX_MESSAGES, PRODUCTION, RATE_LIMIT_CHAT
 
 
 class ChatMessage(BaseModel):
@@ -77,6 +77,20 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) 
   )
 
 
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+  msg = "Zen chat is temporarily unavailable. Try again later." if PRODUCTION else str(exc)[:400]
+  return JSONResponse(
+    status_code=503,
+    content={
+      "detail": {
+        "errorCode": "chat_service_error",
+        "errorMessage": msg,
+      }
+    },
+  )
+
+
 @app.exception_handler(Exception)
 async def catch_unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
   if isinstance(exc, HTTPException):
@@ -96,6 +110,7 @@ async def catch_unhandled_exception(request: Request, exc: Exception) -> JSONRes
 app.add_middleware(
   CORSMiddleware,
   allow_origins=CORS_ORIGINS,
+  allow_origin_regex=CORS_ORIGIN_REGEX,
   allow_credentials=True,
   allow_methods=["POST", "OPTIONS"],
   allow_headers=["*"],
@@ -195,7 +210,9 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
       ).model_dump(),
     ) from e
 
-  content = completion.choices[0].message.content or ""
+  content = (completion.choices[0].message.content or "").strip()
+  if not content:
+    content = "…"
   now = datetime.now(timezone.utc)
 
   response_message = ChatMessage(
