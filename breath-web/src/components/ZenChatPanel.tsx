@@ -1,10 +1,55 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { useZenChat } from '../hooks/useZenChat'
+
+const ZEN_CHAT_WIDTH_KEY = 'zen-chat-width'
+const ZEN_CHAT_MIN_WIDTH = 240
+const ZEN_CHAT_MAX_WIDTH = 600
+const ZEN_CHAT_DEFAULT_WIDTH = 320
+const ZEN_CHAT_WIDE_BREAKPOINT = 641
 
 export interface ZenChatPanelProps {
   isOpen: boolean
   onClose: () => void
+}
+
+function useIsWideViewport(): boolean {
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= ZEN_CHAT_WIDE_BREAKPOINT
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${ZEN_CHAT_WIDE_BREAKPOINT}px)`)
+    const handler = (e: MediaQueryListEvent) => setIsWide(e.matches)
+    setIsWide(mq.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isWide
+}
+
+function usePanelWidth(): [number, (w: number) => void] {
+  const [width, setWidth] = useState(() => {
+    try {
+      const stored = localStorage.getItem(ZEN_CHAT_WIDTH_KEY)
+      if (stored) {
+        const n = parseInt(stored, 10)
+        if (!Number.isNaN(n) && n >= ZEN_CHAT_MIN_WIDTH && n <= ZEN_CHAT_MAX_WIDTH) return n
+      }
+    } catch {
+      /* ignore */
+    }
+    return ZEN_CHAT_DEFAULT_WIDTH
+  })
+  const setAndStore = useCallback((w: number) => {
+    const clamped = Math.round(Math.max(ZEN_CHAT_MIN_WIDTH, Math.min(ZEN_CHAT_MAX_WIDTH, w)))
+    setWidth(clamped)
+    try {
+      localStorage.setItem(ZEN_CHAT_WIDTH_KEY, String(clamped))
+    } catch {
+      /* ignore */
+    }
+  }, [])
+  return [width, setAndStore]
 }
 
 function formatTime(iso: string): string {
@@ -20,8 +65,33 @@ function groupMessages(messages: ChatMessage[]): ChatMessage[] {
 export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
   const { messages, isLoading, error, send, reset } = useZenChat()
   const [input, setInput] = useState('')
+  const isWide = useIsWideViewport()
+  const [panelWidth, setPanelWidth] = usePanelWidth()
 
   const grouped = useMemo(() => groupMessages(messages), [messages])
+
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      const startX = e.clientX
+      const startWidth = panelWidth
+      const onMove = (moveEvent: MouseEvent) => {
+        const delta = startX - moveEvent.clientX
+        setPanelWidth(startWidth + delta)
+      }
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+      }
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+    },
+    [panelWidth, setPanelWidth]
+  )
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -31,12 +101,24 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     setInput('')
   }
 
+  const style: React.CSSProperties = isWide ? { width: panelWidth } : {}
+
   return (
     <aside
-      className={`zen-chat ${isOpen ? 'zen-chat--open' : ''}`}
+      className={`zen-chat ${isOpen ? 'zen-chat--open' : ''} ${!isWide ? 'zen-chat--full' : ''}`}
+      style={style}
       aria-label="Zen chat"
       aria-hidden={!isOpen}
     >
+      {isWide && isOpen && (
+        <div
+          className="zen-chat__resize-handle"
+          onMouseDown={handleResizeStart}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize panel"
+        />
+      )}
       <div className="zen-chat__header">
         <div>
           <div className="zen-chat__title">Zen companion</div>

@@ -1049,6 +1049,12 @@
   z-index: 25;
 }
 
+.zen-chat--full {
+  left: 0;
+  width: 100% !important;
+  max-width: 100%;
+}
+
 .zen-chat--open {
   transform: translateX(0);
   opacity: 1;
@@ -1056,10 +1062,41 @@
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
 }
 
-@media (max-width: 960px) {
-  .zen-chat {
-    width: min(360px, 90vw);
-  }
+.zen-chat--full.zen-chat--open {
+  box-shadow: none;
+}
+
+.zen-chat__resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 1;
+}
+
+.zen-chat__resize-handle:hover,
+.zen-chat__resize-handle:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.zen-chat__resize-handle::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 40px;
+  border-radius: 1px;
+  background: var(--color-border);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.zen-chat__resize-handle:hover::before {
+  opacity: 1;
 }
 
 .zen-chat__header {
