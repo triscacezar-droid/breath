@@ -214,7 +214,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
             className="zen-chat__input"
             type="text"
             name="zen-chat-message"
-            autoComplete="off"
+            autoComplete="one-time-code"
             autoCorrect="off"
             autoCapitalize="none"
             spellCheck={false}
