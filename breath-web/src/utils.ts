@@ -6,13 +6,14 @@ import {
   COLOR_SCHEME_KEY,
   BREATH_MODE_KEY,
   VISUALIZATION_KEY,
-  FOOTER_DISPLAY_KEY,
+  FOOTER_MODE_KEY,
+  FOOTER_MODES,
   LABEL_VARIANTS,
   PROGRESS_VARIANTS,
   CENTER_VARIANTS,
   PRESETS,
 } from './constants'
-import type { ColorScheme, FooterDisplayMode, LabelVariant, ProgressVariant, CenterVariant } from './types'
+import type { ColorScheme, LabelVariant, ProgressVariant, CenterVariant, FooterMode } from './types'
 import type { BreathMode } from './types'
 import i18n from './i18n'
 
@@ -78,9 +79,9 @@ export function getStoredBreathMode(): BreathMode {
   return 'normal'
 }
 
-export function getStoredFooterDisplayMode(): FooterDisplayMode {
-  const s = localStorage.getItem(FOOTER_DISPLAY_KEY)
-  if (s === 'cycles' || s === 'time' || s === 'beads') return s
+export function getStoredFooterMode(): FooterMode {
+  const s = localStorage.getItem(FOOTER_MODE_KEY)
+  if (s && FOOTER_MODES.includes(s as FooterMode)) return s as FooterMode
   return 'cycles'
 }
 
@@ -92,7 +93,6 @@ export function formatElapsedSeconds(seconds: number): string {
   if (m > 0) return `${m}m ${s}s`
   return `${s}s`
 }
-
 export interface StoredVisualization {
   labelVariant: LabelVariant
   progressVariant: ProgressVariant

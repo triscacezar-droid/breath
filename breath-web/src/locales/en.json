@@ -36,6 +36,12 @@
     "dots": "Dots",
     "sphere": "Sphere",
     "cycles": "Cycles",
+    "footer": "Footer",
+    "footerModes": {
+      "cycles": "Cycles",
+      "time": "Time"
+    },
+    "footerModeAria": "Footer display",
     "phaseTextVisibility": "Phase text visibility",
     "dotsVisibility": "Dots visibility",
     "sphereVisibility": "Sphere visibility",

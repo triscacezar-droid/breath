@@ -1,8 +1,9 @@
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Phase, TimingMode, BreathMode, ColorScheme, FooterDisplayMode, LabelVariant, ProgressVariant, CenterVariant, VisibilityMode } from '../types'
+import type { Phase, TimingMode, BreathMode, ColorScheme, FooterMode, LabelVariant, ProgressVariant, CenterVariant, VisibilityMode } from '../types'
 import {
   COLOR_SCHEMES,
+  FOOTER_MODES,
   PRESETS,
   LABEL_VARIANTS,
   PROGRESS_VARIANTS,
@@ -49,16 +50,16 @@ export interface SettingsPanelProps {
   setProgressVariant: (v: ProgressVariant) => void
   centerVariant: CenterVariant
   setCenterVariant: (v: CenterVariant) => void
-  footerDisplayMode: FooterDisplayMode
-  setFooterDisplayMode: (v: FooterDisplayMode) => void
+  footerMode: FooterMode
+  setFooterMode: (v: FooterMode) => void
   labelVariantDropdownOpen: boolean
   setLabelVariantDropdownOpen: (v: boolean) => void
   progressVariantDropdownOpen: boolean
   setProgressVariantDropdownOpen: (v: boolean) => void
   centerVariantDropdownOpen: boolean
   setCenterVariantDropdownOpen: (v: boolean) => void
-  footerDisplayDropdownOpen: boolean
-  setFooterDisplayDropdownOpen: (v: boolean) => void
+  footerModeDropdownOpen: boolean
+  setFooterModeDropdownOpen: (v: boolean) => void
   textVisibility: VisibilityMode
   dotsVisibility: VisibilityMode
   sphereVisibility: VisibilityMode
@@ -107,16 +108,16 @@ export const SettingsPanel = forwardRef<HTMLElement, SettingsPanelProps>(functio
     setProgressVariant,
     centerVariant,
     setCenterVariant,
-    footerDisplayMode,
-    setFooterDisplayMode,
+    footerMode,
+    setFooterMode,
     labelVariantDropdownOpen,
     setLabelVariantDropdownOpen,
     progressVariantDropdownOpen,
     setProgressVariantDropdownOpen,
     centerVariantDropdownOpen,
     setCenterVariantDropdownOpen,
-    footerDisplayDropdownOpen,
-    setFooterDisplayDropdownOpen,
+    footerModeDropdownOpen,
+    setFooterModeDropdownOpen,
     textVisibility,
     dotsVisibility,
     sphereVisibility,
@@ -287,12 +288,12 @@ export const SettingsPanel = forwardRef<HTMLElement, SettingsPanelProps>(functio
             <button
               key={presetKey}
               type="button"
-              className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center && footerDisplayMode === PRESETS[presetKey].footer ? 'settings-preset-btn--active' : ''}`}
+              className={`settings-preset-btn ${labelVariant === PRESETS[presetKey].label && progressVariant === PRESETS[presetKey].progress && centerVariant === PRESETS[presetKey].center && footerMode === PRESETS[presetKey].footer ? 'settings-preset-btn--active' : ''}`}
               onClick={() => {
                 setLabelVariant(PRESETS[presetKey].label)
                 setProgressVariant(PRESETS[presetKey].progress)
                 setCenterVariant(PRESETS[presetKey].center)
-                setFooterDisplayMode(PRESETS[presetKey].footer)
+                setFooterMode(PRESETS[presetKey].footer)
               }}
               aria-label={t(`settings.presets.${presetKey}`)}
             >
@@ -362,20 +363,19 @@ export const SettingsPanel = forwardRef<HTMLElement, SettingsPanelProps>(functio
           ariaLabel={t('settings.sphereVisibility')}
         />
       </div>
-      <div className="settings-row settings-row--slider">
+      <div className="settings-row">
+        <span>{t('settings.cycles')}</span>
         <SettingsDropdown
-            options={[
-              { value: 'cycles' as const, label: t('footer.displayMode.cycles') },
-              { value: 'time' as const, label: t('footer.displayMode.time') },
-              { value: 'beads' as const, label: t('footer.displayMode.beads') },
-            ]}
-            selected={footerDisplayMode}
-            onSelect={setFooterDisplayMode}
-            ariaLabel={t('footer.displayModeAria')}
-            triggerLabel={footerDisplayMode === 'cycles' ? t('footer.displayMode.cycles') : footerDisplayMode === 'time' ? t('footer.displayMode.time') : t('footer.displayMode.beads')}
-          isOpen={footerDisplayDropdownOpen}
-          onOpenChange={setFooterDisplayDropdownOpen}
+          options={FOOTER_MODES.map((v) => ({ value: v, label: t(`settings.footerModes.${v}`) }))}
+          selected={footerMode}
+          onSelect={setFooterMode}
+          ariaLabel={t('settings.footerModeAria')}
+          triggerLabel={t(`settings.footerModes.${footerMode}`)}
+          isOpen={footerModeDropdownOpen}
+          onOpenChange={setFooterModeDropdownOpen}
         />
+      </div>
+      <div className="settings-row settings-row--slider">
         <VisibilitySlider
           value={cyclesVisibility}
           valueAnimated={cyclesVisibilityAnimated}

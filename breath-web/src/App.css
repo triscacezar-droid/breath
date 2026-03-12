@@ -176,6 +176,7 @@
 .settings-dropdown {
   position: relative;
   min-width: 120px;
+  flex-shrink: 0;
 }
 
 .settings-dropdown__trigger {
@@ -687,6 +688,7 @@
   align-items: flex-start;
   gap: 12px;
   margin-top: 8px;
+  overflow: hidden;
 }
 
 .settings-row--slider + .settings-row--slider {
@@ -739,19 +741,34 @@
 }
 
 .settings-slider-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 0;
-  width: 116px;
-  margin-left: auto;
+  width: 116px !important;
+  min-width: 116px !important;
+  max-width: 116px !important;
+  contain: inline-size;
+  overflow: hidden;
+  box-sizing: border-box;
+  justify-self: end;
   align-items: stretch;
+}
+
+.settings-slider-clip {
+  width: 116px !important;
+  min-width: 0;
+  max-width: 116px !important;
+  overflow: hidden;
 }
 
 .settings-row--slider .settings-slider,
 .settings-slider {
-  width: 100%;
+  width: 116px !important;
+  min-width: 0 !important;
+  max-width: 116px !important;
   height: 32px;
+  flex-shrink: 0;
   padding: 0;
   border: none;
   outline: none;
@@ -855,6 +872,13 @@
   justify-content: space-between;
   font-size: 11px;
   color: var(--color-slider-labels);
+  min-width: 0;
+  max-width: 116px;
+  overflow: hidden;
+}
+
+.settings-slider-labels--hidden {
+  visibility: hidden;
 }
 
 @media (max-width: 500px) {

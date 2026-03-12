@@ -1,10 +1,9 @@
-import type { Phase, LabelVariant, ProgressVariant, CenterVariant, TimingMode, BreathMode, FooterDisplayMode } from '../types'
+import type { Phase, LabelVariant, ProgressVariant, CenterVariant, TimingMode, BreathMode, FooterMode } from '../types'
 import type { BreathStack } from '../breathStack'
 import { CENTER_VH } from '../breathStack'
 import { getSpacerClass } from '../breathStack'
 import { getPhaseLabelDisplay } from '../utils'
 import { PhaseDots } from './PhaseDots'
-import { Beads } from './Beads'
 import { CenterAum } from './CenterAum'
 
 export interface BreathSessionProps {
@@ -45,7 +44,7 @@ export interface BreathSessionProps {
   footerVisible: boolean
   footerShouldShow: boolean
   displayCyclesVisible: boolean
-  footerDisplayMode: FooterDisplayMode
+  footerMode: FooterMode
   elapsedSeconds: number
   othersOnline: number | null
   showOnTap: boolean
@@ -91,7 +90,7 @@ export function BreathSession({
   footerVisible,
   footerShouldShow,
   displayCyclesVisible,
-  footerDisplayMode,
+  footerMode,
   elapsedSeconds,
   othersOnline,
   showOnTap,
@@ -188,9 +187,8 @@ export function BreathSession({
       <footer className={`cycles-footer ${footerVisible ? 'cycles-footer--visible' : 'cycles-footer--hidden'}`} aria-hidden={!footerShouldShow}>
         {footerVisible && (
           <span className={`cycles-footer__cycles ${displayCyclesVisible ? 'cycles-footer__cycles--visible' : 'cycles-footer__cycles--hidden'}`}>
-            {footerDisplayMode === 'cycles' && t('footer.cyclesCompleted', { count: cycleCount })}
-            {footerDisplayMode === 'time' && formatElapsedSeconds(elapsedSeconds)}
-            {footerDisplayMode === 'beads' && <Beads cycleCount={cycleCount} />}
+            {footerMode === 'cycles' && t('footer.cyclesCompleted', { count: cycleCount })}
+            {footerMode === 'time' && formatElapsedSeconds(elapsedSeconds)}
           </span>
         )}
         {othersOnline !== null && (

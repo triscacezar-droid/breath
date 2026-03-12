@@ -29,31 +29,31 @@ export function VisibilitySlider({
   const ariaValueText = t(`visibility.${VISIBILITY_KEYS[value]}`)
   return (
     <div className={`settings-slider-wrap ${mode === 0 ? 'settings-slider-wrap--off' : ''}`}>
-      <input
-        type="range"
-        min={0}
-        max={2}
-        step={0.01}
-        value={valueAnimated}
-        disabled={disabled}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerLeave}
-        onChange={onChange}
-        aria-label={ariaLabel}
-        aria-valuemin={0}
-        aria-valuemax={2}
-        aria-valuenow={value}
-        aria-valuetext={ariaValueText}
-        className={`settings-slider settings-slider--mode-${mode}`}
-      />
-      {showLabels && (
-        <div className="settings-slider-labels" aria-hidden>
-          <span>{t('visibility.off')}</span>
-          <span>{t('visibility.onTap')}</span>
-          <span>{t('visibility.on')}</span>
-        </div>
-      )}
+      <div className="settings-slider-clip">
+        <input
+          type="range"
+          min={0}
+          max={2}
+          step={0.01}
+          value={valueAnimated}
+          disabled={disabled}
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerLeave={onPointerLeave}
+          onChange={onChange}
+          aria-label={ariaLabel}
+          aria-valuemin={0}
+          aria-valuemax={2}
+          aria-valuenow={value}
+          aria-valuetext={ariaValueText}
+          className={`settings-slider settings-slider--mode-${mode}`}
+        />
+      </div>
+      <div className={`settings-slider-labels ${showLabels ? '' : 'settings-slider-labels--hidden'}`} aria-hidden>
+        <span>{t('visibility.off')}</span>
+        <span>{t('visibility.onTap')}</span>
+        <span>{t('visibility.on')}</span>
+      </div>
     </div>
   )
 }

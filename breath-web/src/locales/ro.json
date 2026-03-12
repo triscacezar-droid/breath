@@ -36,6 +36,12 @@
     "dots": "Puncte",
     "sphere": "Sferă",
     "cycles": "Cicluri",
+    "footer": "Subsol",
+    "footerModes": {
+      "cycles": "Cicluri",
+      "time": "Timp"
+    },
+    "footerModeAria": "Afișare subsol",
     "phaseTextVisibility": "Vizibilitate text fază",
     "dotsVisibility": "Vizibilitate puncte",
     "sphereVisibility": "Vizibilitate sferă",

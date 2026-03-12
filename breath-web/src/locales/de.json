@@ -36,6 +36,12 @@
     "dots": "Punkte",
     "sphere": "Kugel",
     "cycles": "Zyklen",
+    "footer": "Fußzeile",
+    "footerModes": {
+      "cycles": "Zyklen",
+      "time": "Zeit"
+    },
+    "footerModeAria": "Fußzeilen-Anzeige",
     "phaseTextVisibility": "Phasen-Text-Sichtbarkeit",
     "dotsVisibility": "Punkte-Sichtbarkeit",
     "sphereVisibility": "Kugel-Sichtbarkeit",
