@@ -174,7 +174,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
           )}
         {error && <div className="zen-chat__error">{error}</div>}
       </div>
-      <form className="zen-chat__footer" onSubmit={handleSubmit}>
+      <form className="zen-chat__footer" onSubmit={handleSubmit} autoComplete="off">
         <button
           type="button"
           className="zen-chat__secondary"
@@ -187,6 +187,12 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
           <input
             className="zen-chat__input"
             type="text"
+            name="zen-chat-message"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            inputMode="text"
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="“What is this breath?”"

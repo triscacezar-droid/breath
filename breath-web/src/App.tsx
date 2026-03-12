@@ -117,6 +117,14 @@ function App() {
   const [zenChatOpen, setZenChatOpen] = useState(false)
 
   const { isFullscreen, toggleFullscreen, isSupported: isFullscreenSupported } = useFullscreen()
+  const [isMobileLike, setIsMobileLike] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const ua = window.navigator.userAgent.toLowerCase()
+    const touchLike = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    setIsMobileLike(touchLike || /android|iphone|ipad|ipod/.test(ua))
+  }, [])
 
   const hideInfoTimeoutRef = useRef<number | null>(null)
   const breathModeRef = useRef<BreathMode>('normal')
@@ -518,7 +526,7 @@ function App() {
                 >
                   <span className="settings-trigger-icon" aria-hidden />
                 </button>
-                {isFullscreenSupported && (
+                {isFullscreenSupported && !isMobileLike && (
                   <button
                     type="button"
                     className="app-controls__btn fullscreen-trigger"
