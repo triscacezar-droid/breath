@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
-import { useZenChat } from '../hooks/useZenChat'
+import { useZenChat, STREAMING_PLACEHOLDER_ID } from '../hooks/useZenChat'
 
 const ZEN_CHAT_WIDTH_KEY = 'zen-chat-width'
 const ZEN_CHAT_MIN_WIDTH = 240
@@ -145,22 +145,33 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
             key={message.id}
             className={`zen-chat__bubble zen-chat__bubble--${message.role === 'user' ? 'user' : 'assistant'}`}
           >
-            <div className="zen-chat__bubble-content">{message.content}</div>
+            <div className="zen-chat__bubble-content">
+              {message.content}
+              {isLoading &&
+                message.role === 'assistant' &&
+                message.id === STREAMING_PLACEHOLDER_ID && (
+                  <span className="zen-chat__cursor" aria-hidden="true" />
+                )}
+            </div>
             <div className="zen-chat__bubble-meta">
               <span>{message.role === 'user' ? 'You' : 'Zen'}</span>
               {message.createdAt && <span>· {formatTime(message.createdAt)}</span>}
             </div>
           </div>
         ))}
-        {isLoading && (
-          <div className="zen-chat__bubble zen-chat__bubble--assistant">
-            <div className="zen-chat__bubble-content">
-              <span className="zen-chat__dot" />
-              <span className="zen-chat__dot" />
-              <span className="zen-chat__dot" />
+        {isLoading &&
+          !(
+            grouped[grouped.length - 1]?.role === 'assistant' &&
+            grouped[grouped.length - 1]?.id === STREAMING_PLACEHOLDER_ID
+          ) && (
+            <div className="zen-chat__bubble zen-chat__bubble--assistant">
+              <div className="zen-chat__bubble-content">
+                <span className="zen-chat__dot" />
+                <span className="zen-chat__dot" />
+                <span className="zen-chat__dot" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
         {error && <div className="zen-chat__error">{error}</div>}
       </div>
       <form className="zen-chat__footer" onSubmit={handleSubmit}>

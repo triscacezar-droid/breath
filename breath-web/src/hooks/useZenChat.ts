@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
-import type { ChatMessage } from '../types/chat'
-import { sendChatMessage } from '../lib/chatClient'
+import type { ChatCitation, ChatMessage } from '../types/chat'
+import { sendChatMessageStream } from '../lib/chatClient'
 
 interface UseZenChatState {
   messages: ChatMessage[]
@@ -9,6 +9,8 @@ interface UseZenChatState {
   send: (content: string) => Promise<void>
   reset: () => void
 }
+
+export const STREAMING_PLACEHOLDER_ID = 'assistant-streaming'
 
 export function useZenChat(initialSessionId?: string): UseZenChatState {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -31,17 +33,55 @@ export function useZenChat(initialSessionId?: string): UseZenChatState {
         createdAt: new Date().toISOString(),
       }
 
-      const nextMessages = [...messages, userMessage]
+      const placeholder: ChatMessage = {
+        id: STREAMING_PLACEHOLDER_ID,
+        role: 'assistant',
+        content: '',
+        createdAt: new Date().toISOString(),
+      }
+      const nextMessages: ChatMessage[] = [...messages, userMessage, placeholder]
       setMessages(nextMessages)
       setIsLoading(true)
 
       try {
-        const response = await sendChatMessage({
-          sessionId,
-          messages: nextMessages,
-        })
-        setMessages((current) => [...current, response.message])
+        await sendChatMessageStream(
+          { sessionId, messages: [...messages, userMessage] },
+          {
+            onChunk: (delta: string) => {
+              setMessages((prev) => {
+                const last = prev[prev.length - 1]
+                if (!last || last.role !== 'assistant' || last.id !== STREAMING_PLACEHOLDER_ID)
+                  return prev
+                return [...prev.slice(0, -1), { ...last, content: last.content + delta }]
+              })
+            },
+            onDone: (payload) => {
+              setMessages((prev) => {
+                const last = prev[prev.length - 1]
+                const content =
+                  last?.id === STREAMING_PLACEHOLDER_ID && last?.content
+                    ? last.content.trim() || '…'
+                    : '…'
+                const filtered = prev.filter((m) => m.id !== STREAMING_PLACEHOLDER_ID)
+                const citations = payload.citations as ChatCitation[] | undefined
+                const final: ChatMessage = {
+                  id: payload.messageId,
+                  role: 'assistant',
+                  content,
+                  createdAt: new Date().toISOString(),
+                  ...(citations?.length ? { citations } : {}),
+                }
+                return [...filtered, final]
+              })
+            },
+            onError: (payload) => {
+              setMessages((prev) => prev.filter((m) => m.id !== STREAMING_PLACEHOLDER_ID))
+              setError(`${payload.errorCode}: ${payload.errorMessage}`)
+            },
+          }
+        )
       } catch (err) {
+        setMessages((prev) => prev.filter((m) => m.id !== STREAMING_PLACEHOLDER_ID))
         const raw = err instanceof Error ? err.message : 'Unable to reach Zen chat right now.'
         const isNetworkError =
           /failed to fetch|networkerror|network error|connection refused/i.test(raw)

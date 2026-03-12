@@ -1271,6 +1271,28 @@
   }
 }
 
+.zen-chat__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--color-text-primary);
+  opacity: 0.8;
+  animation: zen-chat-cursor 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes zen-chat-cursor {
+  0%,
+  50% {
+    opacity: 0.8;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
 .zen-chat-trigger {
   position: relative;
 }

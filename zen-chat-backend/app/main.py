@@ -8,12 +8,12 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import AsyncGenerator, List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field, ValidationError
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -253,29 +253,35 @@ def _sse_line(data: dict) -> str:
   return f"data: {json.dumps(data)}\n\n"
 
 
+def _get_async_openai_client() -> AsyncOpenAI:
+  api_key = os.environ.get("OPENAI_API_KEY")
+  if not api_key:
+    raise RuntimeError("OPENAI_API_KEY environment variable is not set.")
+  return AsyncOpenAI(api_key=api_key)
+
+
 async def _stream_chat_generator(
-  body: ChatRequest,
-  client: OpenAI,
+  client: AsyncOpenAI,
   model_name: str,
   openai_messages: list[dict[str, str]],
   max_tokens: int,
   temperature: float,
   citations: Optional[List[ChatCitation]],
-) -> str:
+) -> AsyncGenerator[str, None]:
   """Async generator yielding SSE events for streaming chat.
 
   Yields content deltas, then a done event with message metadata.
   On OpenAI exception, yields an error event.
   """
   try:
-    stream = client.chat.completions.create(
+    stream = await client.chat.completions.create(
       model=model_name,
       messages=openai_messages,
       max_tokens=max_tokens,
       temperature=temperature,
       stream=True,
     )
-    for chunk in stream:
+    async for chunk in stream:
       delta = chunk.choices[0].delta.content if chunk.choices else None
       if delta:
         yield _sse_line({"type": "content", "delta": delta})
@@ -334,7 +340,7 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
     )
 
   try:
-    client = _get_openai_client()
+    client = _get_async_openai_client()
   except RuntimeError as e:
     if "OPENAI_API_KEY" in str(e):
       raise HTTPException(
@@ -348,7 +354,8 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
 
   rag_service: RagService | None = app.state.rag_service
   if RAG_ENABLED and rag_service is None:
-    rag_service = init_rag_service_for_app(client)
+    init_client = _get_openai_client()
+    rag_service = init_rag_service_for_app(init_client)
     app.state.rag_service = rag_service
 
   model_name = _get_model_name()
@@ -373,7 +380,6 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
 
   return StreamingResponse(
     _stream_chat_generator(
-      body=body,
       client=client,
       model_name=model_name,
       openai_messages=openai_messages,
