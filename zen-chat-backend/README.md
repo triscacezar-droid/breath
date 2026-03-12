@@ -77,14 +77,16 @@ Ingestion requires `OPENAI_API_KEY` for embeddings.
 
 ### Deploy
 
-**Required env:** `OPENAI_API_KEY` (add as secret on your host). Optional: `ZEN_CHAT_MODEL` (default: `gpt-4o-mini`).
+**Required env:** `OPENAI_API_KEY` (add as secret on your host). Optional: `ZEN_CHAT_MODEL` (default: `gpt-4o-mini`), `RAG_ENABLED` (default: `false`).
+
+**RAG:** The Dockerfile runs `app.rag.ingest` during build, so the vector store is baked into the image. Set `RAG_ENABLED=true` at runtime. `OPENAI_API_KEY` must be available at build time (Railway injects it; for local Docker use `--build-arg`).
 
 **Railway**
 
 1. New Project → Deploy from GitHub → select this repo.
 2. Set root directory to `zen-chat-backend`.
-3. Add env var: `OPENAI_API_KEY` (secret).
-4. Railway will use the Dockerfile or Nixpacks. Copy the generated URL (e.g. `https://xxx.up.railway.app`).
+3. Add env var: `OPENAI_API_KEY` (secret). Add `RAG_ENABLED=true` for RAG.
+4. Railway uses the Dockerfile; build injects env vars. Copy the generated URL (e.g. `https://xxx.up.railway.app`).
 
 **Render**
 
@@ -98,7 +100,7 @@ Ingestion requires `OPENAI_API_KEY` for embeddings.
 
 ```bash
 cd zen-chat-backend
-docker build -t zen-chat .
-docker run -e OPENAI_API_KEY=sk-... -p 8000:8000 zen-chat
+docker build --build-arg OPENAI_API_KEY=sk-... -t zen-chat .
+docker run -e OPENAI_API_KEY=sk-... -e RAG_ENABLED=true -p 8000:8000 zen-chat
 ```
 

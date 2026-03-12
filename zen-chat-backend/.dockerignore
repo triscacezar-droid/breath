@@ -7,3 +7,6 @@ __pycache__
 .pytest_cache
 .mypy_cache
 .ruff_cache
+
+# Don't copy host's vector store; we create it during build
+data/buddhist_vectors

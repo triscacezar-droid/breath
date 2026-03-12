@@ -67,6 +67,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
   const [input, setInput] = useState('')
   const isWide = useIsWideViewport()
   const [panelWidth, setPanelWidth] = usePanelWidth()
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
 
   const grouped = useMemo(() => groupMessages(messages), [messages])
 
@@ -100,6 +101,31 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     await send(value)
     setInput('')
   }
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const viewport = window.visualViewport
+    if (!viewport || !isOpen) return
+
+    const updateOffset = () => {
+      const windowHeight = window.innerHeight
+      const viewportHeight = viewport.height
+      const offsetTop = viewport.offsetTop ?? 0
+      const rawKeyboard = windowHeight - viewportHeight - offsetTop
+      const next = rawKeyboard > 80 ? rawKeyboard : 0
+      setKeyboardOffset(next)
+      document.documentElement.style.setProperty('--zen-chat-keyboard-offset', `${next}px`)
+    }
+
+    updateOffset()
+    viewport.addEventListener('resize', updateOffset)
+    viewport.addEventListener('scroll', updateOffset)
+    return () => {
+      viewport.removeEventListener('resize', updateOffset)
+      viewport.removeEventListener('scroll', updateOffset)
+      document.documentElement.style.removeProperty('--zen-chat-keyboard-offset')
+    }
+  }, [isOpen])
 
   const style: React.CSSProperties = isWide ? { width: panelWidth } : {}
 
