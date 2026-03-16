@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { useZenChat, STREAMING_PLACEHOLDER_ID } from '../hooks/useZenChat'
 import { useChatSessions } from '../hooks/useChatSessions'
@@ -71,6 +71,18 @@ function formatDate(iso: string): string {
 
 function groupMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages
+}
+
+/** Render a string with **bold** and *italic* markdown as React nodes. */
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**'))
+      return <strong key={i}>{part.slice(2, -2)}</strong>
+    if (part.startsWith('*') && part.endsWith('*'))
+      return <em key={i}>{part.slice(1, -1)}</em>
+    return part
+  })
 }
 
 export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
@@ -316,7 +328,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
                 className={`zen-chat__bubble zen-chat__bubble--${message.role === 'user' ? 'user' : 'assistant'}`}
               >
                 <div className="zen-chat__bubble-content">
-                  {message.content}
+                  {renderInlineMarkdown(message.content)}
                   {isLoading &&
                     message.role === 'assistant' &&
                     message.id === STREAMING_PLACEHOLDER_ID && (
