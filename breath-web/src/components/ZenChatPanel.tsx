@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { useZenChat, STREAMING_PLACEHOLDER_ID } from '../hooks/useZenChat'
 import { SettingsDropdown } from './SettingsDropdown'
@@ -78,6 +78,8 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
   const { messages, isLoading, error, send, reset } = useZenChat(undefined, selectedModel)
   const [input, setInput] = useState('')
   const isWide = useIsWideViewport()
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const userHasControl = useRef(false)
   const [panelWidth, setPanelWidth] = usePanelWidth()
   const [, setKeyboardOffset] = useState(0)
 
@@ -112,10 +114,19 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     reset()
   }, [reset])
 
+  // Auto-scroll to bottom while streaming, unless the user has taken control by typing.
+  useEffect(() => {
+    if (userHasControl.current) return
+    const el = bodyRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+  }, [messages, isLoading])
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const value = input.trim()
     if (!value) return
+    userHasControl.current = false
     setInput('')
     await send(value)
   }
@@ -190,7 +201,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
           </button>
         </div>
       </div>
-      <div className="zen-chat__body">
+      <div className="zen-chat__body" ref={bodyRef}>
         {grouped.length === 0 && !isLoading && !error && (
           <div className="zen-chat__hint">
             Ask a gentle question, or share how your breath feels. The reply will be brief, like a
@@ -251,7 +262,10 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
             spellCheck={false}
             inputMode="text"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={(event) => {
+              userHasControl.current = true
+              setInput(event.target.value)
+            }}
             placeholder="“What is this breath?”"
             aria-label="Message Zen companion"
           />
