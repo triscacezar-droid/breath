@@ -114,7 +114,19 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     reset()
   }, [reset])
 
-  // Auto-scroll to bottom while streaming, unless the user has taken control by typing.
+  // Pause auto-scroll when the user scrolls up manually.
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el) return
+    const onScroll = () => {
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 32
+      if (!atBottom) userHasControl.current = true
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Auto-scroll to bottom while streaming, unless the user has taken control.
   useEffect(() => {
     if (userHasControl.current) return
     const el = bodyRef.current
