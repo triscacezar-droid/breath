@@ -213,7 +213,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     openai_messages = append_rag_messages(openai_messages, context)
     citations = rag_service.context_to_citations(context) or None
 
-  max_tokens = body.maxTokens if body.maxTokens is not None else 512
+  max_tokens = body.maxTokens if body.maxTokens is not None else 1024
   temperature = body.temperature if body.temperature is not None else 0.7
 
   try:
@@ -401,7 +401,7 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
     openai_messages = append_rag_messages(openai_messages, context)
     citations = rag_service.context_to_citations(context) or None
 
-  max_tokens = body.maxTokens if body.maxTokens is not None else 512
+  max_tokens = body.maxTokens if body.maxTokens is not None else 1024
   temperature = body.temperature if body.temperature is not None else 0.7
 
   return StreamingResponse(
