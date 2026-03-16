@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { ChatCitation, ChatMessage } from '../types/chat'
 import { sendChatMessageStream } from '../lib/chatClient'
+import { DEFAULT_CHAT_MODEL_ID } from '../constants'
+import type { ChatModelId } from '../constants'
 
 interface UseZenChatState {
   messages: ChatMessage[]
@@ -12,7 +14,7 @@ interface UseZenChatState {
 
 export const STREAMING_PLACEHOLDER_ID = 'assistant-streaming'
 
-export function useZenChat(initialSessionId?: string): UseZenChatState {
+export function useZenChat(initialSessionId?: string, model: ChatModelId = DEFAULT_CHAT_MODEL_ID): UseZenChatState {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +47,7 @@ export function useZenChat(initialSessionId?: string): UseZenChatState {
 
       try {
         await sendChatMessageStream(
-          { sessionId, messages: [...messages, userMessage] },
+          { sessionId, messages: [...messages, userMessage], model },
           {
             onChunk: (delta: string) => {
               setMessages((prev) => {
@@ -93,7 +95,7 @@ export function useZenChat(initialSessionId?: string): UseZenChatState {
         setIsLoading(false)
       }
     },
-    [messages, sessionId]
+    [messages, sessionId, model]
   )
 
   const reset = useCallback(() => {

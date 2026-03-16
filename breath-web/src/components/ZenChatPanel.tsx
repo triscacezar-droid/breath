@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { useZenChat, STREAMING_PLACEHOLDER_ID } from '../hooks/useZenChat'
+import { SettingsDropdown } from './SettingsDropdown'
+import { CHAT_MODELS, DEFAULT_CHAT_MODEL_ID, ZEN_CHAT_MODEL_KEY } from '../constants'
+import type { ChatModelId } from '../constants'
 
 const ZEN_CHAT_WIDTH_KEY = 'zen-chat-width'
 const ZEN_CHAT_MIN_WIDTH = 240
@@ -63,7 +66,16 @@ function groupMessages(messages: ChatMessage[]): ChatMessage[] {
 }
 
 export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
-  const { messages, isLoading, error, send, reset } = useZenChat()
+  const [selectedModel, setSelectedModel] = useState<ChatModelId>(() => {
+    try {
+      const stored = localStorage.getItem(ZEN_CHAT_MODEL_KEY)
+      if (stored && CHAT_MODELS.some((m) => m.value === stored)) return stored as ChatModelId
+    } catch { /* ignore */ }
+    return DEFAULT_CHAT_MODEL_ID
+  })
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
+
+  const { messages, isLoading, error, send, reset } = useZenChat(undefined, selectedModel)
   const [input, setInput] = useState('')
   const isWide = useIsWideViewport()
   const [panelWidth, setPanelWidth] = usePanelWidth()
@@ -93,6 +105,12 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     },
     [panelWidth, setPanelWidth]
   )
+
+  const handleModelChange = useCallback((value: ChatModelId) => {
+    setSelectedModel(value)
+    try { localStorage.setItem(ZEN_CHAT_MODEL_KEY, value) } catch { /* ignore */ }
+    reset()
+  }, [reset])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -146,18 +164,31 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
         />
       )}
       <div className="zen-chat__header">
-        <div>
+        <div className="zen-chat__header-info">
           <div className="zen-chat__title">Zen companion</div>
           <div className="zen-chat__subtitle">Short reflections, calm and grounded.</div>
         </div>
-        <button
-          type="button"
-          className="zen-chat__header-btn"
-          onClick={onClose}
-          aria-label="Close Zen chat"
-        >
-          ×
-        </button>
+        <div className="zen-chat__header-controls">
+          <div className="zen-chat__model-picker">
+            <SettingsDropdown
+              options={CHAT_MODELS}
+              selected={selectedModel}
+              onSelect={handleModelChange}
+              ariaLabel="Select AI model"
+              triggerLabel={CHAT_MODELS.find((m) => m.value === selectedModel)?.label ?? selectedModel}
+              isOpen={modelDropdownOpen}
+              onOpenChange={setModelDropdownOpen}
+            />
+          </div>
+          <button
+            type="button"
+            className="zen-chat__header-btn"
+            onClick={onClose}
+            aria-label="Close Zen chat"
+          >
+            ×
+          </button>
+        </div>
       </div>
       <div className="zen-chat__body">
         {grouped.length === 0 && !isLoading && !error && (

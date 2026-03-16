@@ -62,3 +62,18 @@ RAG_EMBEDDING_MODEL: str = os.environ.get(
 RAG_TOP_K: int = int(os.environ.get("RAG_TOP_K", "4"))
 
 RAG_MAX_CHUNKS_PER_DOCUMENT: Final[int] = 8
+
+# --------------------
+# Chat model configuration
+# --------------------
+
+ALLOWED_CHAT_MODELS: list[str] = [
+  "gpt-4o-mini",
+  "gpt-4o",
+  "gpt-4-turbo",
+  "o1-mini",
+  "gpt-5.4",
+  "gpt-5-mini",
+]
+
+DEFAULT_CHAT_MODEL: str = os.environ.get("ZEN_CHAT_MODEL", "").strip() or "gpt-4o-mini"

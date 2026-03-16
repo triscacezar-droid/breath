@@ -90,6 +90,21 @@ export function schemeToThemeKey(scheme: (typeof COLOR_SCHEMES)[number]): string
     .join('')
 }
 
+export const CHAT_MODELS = [
+  { value: 'gpt-4o-mini', label: 'GPT-4o mini' },
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+  { value: 'o1-mini', label: 'o1 mini' },
+  { value: 'gpt-5.4', label: 'GPT-5.4' },
+  { value: 'gpt-5-mini', label: 'GPT-5 mini' },
+] as const
+
+export type ChatModelId = (typeof CHAT_MODELS)[number]['value']
+
+export const DEFAULT_CHAT_MODEL_ID: ChatModelId = 'gpt-4o-mini'
+
+export const ZEN_CHAT_MODEL_KEY = 'zen-chat-model'
+
 export const SLOT_ANIMATION_MS = 260
 
 /** Delay before initial content reveal (ms) */

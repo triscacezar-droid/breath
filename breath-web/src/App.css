@@ -229,7 +229,8 @@
 }
 
 .settings-dropdown__panel--open {
-  max-height: 160px;
+  max-height: 300px;
+  overflow-y: auto;
   opacity: 1;
 }
 
@@ -1103,8 +1104,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 16px 16px 12px;
   border-bottom: 1px solid var(--color-border);
+}
+
+.zen-chat__header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.zen-chat__model-picker .settings-dropdown__panel {
+  right: 0;
+  left: auto;
 }
 
 .zen-chat__title {

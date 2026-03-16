@@ -20,8 +20,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from app.config import (
+  ALLOWED_CHAT_MODELS,
   CORS_ORIGIN_REGEX,
   CORS_ORIGINS,
+  DEFAULT_CHAT_MODEL,
   MAX_CONTENT_LENGTH,
   MAX_MESSAGES,
   PRODUCTION,
@@ -57,6 +59,7 @@ class ChatRequest(BaseModel):
   messages: List[ChatMessage] = Field(..., max_length=MAX_MESSAGES)
   maxTokens: Optional[int] = Field(default=None, ge=1, le=4096)
   temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0)
+  model: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -124,7 +127,7 @@ app.add_middleware(
   allow_origins=CORS_ORIGINS,
   allow_origin_regex=CORS_ORIGIN_REGEX,
   allow_credentials=True,
-  allow_methods=["POST", "OPTIONS"],
+  allow_methods=["GET", "POST", "OPTIONS"],
   allow_headers=["*"],
 )
 
@@ -136,9 +139,26 @@ def _get_openai_client() -> OpenAI:
   return OpenAI(api_key=api_key)
 
 
-def _get_model_name() -> str:
-  model = os.environ.get("ZEN_CHAT_MODEL", "").strip()
-  return model or "gpt-4o-mini"
+def _resolve_model_name(requested: Optional[str]) -> str:
+  """Return the model to use, validating against the allowed list.
+
+  Priority: client request (if valid) > ZEN_CHAT_MODEL env var > hardcoded default.
+  Unknown models fall back silently to avoid exposing the allowed list.
+  """
+  if requested and requested.strip() in ALLOWED_CHAT_MODELS:
+    return requested.strip()
+  return DEFAULT_CHAT_MODEL
+
+
+def _uses_max_completion_tokens(model_name: str) -> bool:
+  """Return True for models that require max_completion_tokens instead of max_tokens."""
+  return model_name.startswith("o1") or model_name.startswith("gpt-5")
+
+
+def _build_completion_kwargs(model_name: str, max_tokens: int, temperature: float) -> dict:
+  """Build the extra kwargs for a chat completion call based on model capabilities."""
+  kwargs: dict = {"max_completion_tokens": max_tokens} if _uses_max_completion_tokens(model_name) else {"max_tokens": max_tokens, "temperature": temperature}
+  return kwargs
 
 
 @app.post("/api/chat", response_model=ChatResponse, responses={400: {"model": ChatErrorResponse}, 429: {"model": ChatErrorResponse}, 503: {"model": ChatErrorResponse}})
@@ -172,7 +192,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     rag_service = init_rag_service_for_app(client)
     app.state.rag_service = rag_service
 
-  model_name = _get_model_name()
+  model_name = _resolve_model_name(body.model)
 
   system_prompt = build_system_prompt()
 
@@ -193,15 +213,14 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
     openai_messages = append_rag_messages(openai_messages, context)
     citations = rag_service.context_to_citations(context) or None
 
-  max_tokens = body.maxTokens if body.maxTokens is not None else 256
+  max_tokens = body.maxTokens if body.maxTokens is not None else 512
   temperature = body.temperature if body.temperature is not None else 0.7
 
   try:
     completion = client.chat.completions.create(
       model=model_name,
       messages=openai_messages,
-      max_tokens=max_tokens,
-      temperature=temperature,
+      **_build_completion_kwargs(model_name, max_tokens, temperature),
     )
   except Exception as e:
     msg = str(e)
@@ -277,9 +296,8 @@ async def _stream_chat_generator(
     stream = await client.chat.completions.create(
       model=model_name,
       messages=openai_messages,
-      max_tokens=max_tokens,
-      temperature=temperature,
       stream=True,
+      **_build_completion_kwargs(model_name, max_tokens, temperature),
     )
     async for chunk in stream:
       delta = chunk.choices[0].delta.content if chunk.choices else None
@@ -314,6 +332,14 @@ async def _stream_chat_generator(
           "type": "error",
           "errorCode": "api_key_invalid",
           "errorMessage": "Zen chat API key is invalid or expired. Check OPENAI_API_KEY.",
+        }
+      )
+    elif "model" in msg.lower() and ("not found" in msg.lower() or "does not exist" in msg.lower() or "invalid" in msg.lower()):
+      yield _sse_line(
+        {
+          "type": "error",
+          "errorCode": "model_not_found",
+          "errorMessage": f"Model not available: {msg[:200]}",
         }
       )
     else:
@@ -358,7 +384,7 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
     rag_service = init_rag_service_for_app(init_client)
     app.state.rag_service = rag_service
 
-  model_name = _get_model_name()
+  model_name = _resolve_model_name(body.model)
   system_prompt = build_system_prompt()
 
   openai_messages: list[dict[str, str]] = [
@@ -375,7 +401,7 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
     openai_messages = append_rag_messages(openai_messages, context)
     citations = rag_service.context_to_citations(context) or None
 
-  max_tokens = body.maxTokens if body.maxTokens is not None else 256
+  max_tokens = body.maxTokens if body.maxTokens is not None else 512
   temperature = body.temperature if body.temperature is not None else 0.7
 
   return StreamingResponse(
@@ -389,6 +415,12 @@ async def chat_stream(request: Request, body: ChatRequest) -> StreamingResponse:
     ),
     media_type="text/event-stream",
   )
+
+
+@app.get("/api/models")
+async def list_models() -> dict[str, object]:
+  """Return the list of allowed chat models and the server default."""
+  return {"models": ALLOWED_CHAT_MODELS, "default": DEFAULT_CHAT_MODEL}
 
 
 @app.get("/health")
