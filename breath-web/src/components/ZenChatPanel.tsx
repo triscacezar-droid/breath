@@ -44,7 +44,8 @@ function usePanelWidth(): [number, (w: number) => void] {
     return ZEN_CHAT_DEFAULT_WIDTH
   })
   const setAndStore = useCallback((w: number) => {
-    const clamped = Math.round(Math.max(ZEN_CHAT_MIN_WIDTH, Math.min(ZEN_CHAT_MAX_WIDTH, w)))
+    const maxWidth = typeof window !== 'undefined' ? window.innerWidth : ZEN_CHAT_MAX_WIDTH
+    const clamped = Math.round(Math.max(ZEN_CHAT_MIN_WIDTH, Math.min(maxWidth, w)))
     setWidth(clamped)
     try {
       localStorage.setItem(ZEN_CHAT_WIDTH_KEY, String(clamped))
