@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { useZenChat, STREAMING_PLACEHOLDER_ID } from '../hooks/useZenChat'
+import { useChatSessions } from '../hooks/useChatSessions'
 import { SettingsDropdown } from './SettingsDropdown'
 import { CHAT_MODELS, DEFAULT_CHAT_MODEL_ID, ZEN_CHAT_MODEL_KEY } from '../constants'
 import type { ChatModelId } from '../constants'
@@ -62,6 +63,12 @@ function formatTime(iso: string): string {
   return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 }
 
+function formatDate(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
 function groupMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages
 }
@@ -75,16 +82,34 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     return DEFAULT_CHAT_MODEL_ID
   })
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
+  const [showSessions, setShowSessions] = useState(false)
 
-  const { messages, isLoading, error, send, reset } = useZenChat(undefined, selectedModel)
+  const { sessions, activeSession, selectSession, createSession, updateMessages, deleteSession } =
+    useChatSessions()
+
+  const { messages, isLoading, error, send, reset } = useZenChat(
+    activeSession.id,
+    selectedModel,
+    activeSession.id,
+    activeSession.messages,
+  )
+
+  // Keep session storage in sync with live messages.
+  useEffect(() => {
+    const finalized = messages.filter((m) => m.id !== STREAMING_PLACEHOLDER_ID)
+    updateMessages(activeSession.id, finalized)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages])
+
   const [input, setInput] = useState('')
   const isWide = useIsWideViewport()
-  const bodyRef = useRef<HTMLDivElement>(null)
-  const userHasControl = useRef(false)
   const [panelWidth, setPanelWidth] = usePanelWidth()
   const [, setKeyboardOffset] = useState(0)
 
   const grouped = useMemo(() => groupMessages(messages), [messages])
+
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const userHasControl = useRef(false)
 
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
@@ -144,6 +169,18 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
     await send(value)
   }
 
+  const handleSelectSession = useCallback((id: string) => {
+    selectSession(id)
+    setShowSessions(false)
+    userHasControl.current = false
+  }, [selectSession])
+
+  const handleNewChat = useCallback(() => {
+    createSession()
+    setShowSessions(false)
+    userHasControl.current = false
+  }, [createSession])
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     const viewport = window.visualViewport
@@ -189,21 +226,35 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
       )}
       <div className="zen-chat__header">
         <div className="zen-chat__header-info">
-          <div className="zen-chat__title">Zen companion</div>
-          <div className="zen-chat__subtitle">Short reflections, calm and grounded.</div>
+          <div className="zen-chat__title">
+            {showSessions ? 'Chats' : 'Zen companion'}
+          </div>
+          {!showSessions && (
+            <div className="zen-chat__subtitle">Short reflections, calm and grounded.</div>
+          )}
         </div>
         <div className="zen-chat__header-controls">
-          <div className="zen-chat__model-picker">
-            <SettingsDropdown
-              options={CHAT_MODELS}
-              selected={selectedModel}
-              onSelect={handleModelChange}
-              ariaLabel="Select AI model"
-              triggerLabel={CHAT_MODELS.find((m) => m.value === selectedModel)?.label ?? selectedModel}
-              isOpen={modelDropdownOpen}
-              onOpenChange={setModelDropdownOpen}
-            />
-          </div>
+          {!showSessions && (
+            <div className="zen-chat__model-picker">
+              <SettingsDropdown
+                options={CHAT_MODELS}
+                selected={selectedModel}
+                onSelect={handleModelChange}
+                ariaLabel="Select AI model"
+                triggerLabel={CHAT_MODELS.find((m) => m.value === selectedModel)?.label ?? selectedModel}
+                isOpen={modelDropdownOpen}
+                onOpenChange={setModelDropdownOpen}
+              />
+            </div>
+          )}
+          <button
+            type="button"
+            className="zen-chat__header-btn"
+            onClick={() => setShowSessions((v) => !v)}
+            aria-label={showSessions ? 'Back to chat' : 'Show chats'}
+          >
+            {showSessions ? '←' : '☰'}
+          </button>
           <button
             type="button"
             className="zen-chat__header-btn"
@@ -214,80 +265,119 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
           </button>
         </div>
       </div>
-      <div className="zen-chat__body" ref={bodyRef}>
-        {grouped.length === 0 && !isLoading && !error && (
-          <div className="zen-chat__hint">
-            Ask a gentle question, or share how your breath feels. The reply will be brief, like a
-            koan.
-          </div>
-        )}
-        {grouped.map((message) => (
-          <div
-            key={message.id}
-            className={`zen-chat__bubble zen-chat__bubble--${message.role === 'user' ? 'user' : 'assistant'}`}
+
+      {showSessions ? (
+        <div className="zen-chat__sessions">
+          <button
+            type="button"
+            className="zen-chat__sessions-new"
+            onClick={handleNewChat}
           >
-            <div className="zen-chat__bubble-content">
-              {message.content}
-              {isLoading &&
-                message.role === 'assistant' &&
-                message.id === STREAMING_PLACEHOLDER_ID && (
-                  <span className="zen-chat__cursor" aria-hidden="true" />
-                )}
+            + New chat
+          </button>
+          {sessions.map((session) => (
+            <div
+              key={session.id}
+              className={`zen-chat__session-item ${session.id === activeSession.id ? 'zen-chat__session-item--active' : ''}`}
+            >
+              <button
+                type="button"
+                className="zen-chat__session-main"
+                onClick={() => handleSelectSession(session.id)}
+              >
+                <span className="zen-chat__session-title">{session.title}</span>
+                <span className="zen-chat__session-meta">
+                  {formatDate(session.createdAt)} · {session.messages.length} msg{session.messages.length !== 1 ? 's' : ''}
+                </span>
+              </button>
+              <button
+                type="button"
+                className="zen-chat__session-delete"
+                onClick={() => deleteSession(session.id)}
+                aria-label="Delete chat"
+              >
+                ×
+              </button>
             </div>
-            <div className="zen-chat__bubble-meta">
-              <span>{message.role === 'user' ? 'You' : 'Zen'}</span>
-              {message.createdAt && <span>· {formatTime(message.createdAt)}</span>}
-            </div>
-          </div>
-        ))}
-        {isLoading &&
-          !(
-            grouped[grouped.length - 1]?.role === 'assistant' &&
-            grouped[grouped.length - 1]?.id === STREAMING_PLACEHOLDER_ID
-          ) && (
-            <div className="zen-chat__bubble zen-chat__bubble--assistant">
-              <div className="zen-chat__bubble-content">
-                <span className="zen-chat__dot" />
-                <span className="zen-chat__dot" />
-                <span className="zen-chat__dot" />
-              </div>
-            </div>
-          )}
-        {error && <div className="zen-chat__error">{error}</div>}
-      </div>
-      <form className="zen-chat__footer" onSubmit={handleSubmit} autoComplete="off">
-        <button
-          type="button"
-          className="zen-chat__secondary"
-          onClick={reset}
-          aria-label="Reset Zen conversation"
-        >
-          Reset
-        </button>
-        <div className="zen-chat__input-wrap">
-          <input
-            className="zen-chat__input"
-            type="text"
-            name="zen-chat-message"
-            autoComplete="one-time-code"
-            autoCorrect="off"
-            autoCapitalize="none"
-            spellCheck={false}
-            inputMode="text"
-            value={input}
-            onChange={(event) => {
-              userHasControl.current = true
-              setInput(event.target.value)
-            }}
-            placeholder="“What is this breath?”"
-            aria-label="Message Zen companion"
-          />
+          ))}
         </div>
-        <button type="submit" className="zen-chat__primary" disabled={isLoading}>
-          Send
-        </button>
-      </form>
+      ) : (
+        <>
+          <div className="zen-chat__body" ref={bodyRef}>
+            {grouped.length === 0 && !isLoading && !error && (
+              <div className="zen-chat__hint">
+                Ask a gentle question, or share how your breath feels. The reply will be brief, like a
+                koan.
+              </div>
+            )}
+            {grouped.map((message) => (
+              <div
+                key={message.id}
+                className={`zen-chat__bubble zen-chat__bubble--${message.role === 'user' ? 'user' : 'assistant'}`}
+              >
+                <div className="zen-chat__bubble-content">
+                  {message.content}
+                  {isLoading &&
+                    message.role === 'assistant' &&
+                    message.id === STREAMING_PLACEHOLDER_ID && (
+                      <span className="zen-chat__cursor" aria-hidden="true" />
+                    )}
+                </div>
+                <div className="zen-chat__bubble-meta">
+                  <span>{message.role === 'user' ? 'You' : 'Zen'}</span>
+                  {message.createdAt && <span>· {formatTime(message.createdAt)}</span>}
+                </div>
+              </div>
+            ))}
+            {isLoading &&
+              !(
+                grouped[grouped.length - 1]?.role === 'assistant' &&
+                grouped[grouped.length - 1]?.id === STREAMING_PLACEHOLDER_ID
+              ) && (
+                <div className="zen-chat__bubble zen-chat__bubble--assistant">
+                  <div className="zen-chat__bubble-content">
+                    <span className="zen-chat__dot" />
+                    <span className="zen-chat__dot" />
+                    <span className="zen-chat__dot" />
+                  </div>
+                </div>
+              )}
+            {error && <div className="zen-chat__error">{error}</div>}
+          </div>
+          <form className="zen-chat__footer" onSubmit={handleSubmit} autoComplete="off">
+            <button
+              type="button"
+              className="zen-chat__secondary"
+              onClick={reset}
+              aria-label="Reset Zen conversation"
+            >
+              Reset
+            </button>
+            <div className="zen-chat__input-wrap">
+              <input
+                className="zen-chat__input"
+                type="text"
+                name="zen-chat-message"
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                inputMode="text"
+                value={input}
+                onChange={(event) => {
+                  userHasControl.current = true
+                  setInput(event.target.value)
+                }}
+                placeholder={'\u201cWhat is this breath?\u201d'}
+                aria-label="Message Zen companion"
+              />
+            </div>
+            <button type="submit" className="zen-chat__primary" disabled={isLoading}>
+              Send
+            </button>
+          </form>
+        </>
+      )}
     </aside>
   )
 }
-

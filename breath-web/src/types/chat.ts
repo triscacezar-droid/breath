@@ -16,6 +16,13 @@ export interface ChatCitation {
   snippet: string
 }
 
+export interface ChatSession {
+  id: string
+  title: string
+  createdAt: string
+  messages: ChatMessage[]
+}
+
 export interface ChatRequest {
   sessionId?: string
   messages: ChatMessage[]
