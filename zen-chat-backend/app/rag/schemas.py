@@ -78,9 +78,9 @@ class RagContext(BaseModel):
 
     lines: list[str] = []
     lines.append(
-      "The following are short excerpts from Buddhist texts. "
-      "Use them as quiet background inspiration for your reply. "
-      "You do not need to quote them directly."
+      "The following are relevant excerpts from Buddhist texts. "
+      "Draw on them to inform your answer where useful — cite or paraphrase them concretely. "
+      "Prioritise answering the user's actual question over general advice."
     )
     for idx, chunk in enumerate(self.chunks, start=1):
       label_parts: list[str] = [chunk.title]
