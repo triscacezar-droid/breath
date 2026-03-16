@@ -370,7 +370,7 @@ export function ZenChatPanel({ isOpen, onClose }: ZenChatPanelProps) {
                 className="zen-chat__input"
                 type="text"
                 name="zen-chat-message"
-                autoComplete="one-time-code"
+                autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="none"
                 spellCheck={false}
