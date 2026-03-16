@@ -104,6 +104,7 @@ export type ChatModelId = (typeof CHAT_MODELS)[number]['value']
 export const DEFAULT_CHAT_MODEL_ID: ChatModelId = 'gpt-4o-mini'
 
 export const ZEN_CHAT_MODEL_KEY = 'zen-chat-model'
+export const ZEN_CHAT_HISTORY_KEY = 'zen-chat-history'
 
 export const SLOT_ANIMATION_MS = 260
 

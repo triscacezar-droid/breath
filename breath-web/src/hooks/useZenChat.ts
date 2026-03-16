@@ -1,8 +1,24 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatCitation, ChatMessage } from '../types/chat'
 import { sendChatMessageStream } from '../lib/chatClient'
-import { DEFAULT_CHAT_MODEL_ID } from '../constants'
+import { DEFAULT_CHAT_MODEL_ID, ZEN_CHAT_HISTORY_KEY } from '../constants'
 import type { ChatModelId } from '../constants'
+
+function loadHistory(): ChatMessage[] {
+  try {
+    const raw = localStorage.getItem(ZEN_CHAT_HISTORY_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed as ChatMessage[]
+  } catch { /* ignore */ }
+  return []
+}
+
+function saveHistory(messages: ChatMessage[]): void {
+  try {
+    localStorage.setItem(ZEN_CHAT_HISTORY_KEY, JSON.stringify(messages))
+  } catch { /* ignore */ }
+}
 
 interface UseZenChatState {
   messages: ChatMessage[]
@@ -15,11 +31,17 @@ interface UseZenChatState {
 export const STREAMING_PLACEHOLDER_ID = 'assistant-streaming'
 
 export function useZenChat(initialSessionId?: string, model: ChatModelId = DEFAULT_CHAT_MODEL_ID): UseZenChatState {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>(() => loadHistory())
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const sessionId = useMemo(() => initialSessionId ?? crypto.randomUUID(), [initialSessionId])
+
+  // Persist finalized messages (never the streaming placeholder).
+  useEffect(() => {
+    const finalized = messages.filter((m) => m.id !== STREAMING_PLACEHOLDER_ID)
+    saveHistory(finalized)
+  }, [messages])
 
   const send = useCallback(
     async (content: string) => {
@@ -101,6 +123,7 @@ export function useZenChat(initialSessionId?: string, model: ChatModelId = DEFAU
   const reset = useCallback(() => {
     setMessages([])
     setError(null)
+    try { localStorage.removeItem(ZEN_CHAT_HISTORY_KEY) } catch { /* ignore */ }
   }, [])
 
   return {
